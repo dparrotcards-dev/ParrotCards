@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -7,10 +7,8 @@ import {
   Sparkles,
   CreditCard,
   Cpu,
-  Compass,
   TrendingUp,
   Activity,
-  ShieldAlert,
   KeyRound,
   Menu,
   X,
@@ -19,33 +17,61 @@ import {
   ChevronRight,
   ExternalLink,
   ShieldCheck,
+  ShoppingCart,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { IUser } from '../../types';
 
 const NAV_ITEMS = [
   { label: 'Overview', to: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Seekers & Users', to: '/admin/users', icon: Users },
   { label: 'Personalized Decks', to: '/admin/decks', icon: Layers },
   { label: '55-Card Catalog', to: '/admin/cards', icon: Sparkles },
+  { label: 'Cosmic Store', to: '/admin/store', icon: ShoppingCart },
   { label: 'Payments & Revenue', to: '/admin/payments', icon: CreditCard },
-  { label: 'Astronomy Engine', to: '/admin/astronomy', icon: Compass },
   { label: 'Analytics & Trends', to: '/admin/analytics', icon: TrendingUp },
   { label: 'System Health', to: '/admin/system', icon: Activity },
-  { label: 'Audit Logs & Admins', to: '/admin/audit-logs', icon: ShieldAlert },
   { label: 'Change Password', to: '/admin/change-password', icon: KeyRound },
 ];
 
 export const AdminShell: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, loading } = useAuth();
+  const { user } = useAuth();
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState<boolean>(false);
 
-  const isAuthorized =
-    user && ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(user.role);
+  const [adminUser, setAdminUser] = useState<IUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('pc_admin_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [adminLoading, setAdminLoading] = useState<boolean>(true);
 
-  if (loading) {
+  useEffect(() => {
+    const adminToken = localStorage.getItem('pc_admin_token');
+    const adminSaved = localStorage.getItem('pc_admin_user');
+    if (adminToken && adminSaved) {
+      try {
+        setAdminUser(JSON.parse(adminSaved));
+      } catch {
+        setAdminUser(null);
+      }
+    } else if (user && ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(user.role)) {
+      setAdminUser(user);
+    } else {
+      setAdminUser(null);
+    }
+    setAdminLoading(false);
+  }, [user, location.pathname]);
+
+  const isAuthorized =
+    adminUser && ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(adminUser.role);
+
+  if (adminLoading) {
     return (
       <div className="min-h-screen bg-[#1A1817] flex flex-col items-center justify-center space-y-4 text-[#FFFDF9]">
         <div className="w-10 h-10 border-3 border-[#8C6D3B] border-t-transparent rounded-full animate-spin" />
@@ -63,8 +89,8 @@ export const AdminShell: React.FC = () => {
           </div>
           <h2 className="font-serif text-2xl font-bold text-[#FFFDF9]">Administrative Access Restricted</h2>
           <p className="text-xs text-[#D6CEBE] leading-relaxed">
-            {user
-              ? `Your account (${user.email}) does not have administrative privileges.`
+            {adminUser
+              ? `Your account (${adminUser.email}) does not have administrative privileges.`
               : 'You must be signed in with an authorized administrative account to access this command portal.'}
           </p>
           <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
@@ -87,7 +113,9 @@ export const AdminShell: React.FC = () => {
   }
 
   const handleLogout = async () => {
-    await logout();
+    localStorage.removeItem('pc_admin_token');
+    localStorage.removeItem('pc_admin_user');
+    setAdminUser(null);
     navigate('/admin/login');
   };
 
@@ -138,11 +166,11 @@ export const AdminShell: React.FC = () => {
         {/* Desktop Collapsible Sidebar */}
         <aside
           className={`hidden lg:flex flex-col bg-[#23201F] border-r border-[#8C6D3B]/20 transition-all duration-300 relative z-30 ${
-            collapsed ? 'w-20' : 'w-64'
+            collapsed ? 'w-20' : 'w-[232px]'
           }`}
         >
           {/* Brand Logo & Collapse Toggle */}
-          <div className="h-16 px-4 border-b border-[#8C6D3B]/20 flex items-center justify-between">
+          <div className="h-14 px-4 border-b border-[#8C6D3B]/20 flex items-center justify-between">
             {!collapsed && (
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <span className="text-[#8C6D3B] text-xl">✦</span>
@@ -201,12 +229,12 @@ export const AdminShell: React.FC = () => {
             >
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <div className="w-8 h-8 rounded-xl bg-[#8C6D3B]/20 border border-[#8C6D3B]/40 text-[#8C6D3B] flex items-center justify-center font-bold text-xs flex-shrink-0">
-                  {user?.name ? user.name[0].toUpperCase() : 'A'}
+                  {adminUser?.name ? adminUser.name[0].toUpperCase() : 'A'}
                 </div>
                 {!collapsed && (
                   <div className="overflow-hidden">
-                    <div className="text-xs font-bold text-[#FFFDF9] truncate">{user?.name || 'Hemant Paliwal'}</div>
-                    <div className="text-[10px] text-[#D6CEBE] truncate font-mono">{user?.email}</div>
+                    <div className="text-xs font-bold text-[#FFFDF9] truncate">{adminUser?.name || 'Hemant Paliwal'}</div>
+                    <div className="text-[10px] text-[#D6CEBE] truncate font-mono">{adminUser?.email}</div>
                   </div>
                 )}
               </div>
@@ -298,7 +326,7 @@ export const AdminShell: React.FC = () => {
         {/* Primary Page Canvas */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#1A1817]">
           {/* Top Bar for Desktop */}
-          <header className="hidden lg:flex h-16 bg-[#1A1817]/95 backdrop-blur-xl border-b border-[#8C6D3B]/20 px-8 items-center justify-between sticky top-0 z-20">
+          <header className="hidden lg:flex h-14 bg-[#1A1817]/95 backdrop-blur-xl border-b border-[#8C6D3B]/20 px-8 items-center justify-between sticky top-0 z-20">
             {/* Breadcrumb / Title */}
             <div className="flex items-center gap-3">
               <span className="text-[#8C6D3B] text-xs font-mono font-medium">Console</span>
@@ -332,7 +360,7 @@ export const AdminShell: React.FC = () => {
           </header>
 
           {/* Page Routed Content Container */}
-          <main className="flex-1 p-4 sm:p-5 lg:p-6 max-w-7xl w-full mx-auto min-w-0">
+          <main className="flex-1 min-w-0 w-full p-4 sm:p-5 lg:px-10 lg:py-6">
             <Outlet />
           </main>
         </div>

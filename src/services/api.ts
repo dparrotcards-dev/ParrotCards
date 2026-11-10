@@ -12,7 +12,13 @@ export const api = axios.create({
 
 // Attach Authorization token or guest session if stored
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('pc_token');
+  const isAdminEndpoint = config.url?.startsWith('/admin') || config.url?.startsWith('admin');
+  const rawToken = isAdminEndpoint
+    ? (localStorage.getItem('pc_admin_token') || localStorage.getItem('pc_token'))
+    : localStorage.getItem('pc_token');
+
+  const token = rawToken && rawToken !== 'undefined' && rawToken !== 'null' ? rawToken : null;
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

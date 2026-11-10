@@ -167,5 +167,64 @@ export const adminService = {
     const res = await api.post('/admin/change-password', data);
     return res.data;
   },
+
+  // Cosmic Store Products
+  createProduct: async (productData: {
+    name: string;
+    shortDescription: string;
+    price: number;
+    mrp: number;
+    badge: string;
+    category: string;
+    image: string;
+  }) => {
+    const res = await api.post('/admin/products', productData);
+    return res.data;
+  },
+
+  getProducts: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+    inStock?: string;
+    isActive?: string;
+  }) => {
+    const res = await api.get('/admin/products', { params });
+    return res.data.data;
+  },
+
+  updateProduct: async (
+    id: string,
+    data: {
+      name?: string;
+      shortDescription?: string;
+      price?: number;
+      mrp?: number;
+      badge?: string;
+      category?: string;
+      image?: string;
+      inStock?: boolean;
+      isActive?: boolean;
+    }
+  ) => {
+    const res = await api.put(`/admin/products/${id}`, data);
+    return res.data;
+  },
+
+  deleteProduct: async (id: string) => {
+    const res = await api.delete(`/admin/products/${id}`);
+    return res.data;
+  },
+
+  toggleProductStatus: async (id: string, isActive: boolean) => {
+    const res = await api.patch(`/admin/products/${id}/status`, { isActive });
+    return res.data;
+  },
+
+  toggleProductStock: async (id: string, inStock: boolean) => {
+    const res = await api.patch(`/admin/products/${id}/stock`, { inStock });
+    return res.data;
+  },
 };
 

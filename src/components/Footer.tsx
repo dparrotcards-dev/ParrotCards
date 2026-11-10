@@ -10,11 +10,11 @@ export const Footer: React.FC<FooterProps> = ({ isHome = false }) => {
     <footer
       className={`w-full px-4 text-center select-none transition-all ${
         isHome
-          ? 'py-1 sm:py-1.5 bg-transparent border-t-0'
+          ? 'py-0.5 sm:py-1 bg-transparent border-t-0'
           : 'py-3.5 bg-[#FAF7F2]/60 backdrop-blur-[2px] border-t border-[#8C6D3B]/25'
       }`}
     >
-      <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 sm:gap-6 text-xs font-serif text-[#595147]">
+      <div className={`max-w-6xl mx-auto flex items-center justify-center gap-3 sm:gap-6 font-serif text-[#595147] ${isHome ? 'text-[11px]' : 'text-xs'}`}>
         {/* Left Celestial Moon & Line */}
         {!isHome && (
           <div className="hidden md:flex items-center gap-2 text-[#8C6D3B]/70 flex-1 justify-end">
@@ -26,7 +26,7 @@ export const Footer: React.FC<FooterProps> = ({ isHome = false }) => {
         )}
 
         {/* Links with delicate pipes */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs text-[#595147]">
+        <div className={`flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-[#595147] ${isHome ? 'text-[11px]' : 'text-xs'}`}>
           <Link to="/about" className="hover:text-[#8C6D3B] transition-colors">
             About
           </Link>

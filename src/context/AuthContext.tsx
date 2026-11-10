@@ -6,7 +6,7 @@ interface AuthContextType {
   user: IUser | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (data: { email: string; password: string }) => Promise<void>;
+  login: (data: { email: string; password: string }) => Promise<IUser>;
   register: (data: { email: string; password: string; name: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -15,15 +15,45 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<IUser | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<IUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('pc_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    return !localStorage.getItem('pc_user') && !!localStorage.getItem('pc_token');
+  });
 
   const refreshUser = async () => {
+    const rawToken = localStorage.getItem('pc_token');
+    const token = rawToken && rawToken !== 'undefined' && rawToken !== 'null' ? rawToken : null;
+    if (!token) {
+      setUser(null);
+      localStorage.removeItem('pc_user');
+      setLoading(false);
+      return;
+    }
+
     try {
       const u = await authService.getMe();
-      setUser(u);
-    } catch {
-      setUser(null);
+      if (u) {
+        setUser(u);
+        localStorage.setItem('pc_user', JSON.stringify(u));
+      }
+    } catch (err: any) {
+      console.warn('Session verification on refresh:', err?.message);
+      // Keep user logged in from local cache until they explicitly click Sign Out!
+      const saved = localStorage.getItem('pc_user');
+      if (saved && saved !== 'undefined' && saved !== 'null') {
+        try {
+          setUser(JSON.parse(saved));
+        } catch {
+          // ignore
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -36,12 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (data: { email: string; password: string }) => {
     const res = await authService.login(data);
     localStorage.setItem('pc_token', res.token);
+    localStorage.setItem('pc_user', JSON.stringify(res.user));
     setUser(res.user);
+    return res.user;
   };
 
   const register = async (data: { email: string; password: string; name: string }) => {
     const res = await authService.register(data);
     localStorage.setItem('pc_token', res.token);
+    localStorage.setItem('pc_user', JSON.stringify(res.user));
     setUser(res.user);
   };
 
@@ -51,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setUser(null);
       localStorage.removeItem('pc_token');
+      localStorage.removeItem('pc_user');
       localStorage.removeItem('pc_entitlements');
       localStorage.removeItem('pc_deck');
       localStorage.removeItem('pc_cards');

@@ -16,6 +16,14 @@ import { adminService } from '../../services/adminService';
 
 export const AdminChangePasswordPage: React.FC = () => {
   const { user } = useAuth();
+  const adminUser = (() => {
+    try {
+      const saved = localStorage.getItem('pc_admin_user');
+      return saved ? JSON.parse(saved) : user;
+    } catch {
+      return user;
+    }
+  })();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -105,9 +113,9 @@ export const AdminChangePasswordPage: React.FC = () => {
         <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-[#111033] border border-white/10 text-xs text-[#A7A4C4]">
           <Shield className="w-4 h-4 text-[#C9A45C]" />
           <span>Signed in as:</span>
-          <span className="font-semibold text-[#F6F0E6]">{user?.email || 'Administrator'}</span>
+          <span className="font-semibold text-[#F6F0E6]">{adminUser?.email || 'Administrator'}</span>
           <span className="px-2 py-0.5 rounded-full bg-[#C9A45C]/20 text-[#C9A45C] text-[10px] font-bold uppercase tracking-wider">
-            {user?.role || 'Admin'}
+            {adminUser?.role || 'Admin'}
           </span>
         </div>
       </div>

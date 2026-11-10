@@ -126,7 +126,7 @@ export const Card3D: React.FC<Card3DProps> = ({
   const hasAstroData = isCardActuallyUnlocked && (astro.sign != null || astro.deg != null || astro.nak != null);
 
   return (
-    <div className="relative w-full max-w-[310px] sm:max-w-[325px] h-[480px] sm:h-[500px] perspective-1200 mx-auto select-none">
+    <div className="relative w-full max-w-[225px] xs:max-w-[235px] sm:max-w-[245px] lg:max-w-[255px] h-[320px] xs:h-[330px] sm:h-[340px] lg:h-[350px] perspective-1200 mx-auto select-none">
       <motion.div
         className="w-full h-full relative transform-style-3d cursor-pointer"
         animate={{ rotateY: showBack ? 180 : 0 }}
@@ -141,7 +141,7 @@ export const Card3D: React.FC<Card3DProps> = ({
       >
         {/* ================= FRONT FACE (EXACT VINTAGE VELLUM EMBLEM) ================= */}
         <div
-          className={`absolute inset-0 rounded-2xl border-[1.5px] backface-hidden overflow-hidden flex flex-col justify-between p-4 sm:p-5 transition-all ${
+          className={`absolute inset-0 rounded-2xl border-[1.5px] backface-hidden overflow-hidden flex flex-col justify-between p-2.5 sm:p-3.5 transition-all ${
             card.isSovereign
               ? 'border-[#8C6D3B] shadow-[0_16px_36px_rgba(140,109,59,0.32),0_0_20px_rgba(140,109,59,0.2)]'
               : 'border-[#8C6D3B]/60 shadow-[0_12px_28px_rgba(80,60,30,0.14)]'
@@ -156,25 +156,25 @@ export const Card3D: React.FC<Card3DProps> = ({
 
           {/* Ornate Corner Fleurons */}
           <div className="absolute top-1.5 left-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2 14V6a4 4 0 0 1 4-4h8" />
               <circle cx="6" cy="6" r="1.5" fill="#8C6D3B" />
             </svg>
           </div>
           <div className="absolute top-1.5 right-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M22 14V6a4 4 0 0 0-4-4h-8" />
               <circle cx="18" cy="6" r="1.5" fill="#8C6D3B" />
             </svg>
           </div>
           <div className="absolute bottom-1.5 left-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2 10v8a4 4 0 0 0 4 4h8" />
               <circle cx="6" cy="18" r="1.5" fill="#8C6D3B" />
             </svg>
           </div>
           <div className="absolute bottom-1.5 right-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M22 10v8a4 4 0 0 1-4 4h-8" />
               <circle cx="18" cy="18" r="1.5" fill="#8C6D3B" />
             </svg>
@@ -182,67 +182,68 @@ export const Card3D: React.FC<Card3DProps> = ({
 
           {/* Top-Left Corner Index */}
           <div className="text-left font-serif leading-none select-none z-10 pt-0.5 pl-0.5">
-            <span className="text-xl sm:text-2xl font-bold block tracking-tight font-cinzel" style={{ color: rankColor }}>
+            <span className="text-lg sm:text-xl font-bold block tracking-tight font-cinzel" style={{ color: rankColor }}>
               {card.rank}
             </span>
-            <span className="text-base sm:text-lg mt-0.5 block font-bold leading-none" style={{ color: rankColor }}>
+            <span className="text-sm sm:text-base mt-0.5 block font-bold leading-none" style={{ color: rankColor }}>
               {suitMeta.symbol}
             </span>
           </div>
 
           {/* Top-Right Badge (FREE or PAID) */}
-          <div className="absolute top-3 right-3 z-10">
+          <div className="absolute top-2.5 right-2.5 z-10">
             {card.isFree ? (
-              <div className="px-2.5 py-0.5 rounded-full bg-[#E8F3EB] text-[#2E5A36] font-sans font-bold text-[9px] tracking-wider uppercase border border-[#B8D7BE] shadow-xs">
+              <div className="px-2 py-0.5 rounded-full bg-[#E8F3EB] text-[#2E5A36] font-sans font-bold text-[8.5px] tracking-wider uppercase border border-[#B8D7BE] shadow-xs">
                 FREE
               </div>
             ) : (
-              <div className="px-2.5 py-0.5 rounded-full bg-[#FAF0D9] text-[#8C6D3B] font-sans font-bold text-[9px] tracking-wider uppercase border border-[#D5B87D] shadow-xs">
+              <div className="px-2 py-0.5 rounded-full bg-[#FAF0D9] text-[#8C6D3B] font-sans font-bold text-[8.5px] tracking-wider uppercase border border-[#D5B87D] shadow-xs">
                 ₹2 PAID
               </div>
             )}
           </div>
 
           {/* Center Card Content */}
-          <div className="relative text-center my-auto px-2 z-10 select-none flex flex-col items-center">
+          <div className="relative text-center my-auto px-1.5 z-10 select-none flex flex-col items-center">
             {/* Sunburst Emblem */}
             <img
               src="/card_emblem_sun.png"
               alt="Sunburst Emblem"
-              className="w-20 h-20 sm:w-24 sm:h-24 object-contain my-1 select-none pointer-events-none"
+              className="w-12 h-12 sm:w-13 sm:h-13 object-contain my-0.5 select-none pointer-events-none"
+              style={{ width: '50px', height: '50px' }}
             />
 
             {/* Suit & Label */}
-            <div className="text-[9px] sm:text-[10px] font-bold tracking-[0.2em] text-[#8C6D3B] uppercase mb-1 font-cinzel">
+            <div className="text-[8.5px] sm:text-[9.5px] font-bold tracking-[0.18em] text-[#8C6D3B] uppercase mb-0.5 font-cinzel">
               {suitMeta.name} · {card.label}
             </div>
 
             {/* Card Title */}
-            <h2 className="font-cinzel text-lg sm:text-[21px] font-bold leading-tight mb-2 text-[#1A1817] tracking-tight">
+            <h2 className="font-cinzel text-base sm:text-lg font-bold leading-tight mb-1 text-[#1A1817] tracking-tight">
               {card.title}
             </h2>
 
             {/* Quote Epigram */}
             {card.line && (
-              <p className="font-cormorant italic text-xs sm:text-[13px] leading-snug text-[#3D3833] max-w-[210px] mx-auto opacity-95">
+              <p className="font-cormorant italic text-[11px] sm:text-xs leading-snug text-[#3D3833] max-w-[195px] mx-auto opacity-95">
                 "{card.line}"
               </p>
             )}
 
             {/* Bottom Coordinates Pill */}
             {hasAstroData && (
-              <div className="mt-3 px-3 py-1 rounded-full bg-[#FAF5EE] border border-[#8C6D3B]/40 text-[10px] sm:text-[11px] font-sans font-medium text-[#1A1817] tracking-wide inline-block shadow-xs">
+              <div className="mt-2 px-2.5 py-0.5 rounded-full bg-[#FAF5EE] border border-[#8C6D3B]/40 text-[9px] sm:text-[10px] font-sans font-medium text-[#1A1817] tracking-wide inline-block shadow-xs">
                 {formatSign().split(' • ')[0]} {fmtDeg(astro.deg)} · {astro.nak || '—'} {astro.pada ? `P${astro.pada}` : ''}
               </div>
             )}
           </div>
 
           {/* Bottom-Right Inverted Corner Index */}
-          <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 font-serif leading-none rotate-180 text-right select-none z-10">
-            <span className="text-xl sm:text-2xl font-bold block tracking-tight font-cinzel" style={{ color: rankColor }}>
+          <div className="absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5 font-serif leading-none rotate-180 text-right select-none z-10">
+            <span className="text-lg sm:text-xl font-bold block tracking-tight font-cinzel" style={{ color: rankColor }}>
               {card.rank}
             </span>
-            <span className="text-base sm:text-lg mt-0.5 block font-bold leading-none" style={{ color: rankColor }}>
+            <span className="text-sm sm:text-base mt-0.5 block font-bold leading-none" style={{ color: rankColor }}>
               {suitMeta.symbol}
             </span>
           </div>

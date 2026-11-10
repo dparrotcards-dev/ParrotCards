@@ -28,11 +28,13 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminDecksPage } from './pages/admin/AdminDecksPage';
 import { AdminCardsPage } from './pages/admin/AdminCardsPage';
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage';
-import { AdminAstronomyPage } from './pages/admin/AdminAstronomyPage';
 import { AdminAnalyticsPage } from './pages/admin/AdminAnalyticsPage';
 import { AdminSystemPage } from './pages/admin/AdminSystemPage';
-import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 import { AdminChangePasswordPage } from './pages/admin/AdminChangePasswordPage';
+import { CosmicStorePage } from './pages/CosmicStorePage';
+import { CartPage } from './pages/CartPage';
+import { AdminAddProductPage } from './pages/admin/AdminAddProductPage';
+import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 
 export const App: React.FC = () => {
   return (
@@ -47,13 +49,16 @@ export const App: React.FC = () => {
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="decks" element={<AdminDecksPage />} />
               <Route path="cards" element={<AdminCardsPage />} />
+              <Route path="store" element={<AdminProductsPage />} />
+              <Route path="store/products" element={<Navigate to="/admin/store" replace />} />
+              <Route path="store/add-product" element={<AdminAddProductPage />} />
               <Route path="payments" element={<AdminPaymentsPage />} />
               <Route path="ai-monitoring" element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="astronomy" element={<AdminAstronomyPage />} />
+              <Route path="astronomy" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="analytics" element={<AdminAnalyticsPage />} />
               <Route path="system" element={<AdminSystemPage />} />
-              <Route path="admins" element={<AdminAuditLogsPage />} />
-              <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+              <Route path="admins" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="audit-logs" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="change-password" element={<AdminChangePasswordPage />} />
             </Route>
 
@@ -64,6 +69,9 @@ export const App: React.FC = () => {
               <Route path="avatar" element={<SovereignAvatarPage />} />
               <Route path="profile/astronomy" element={<AstronomicalProfilePage />} />
               <Route path="pricing" element={<PricingCheckoutPage />} />
+              <Route path="services" element={<Navigate to="/" replace />} />
+              <Route path="cosmic-store" element={<CosmicStorePage />} />
+              <Route path="cart" element={<CartPage />} />
               <Route path="payment/result" element={<PaymentResultPage />} />
               <Route path="account" element={<UserProfilePage />} />
               <Route path="saved-deck" element={<SavedDeckPage />} />

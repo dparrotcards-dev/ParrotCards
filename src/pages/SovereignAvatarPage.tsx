@@ -49,19 +49,19 @@ export const SovereignAvatarPage: React.FC = () => {
         </button>
 
         {/* Majestic Sovereign Card Emblem */}
-        <div className="relative bg-[#FFFDF9] border-2 border-[#8C6D3B]/40 rounded-3xl p-8 sm:p-12 shadow-[0_16px_40px_rgba(26,24,23,0.08)] text-center space-y-6">
+        <div className="relative bg-[#FFFDF9] border-2 border-[#8C6D3B]/40 rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 shadow-[0_16px_40px_rgba(26,24,23,0.08)] text-center space-y-4 sm:space-y-6">
           {/* Top Crown Badge */}
-          <div className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full bg-[#8C6D3B] text-[#FAF7F2] text-xs font-bold tracking-widest uppercase font-cinzel shadow-md mx-auto">
-            <Crown className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-1.5 rounded-full bg-[#8C6D3B] text-[#FAF7F2] text-xs font-bold tracking-widest uppercase font-cinzel shadow-md mx-auto">
+            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Crowned Atma Karaka</span>
           </div>
 
           {/* Sovereign Avatar Phrase */}
-          <div className="space-y-3">
-            <span className="text-[11px] uppercase tracking-[0.25em] text-[#6B635B] block font-cinzel font-bold">
+          <div className="space-y-2 sm:space-y-3">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#6B635B] block font-cinzel font-bold">
               The Sovereign Sky of {profile.name}
             </span>
-            <h1 className="font-cinzel text-3xl sm:text-5xl font-bold text-[#8C6D3B] leading-tight">
+            <h1 className="font-cinzel text-2xl sm:text-4xl md:text-5xl font-bold text-[#8C6D3B] leading-tight">
               "{deck.avatarPhrase}"
             </h1>
           </div>

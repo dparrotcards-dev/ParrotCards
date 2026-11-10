@@ -6,11 +6,12 @@ import { useAuth } from '../context/AuthContext';
 
 export const PaymentHistoryPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -21,7 +22,15 @@ export const PaymentHistoryPage: React.FC = () => {
       .then((data) => setHistory(data))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="w-8 h-8 border-2 border-[#8C6D3B] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) return null;
 
@@ -61,51 +70,53 @@ export const PaymentHistoryPage: React.FC = () => {
         </div>
       ) : (
         <div className="bg-[#FFFDF9] border border-[#8C6D3B]/25 rounded-3xl overflow-hidden shadow-xl">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-[#1A1817]/10 text-[#1A1817]/70 uppercase text-[10px] tracking-wider bg-[#F2ECE1]">
-                <th className="py-3 px-4">Date</th>
-                <th className="py-3 px-4">Item Type</th>
-                <th className="py-3 px-4">Details</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1A1817]/5">
-              {history.map((tx, idx) => (
-                <tr key={idx} className="hover:bg-[#F2ECE1]/40 transition-colors">
-                  <td className="py-3 px-4 text-[#1A1817]/70 font-mono">
-                    {new Date(tx.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-[#1A1817]">
-                    {tx.itemType === 'DECK_PASS' ? '30-Day Deck Pass' : 'Individual Card'}
-                  </td>
-                  <td className="py-3 px-4 text-[#8C6D3B] font-mono">
-                    {tx.itemId || 'All 55 Cards'}
-                  </td>
-                  <td className="py-3 px-4 font-serif font-bold text-[#8C6D3B] text-sm">
-                    ₹{tx.amount}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        tx.status === 'PAID'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : 'bg-amber-100 text-amber-800 border border-amber-300'
-                      }`}
-                    >
-                      {tx.status === 'PAID' ? (
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                      ) : (
-                        <Clock className="w-3 h-3 text-amber-600" />
-                      )}
-                      <span>{tx.status}</span>
-                    </span>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs min-w-[500px]">
+              <thead>
+                <tr className="border-b border-[#1A1817]/10 text-[#1A1817]/70 uppercase text-[10px] tracking-wider bg-[#F2ECE1]">
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Item Type</th>
+                  <th className="py-3 px-4">Details</th>
+                  <th className="py-3 px-4">Amount</th>
+                  <th className="py-3 px-4">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#1A1817]/5">
+                {history.map((tx, idx) => (
+                  <tr key={idx} className="hover:bg-[#F2ECE1]/40 transition-colors">
+                    <td className="py-3 px-4 text-[#1A1817]/70 font-mono">
+                      {new Date(tx.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-4 font-semibold text-[#1A1817]">
+                      {tx.itemType === 'DECK_PASS' ? '30-Day Deck Pass' : 'Individual Card'}
+                    </td>
+                    <td className="py-3 px-4 text-[#8C6D3B] font-mono">
+                      {tx.itemId || 'All 55 Cards'}
+                    </td>
+                    <td className="py-3 px-4 font-serif font-bold text-[#8C6D3B] text-sm">
+                      ₹{tx.amount}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          tx.status === 'PAID'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-amber-100 text-amber-800 border border-amber-300'
+                        }`}
+                      >
+                        {tx.status === 'PAID' ? (
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        ) : (
+                          <Clock className="w-3 h-3 text-amber-600" />
+                        )}
+                        <span>{tx.status}</span>
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

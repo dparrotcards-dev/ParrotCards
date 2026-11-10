@@ -14,14 +14,14 @@ export const PricingCheckoutPage: React.FC = () => {
   const isPassActive = entitlements?.isDeckPassActive;
 
   return (
-    <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-12 space-y-12">
+    <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 sm:py-10 space-y-6 sm:space-y-10">
       {/* Page Heading */}
-      <div className="text-center space-y-3 max-w-2xl mx-auto">
-        <span className="text-[#8C6D3B] text-3xl font-serif">✦</span>
-        <h1 className="font-cinzel text-4xl sm:text-5xl font-bold text-[#8C6D3B]">
+      <div className="text-center space-y-2 max-w-2xl mx-auto">
+        <span className="text-[#8C6D3B] text-2xl font-serif">✦</span>
+        <h1 className="font-cinzel text-2xl sm:text-3xl md:text-4xl font-bold text-[#8C6D3B]">
           Cosmic Self-Discovery Pricing
         </h1>
-        <p className="font-cormorant italic text-base sm:text-lg text-[#6B635B]">
+        <p className="font-cormorant italic text-sm sm:text-base text-[#6B635B]">
           Honest, transparent access to your complete birth sky. No recurring subscriptions.
         </p>
       </div>
@@ -29,7 +29,7 @@ export const PricingCheckoutPage: React.FC = () => {
       {/* Pricing Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Tier 1: Free Horizon */}
-        <div className="bg-[#FFFDF9] border border-[#8C6D3B]/30 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-sm">
+        <div className="bg-[#FFFDF9] border border-[#8C6D3B]/30 rounded-3xl p-5 sm:p-8 flex flex-col justify-between space-y-6 shadow-sm">
           <div className="space-y-4">
             <div className="text-xs uppercase tracking-widest font-bold text-[#8C6D3B] font-cinzel">
               Foundation
@@ -66,7 +66,7 @@ export const PricingCheckoutPage: React.FC = () => {
         </div>
 
         {/* Tier 2: Complete 30-Day Deck Pass (Featured) */}
-        <div className="relative bg-[#FFFDF9] border-2 border-[#8C6D3B] rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-[0_12px_36px_rgba(140,109,59,0.25)] scale-105 z-10">
+        <div className="relative bg-[#FFFDF9] border-2 border-[#8C6D3B] rounded-3xl p-5 sm:p-8 flex flex-col justify-between space-y-6 shadow-[0_12px_36px_rgba(140,109,59,0.25)] md:scale-105 my-2 md:my-0 z-10">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#8C6D3B] text-[#FAF7F2] text-[10px] font-bold uppercase tracking-widest font-cinzel shadow-md">
             Most Popular
           </div>

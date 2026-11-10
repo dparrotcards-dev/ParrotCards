@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/authService';
 
 export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, login } = useAuth();
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -14,13 +13,22 @@ export const AdminLoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  // If already logged in as admin, redirect to dashboard
+  // If already logged in as admin via admin token, redirect to dashboard
   useEffect(() => {
-    const adminRoles = ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'];
-    if (user && adminRoles.includes(user.role)) {
-      navigate('/admin/dashboard', { replace: true });
+    const adminToken = localStorage.getItem('pc_admin_token');
+    const adminSaved = localStorage.getItem('pc_admin_user');
+    if (adminToken && adminSaved) {
+      try {
+        const u = JSON.parse(adminSaved);
+        const adminRoles = ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'];
+        if (adminRoles.includes(u.role)) {
+          navigate('/admin/dashboard', { replace: true });
+        }
+      } catch {
+        // invalid JSON, ignore
+      }
     }
-  }, [user, navigate]);
+  }, [navigate]);
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -32,12 +40,21 @@ export const AdminLoginPage: React.FC = () => {
         throw new Error('Please enter both email and password');
       }
 
-      await login({
+      // Log in directly without overwriting the consumer seeker session
+      const res = await authService.login({
         email: email.trim().toLowerCase(),
         password: password.trim(),
       });
 
-      // Verify the user token in storage or state
+      const adminRoles = ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'];
+      if (!adminRoles.includes(res.user.role)) {
+        throw new Error('This account does not have administrative privileges.');
+      }
+
+      // Store in dedicated admin keys — preserving frontend user session!
+      localStorage.setItem('pc_admin_token', res.token);
+      localStorage.setItem('pc_admin_user', JSON.stringify(res.user));
+
       setSuccess(true);
       setTimeout(() => {
         navigate('/admin/dashboard', { replace: true });

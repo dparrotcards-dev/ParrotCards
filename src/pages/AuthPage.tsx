@@ -49,15 +49,21 @@ export const AuthPage: React.FC = () => {
           password: data.password,
           name: data.name,
         });
+        const returnUrl = (location.state as any)?.from || '/';
+        navigate(returnUrl);
       } else {
-        await login({
+        const loggedInUser = await login({
           email: data.email,
           password: data.password,
         });
-      }
 
-      const returnUrl = (location.state as any)?.from || '/deck';
-      navigate(returnUrl);
+        if (loggedInUser && ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(loggedInUser.role)) {
+          navigate('/admin/dashboard');
+        } else {
+          const returnUrl = (location.state as any)?.from || '/';
+          navigate(returnUrl);
+        }
+      }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please check credentials.');
     } finally {

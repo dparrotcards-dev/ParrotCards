@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Download, Plus, Sparkles, Crown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Crown } from 'lucide-react';
 import { useDeck } from '../context/DeckContext';
 import { SuitTabs } from '../components/SuitTabs';
 import { Card3D } from '../components/Card3D';
@@ -8,6 +8,8 @@ import { HandFan } from '../components/HandFan';
 import { CardDetailModal } from '../components/CardDetailModal';
 import { UnlockModal } from '../components/UnlockModal';
 import { ICard } from '../types';
+import { api } from '../services/api';
+import { deckService } from '../services/deckService';
 
 export const DeckPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export const DeckPage: React.FC = () => {
     selectedCard,
     revealedCardKeys,
     cardsOfSuit,
+    setProfileAndDeck,
   } = useDeck();
 
   const [activeModalCard, setActiveModalCard] = useState<ICard | null>(null);
@@ -28,12 +31,26 @@ export const DeckPage: React.FC = () => {
   const [unlockTargetCard, setUnlockTargetCard] = useState<ICard | null>(null);
   const [unlockMode, setUnlockMode] = useState<'CARD' | 'PASS'>('CARD');
 
-  // If no deck generated yet, guide user back to entry
+  // If no deck generated yet, try to load user's saved deck or guide back to entry
   useEffect(() => {
     if (!profile || cards.length === 0) {
-      navigate('/');
+      api
+        .get('/account')
+        .then(async (res) => {
+          const decks = res.data?.data?.decks;
+          if (Array.isArray(decks) && decks.length > 0) {
+            const latest = decks[0];
+            const data = await deckService.getDeckCards(latest._id);
+            setProfileAndDeck(latest.profileId, latest, data.cards, data.entitlements);
+          } else {
+            navigate('/');
+          }
+        })
+        .catch(() => {
+          navigate('/');
+        });
     }
-  }, [profile, cards, navigate]);
+  }, [profile, cards.length, navigate, setProfileAndDeck]);
 
   const currentSuitCards = cardsOfSuit(selectedSuit);
 
@@ -63,17 +80,30 @@ export const DeckPage: React.FC = () => {
     setSelectedCardIndex(prev);
   };
 
-  const handleDownloadRaw = () => {
-    if (!deck) return;
-    const blob = new Blob([JSON.stringify({ profile, deck, cards }, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `parrot-cards-deck-${profile?.name.replace(/\s+/g, '_') || 'sky'}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  // Mobile Touch Swipe Handling
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+    // Trigger only if horizontal swipe dominates and exceeds threshold
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+      if (deltaX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
   };
 
   const handleOpenUnlock = (card: ICard, mode: 'CARD' | 'PASS' = 'CARD') => {
@@ -87,67 +117,46 @@ export const DeckPage: React.FC = () => {
   }
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between select-none overflow-hidden pb-4">
+    <div className="flex-1 w-full flex flex-col justify-between select-none overflow-hidden pb-1 min-h-0">
       {/* Top Status & Controls Bar Matching Reference Image */}
-      <div className="w-full flex items-center justify-between px-6 sm:px-12 py-3.5 border-b border-[#8C6D3B]/20 bg-[#FAF7F2]/40 backdrop-blur-xs">
-        <div className="flex items-center gap-2">
-          <span className="font-cinzel text-lg sm:text-xl text-[#1A1817] font-bold tracking-wide">
-            {profile?.name || 'Seeker'}
+      <div className="w-full flex items-center justify-between px-3 sm:px-6 md:px-12 py-1 sm:py-2 border-b border-[#8C6D3B]/20 bg-[#FAF7F2]/40 backdrop-blur-xs shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-cinzel text-xs sm:text-base text-[#1A1817] font-bold tracking-[0.14em] uppercase truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
+            {profile?.name ? profile.name.toUpperCase() : 'VARUN MENARIYA'}
           </span>
-          {deck?.avatarPhrase && (
-            <Link
-              to="/avatar"
-              className="flex items-center gap-1 text-xs sm:text-sm text-[#73582D] hover:text-[#1A1817] italic font-cormorant font-medium transition-colors"
-            >
-              <span>· {deck.avatarPhrase}</span>
-            </Link>
-          )}
         </div>
 
-        <div className="flex items-center gap-5 sm:gap-7 text-xs sm:text-sm">
+        <div className="flex items-center text-xs shrink-0">
           <div className="flex items-center gap-1 font-cinzel text-[#1A1817]">
-            <span className="text-[#595147] font-medium">Revealed</span>
-            <span className="font-bold text-[#1A1817] ml-1">{revealedCardKeys.size}</span>
+            <span className="font-bold text-[#1A1817]">{selectedCardIndex + 1}</span>
             <span className="text-[#8C6D3B]/70">/</span>
             <span className="font-bold text-[#1A1817]">55</span>
           </div>
-          <button
-            onClick={handleDownloadRaw}
-            className="flex items-center gap-1 text-[#73582D] hover:text-[#1A1817] text-xs sm:text-sm font-cormorant font-semibold transition-colors cursor-pointer"
-            title="Download Raw Astrological Data"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>raw</span>
-          </button>
-          <Link
-            to="/"
-            className="flex items-center gap-1 text-[#73582D] hover:text-[#1A1817] text-xs sm:text-sm font-cormorant font-semibold transition-colors"
-            title="New Reading"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>new</span>
-          </Link>
         </div>
       </div>
 
       {/* Suit / Category Navigation Tabs */}
-      <div className="pt-2 pb-1">
+      <div className="pt-1.5 sm:pt-2 pb-0.5 shrink-0">
         <SuitTabs />
       </div>
 
       {/* Stage: Interactive 3D Card with Navigation Controls */}
-      <div className="flex-1 relative flex items-center justify-center px-4 sm:px-8 py-2 min-h-0">
-        {/* Left Navigation Chevron Button (Pill style matching Image 1 & 2) */}
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="flex-1 relative flex items-center justify-center px-2 sm:px-12 py-1 min-h-0 touch-pan-y"
+      >
+        {/* Left Navigation Chevron Button (Circular pill matching Image) */}
         <button
           onClick={handlePrev}
           aria-label="Previous card"
-          className="absolute left-4 sm:left-12 lg:left-24 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#FAF5EE]/90 border border-[#8C6D3B]/40 text-[#8C6D3B] hover:border-[#8C6D3B] hover:bg-[#FAF5EE] hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center transition-all cursor-pointer"
+          className="absolute left-1 sm:left-6 lg:left-24 z-20 w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-full bg-[#FAF5EE]/95 border border-[#8C6D3B]/35 text-[#595147] hover:text-[#1A1817] hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center transition-all cursor-pointer"
         >
-          <ChevronLeft className="w-6 h-6" strokeWidth={1.75} />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={1.75} />
         </button>
 
         {/* 3D Card Stage */}
-        <div className="w-full flex justify-center items-center py-2">
+        <div className="w-full flex justify-center items-center">
           <Card3D
             key={selectedCard._id || selectedCard.key}
             card={selectedCard}
@@ -157,14 +166,25 @@ export const DeckPage: React.FC = () => {
           />
         </div>
 
-        {/* Right Navigation Chevron Button (Pill style matching Image 1 & 2) */}
+        {/* Right Navigation Chevron Button (Circular pill matching Image) */}
         <button
           onClick={handleNext}
           aria-label="Next card"
-          className="absolute right-4 sm:right-12 lg:right-24 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#FAF5EE]/90 border border-[#8C6D3B]/40 text-[#8C6D3B] hover:border-[#8C6D3B] hover:bg-[#FAF5EE] hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center transition-all cursor-pointer"
+          className="absolute right-1 sm:right-6 lg:right-24 z-20 w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-full bg-[#FAF5EE]/95 border border-[#8C6D3B]/35 text-[#595147] hover:text-[#1A1817] hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center transition-all cursor-pointer"
         >
-          <ChevronRight className="w-6 h-6" strokeWidth={1.75} />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={1.75} />
         </button>
+      </div>
+
+      {/* Hand Fan Carousel (Fanned Poker Spread Matching Reference Image) */}
+      <div className="shrink-0 pt-0.5 pb-0.5 relative z-20">
+        <HandFan cards={currentSuitCards} />
+      </div>
+
+      {/* Bottom Celestial Moon Hairline Matching Reference Image */}
+      <div className="w-full relative flex items-center justify-center py-1 select-none shrink-0">
+        <div className="absolute inset-x-8 sm:inset-x-24 top-1/2 h-px bg-gradient-to-r from-transparent via-[#8C6D3B]/30 to-transparent" />
+        <span className="relative z-10 px-3 bg-[#FAF6EE] text-[#8C6D3B] text-sm leading-none">☾</span>
       </div>
 
       {/* Deep Reading Modal */}

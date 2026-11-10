@@ -8,12 +8,13 @@ import { deckService } from '../services/deckService';
 
 export const SavedDeckPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { setProfileAndDeck } = useDeck();
   const [decks, setDecks] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -26,7 +27,17 @@ export const SavedDeckPage: React.FC = () => {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="w-8 h-8 border-2 border-[#8C6D3B] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   const handleOpenDeck = async (deckItem: any) => {
     setLoading(true);

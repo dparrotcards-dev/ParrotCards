@@ -22,10 +22,18 @@ import { useAuth } from '../../context/AuthContext';
 
 export const AdminUsersPage: React.FC = () => {
   const { user: currentUser } = useAuth();
+  const currentAdmin = (() => {
+    try {
+      const saved = localStorage.getItem('pc_admin_user');
+      return saved ? JSON.parse(saved) : currentUser;
+    } catch {
+      return currentUser;
+    }
+  })();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
-  const [roleFilter, setRoleFilter] = useState<string>('ALL');
+  const [roleFilter, setRoleFilter] = useState<string>('user');
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -216,7 +224,7 @@ export const AdminUsersPage: React.FC = () => {
                 </tr>
               ) : users.length > 0 ? (
                 users.map((u) => {
-                  const isSelf = (currentUser?.email && currentUser.email.toLowerCase() === u.email.toLowerCase()) || currentUser?.id === u.id;
+                  const isSelf = (currentAdmin?.email && currentAdmin.email.toLowerCase() === u.email.toLowerCase()) || currentAdmin?.id === u.id;
                   return (
                     <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="py-3.5 px-4 font-semibold text-[#F6F0E6]">
@@ -472,8 +480,8 @@ export const AdminUsersPage: React.FC = () => {
                       setDeletingUser(target);
                     }}
                     disabled={
-                      (currentUser?.email && currentUser.email.toLowerCase() === userDetails.user.email.toLowerCase()) ||
-                      currentUser?.id === userDetails.user.id
+                      (currentAdmin?.email && currentAdmin.email.toLowerCase() === userDetails.user.email.toLowerCase()) ||
+                      currentAdmin?.id === userDetails.user.id
                     }
                     className="py-2 px-3.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 disabled:opacity-30 disabled:pointer-events-none font-semibold text-xs flex items-center gap-1.5 transition-all"
                   >

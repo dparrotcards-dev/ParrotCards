@@ -7,11 +7,12 @@ import { api } from '../services/api';
 
 export const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, loading, logout } = useAuth();
   const { profile, entitlements, clearSession } = useDeck();
   const [accountData, setAccountData] = useState<any>(null);
 
   useEffect(() => {
+    if (loading) return;
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -21,21 +22,29 @@ export const UserProfilePage: React.FC = () => {
       .get('/account')
       .then((res) => setAccountData(res.data.data))
       .catch((err) => console.error(err));
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="w-8 h-8 border-2 border-[#8C6D3B] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) return null;
 
   return (
     <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
       {/* Profile Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-[#1A1817]/10">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/40 flex items-center justify-center text-[#8C6D3B] font-serif text-2xl font-bold shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#1A1817]/10">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/40 flex items-center justify-center text-[#8C6D3B] font-serif text-xl sm:text-2xl font-bold shadow-sm shrink-0">
             {user?.name?.[0]?.toUpperCase() || 'P'}
           </div>
-          <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#1A1817]">{user?.name}</h1>
-            <p className="text-xs text-[#8C6D3B] font-mono">{user?.email}</p>
+          <div className="min-w-0">
+            <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-[#1A1817] truncate">{user?.name}</h1>
+            <p className="text-xs text-[#8C6D3B] font-mono truncate">{user?.email}</p>
           </div>
         </div>
 
@@ -45,9 +54,9 @@ export const UserProfilePage: React.FC = () => {
             await logout();
             navigate('/');
           }}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F2ECE1] hover:bg-[#7A1C1C]/15 border border-[#8C6D3B]/20 text-[#1A1817] hover:text-[#7A1C1C] text-xs font-semibold transition-colors shadow-sm"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F2ECE1] hover:bg-[#7A1C1C]/15 border border-[#8C6D3B]/20 text-[#1A1817] hover:text-[#7A1C1C] text-xs font-semibold transition-colors shadow-sm shrink-0"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>Sign Out</span>
         </button>
       </div>

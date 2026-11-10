@@ -6,11 +6,11 @@ export const SUIT_METADATA: Record<
   CardSuit,
   { name: string; subtitle: string; symbol: string; color: string; red: boolean }
 > = {
-  Dharma: { name: 'Dharma', subtitle: 'Purpose ✦', symbol: '♠', color: '#2B2927', red: false },
-  Artha: { name: 'Artha', subtitle: 'Power ✦', symbol: '♦', color: '#7A1C1C', red: true },
-  Kama: { name: 'Kama', subtitle: 'Feeling ✦', symbol: '♥', color: '#7A1C1C', red: true },
-  Moksha: { name: 'Moksha', subtitle: 'Freedom ✦', symbol: '♣', color: '#2B2927', red: false },
-  MasterKey: { name: 'Master Keys', subtitle: 'Sovereign ✦', symbol: '✦', color: '#8C6D3B', red: false },
+  Dharma: { name: 'DHARMA', subtitle: 'PURPOSE', symbol: '♠', color: '#2B2927', red: false },
+  Artha: { name: 'ARTHA', subtitle: 'POWER', symbol: '♦', color: '#7A1C1C', red: true },
+  Kama: { name: 'KAMA', subtitle: 'FEELING', symbol: '♥', color: '#7A1C1C', red: true },
+  Moksha: { name: 'MOKSHA', subtitle: 'FREEDOM', symbol: '♣', color: '#2B2927', red: false },
+  MasterKey: { name: 'MASTER KEYS', subtitle: 'SOVEREIGN', symbol: '✦', color: '#8C6D3B', red: false },
 };
 
 export const SuitTabs: React.FC = () => {
@@ -18,7 +18,7 @@ export const SuitTabs: React.FC = () => {
   const suits: CardSuit[] = ['Dharma', 'Artha', 'Kama', 'Moksha', 'MasterKey'];
 
   return (
-    <div className="flex items-center gap-3 overflow-x-auto px-4 py-2 no-scrollbar max-w-4xl mx-auto justify-start sm:justify-center">
+    <div className="flex items-center gap-2 sm:gap-3.5 overflow-x-auto px-3 sm:px-4 py-1 sm:py-1.5 no-scrollbar max-w-4xl mx-auto justify-start sm:justify-center snap-x snap-mandatory touch-pan-x">
       {suits.map((suit) => {
         const meta = SUIT_METADATA[suit];
         const suitCards = cardsOfSuit(suit);
@@ -32,37 +32,37 @@ export const SuitTabs: React.FC = () => {
             style={
               isSelected
                 ? {
-                    background: 'linear-gradient(135deg, #2D2722 0%, #1A1715 100%)',
+                    background: 'linear-gradient(135deg, #24201D 0%, #161412 100%)',
                     borderColor: '#8C6D3B',
-                    boxShadow: '0 4px 16px rgba(140, 109, 59, 0.35), inset 0 0 10px rgba(140, 109, 59, 0.2)',
+                    boxShadow: '0 4px 16px rgba(140, 109, 59, 0.32), inset 0 0 10px rgba(140, 109, 59, 0.18)',
                   }
                 : {
-                    backgroundColor: 'rgba(250, 245, 238, 0.92)',
-                    borderColor: 'rgba(140, 109, 59, 0.3)',
+                    backgroundColor: 'rgba(250, 245, 238, 0.95)',
+                    borderColor: 'rgba(140, 109, 59, 0.32)',
                     boxShadow: '0 2px 8px rgba(80, 60, 30, 0.06)',
                   }
             }
-            className="flex-shrink-0 flex items-center gap-3.5 px-4 sm:px-5 py-2.5 rounded-2xl border transition-all text-left group hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            className="flex-shrink-0 snap-center flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border transition-all text-left group hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             <span
               style={{ color: isSelected ? '#E6C98F' : meta.color }}
-              className="text-xl sm:text-2xl font-serif leading-none transition-transform group-hover:scale-110 font-bold"
+              className="text-lg sm:text-xl font-serif leading-none transition-transform group-hover:scale-110 font-bold"
             >
               {meta.symbol}
             </span>
             <div className="leading-tight">
               <div
                 style={{ color: isSelected ? '#E6C98F' : '#1A1817' }}
-                className="text-xs sm:text-[13px] font-cinzel font-bold tracking-wider"
+                className="text-[11px] sm:text-xs font-cinzel font-bold tracking-wider"
               >
                 {meta.name}
               </div>
               <div
-                style={{ color: isSelected ? '#C2AA7A' : '#73582D' }}
-                className="text-[10px] sm:text-[11px] flex items-center gap-1 font-serif mt-0.5"
+                style={{ color: isSelected ? '#C2AA7A' : '#6B635B' }}
+                className="text-[9px] sm:text-[10px] flex items-center gap-1 font-serif mt-0.5 tracking-tight"
               >
-                <span>{meta.subtitle}</span>
-                <span>·</span>
+                <span className="font-cinzel tracking-wider">{meta.subtitle}</span>
+                <span className="text-[7.5px] text-[#8C6D3B]">✦</span>
                 <span className="font-mono font-semibold">
                   {revealedCount}/{suitCards.length}
                 </span>

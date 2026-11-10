@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { ICard } from '../types';
 import { useDeck } from '../context/DeckContext';
 import { SUIT_METADATA } from './SuitTabs';
@@ -9,89 +9,167 @@ interface HandFanProps {
 
 export const HandFan: React.FC<HandFanProps> = ({ cards }) => {
   const { selectedCardIndex, setSelectedCardIndex, selectedSuit, revealedCardKeys } = useDeck();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const isPointerDown = useRef<boolean>(false);
+  const suitMeta = SUIT_METADATA[selectedSuit] || SUIT_METADATA.Dharma;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const activeCardRef = useRef<HTMLDivElement>(null);
+
+  const [windowWidth, setWindowWidth] = useState<number>(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 390
+  );
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const n = cards.length;
-  const stepAngle = Math.min(5.6, 70 / Math.max(1, n - 1));
-  const suitMeta = SUIT_METADATA[selectedSuit] || SUIT_METADATA.Dharma;
+  if (n === 0) return null;
 
-  const handlePointerPick = (clientX: number) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const relativeX = clientX - rect.left;
-    const progress = Math.max(0, Math.min(1, relativeX / rect.width));
-    const targetIndex = Math.min(n - 1, Math.floor(progress * n));
-    if (targetIndex !== selectedCardIndex) {
-      setSelectedCardIndex(targetIndex);
+  const mid = (n - 1) / 2;
+
+  // Responsive geometry: On mobile (< 640px), dynamically calculate spacing
+  // so that ALL 13 cards fit 100% within the screen width without horizontal scrolling!
+  const isMobile = windowWidth < 640;
+
+  // Card dimensions:
+  // On mobile (< 640px), compact card width (33px - 38px)
+  // On desktop, standard 58px card
+  const cardWidth = isMobile
+    ? (n > 8 ? (windowWidth < 350 ? 33 : 37) : 44)
+    : 58;
+
+  // Available width for the fan spread (leaving 12px padding for screen safety):
+  const maxAvailable = isMobile ? Math.max(280, windowWidth - 12) : 580;
+
+  // Calculate card spacing:
+  // For 13 cards on mobile, spacing ensures all 13 cards span the viewport edge-to-edge with zero overflow!
+  const cardSpacing = isMobile
+    ? n > 1
+      ? Math.min(n > 8 ? 26.5 : 46, (maxAvailable - cardWidth) / (n - 1))
+      : 0
+    : n > 8
+    ? 38
+    : 56;
+
+  const totalWidth = n > 1 ? (n - 1) * cardSpacing + cardWidth : cardWidth;
+
+  const getCardShortName = (card: ICard) => {
+    if (card.key === 'Lagna' || card.label.toLowerCase().includes('lagna')) return 'Lagna';
+    const clean = card.label.split(' — ')[0].split(' · ')[0].trim();
+    if (clean.toLowerCase().startsWith('varnada')) {
+      const num = clean.replace(/\D/g, '');
+      return num ? `Varnada ${num}` : 'Varnada';
     }
+    return clean;
   };
 
   return (
     <div
       ref={containerRef}
-      onPointerDown={(e) => {
-        isPointerDown.current = true;
-        handlePointerPick(e.clientX);
-      }}
-      onPointerMove={(e) => {
-        if (isPointerDown.current) {
-          handlePointerPick(e.clientX);
-        }
-      }}
-      onPointerUp={() => {
-        isPointerDown.current = false;
-      }}
-      onPointerLeave={() => {
-        isPointerDown.current = false;
-      }}
-      className="relative w-full h-28 sm:h-32 overflow-visible touch-none select-none flex items-end justify-center pt-7 pb-2"
+      className="relative w-full overflow-hidden sm:overflow-x-auto no-scrollbar py-0.5 sm:py-1 px-1 sm:px-4 flex justify-center items-end select-none"
     >
-      <div className="relative w-full max-w-md sm:max-w-lg h-full flex items-end justify-center overflow-visible">
+      <div
+        className="relative flex items-end justify-center my-0"
+        style={{
+          width: `${totalWidth}px`,
+          height: isMobile ? '74px' : '92px',
+        }}
+      >
         {cards.map((card, i) => {
-          const angle = (i - (n - 1) / 2) * stepAngle;
+          const diff = i - mid;
+          // Rotation angle: gentle fan spread
+          const angle = diff * (isMobile ? (n > 8 ? 1.3 : 2.6) : n > 8 ? 1.8 : 3.5);
+          // Subtle convex arch: center card is at peak, edge cards curve down gently
+          const arcY = Math.pow(Math.abs(diff) / (mid || 1), 2) * (isMobile ? 3.5 : 6);
           const isSelected = i === selectedCardIndex;
-          const isRevealed = revealedCardKeys.has(card.key);
+          const isRevealed = revealedCardKeys.has(card.key) || isSelected;
+
+          // Lift selected card straight up
+          const yOffset = isSelected ? (isMobile ? -9 : -12) : arcY;
 
           return (
             <div
               key={card.cardId || `${card.suit}_${i}`}
+              ref={isSelected ? activeCardRef : null}
               onClick={() => setSelectedCardIndex(i)}
+              title={`${card.label} (${card.rank})`}
               style={{
-                transform: `rotate(${angle}deg) ${isSelected ? 'translateY(-26px) scale(1.16)' : 'translateY(0)'}`,
-                transformOrigin: '50% 280%',
-                borderColor: isSelected ? suitMeta.color : 'rgba(140, 109, 59, 0.3)',
-                boxShadow: isSelected ? `0 6px 18px rgba(140, 109, 59, 0.35), 0 0 0 1px ${suitMeta.color}` : 'none',
-                zIndex: isSelected ? 40 : i + 1,
-                transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s',
+                left: `${i * cardSpacing}px`,
+                bottom: '1px',
+                width: `${cardWidth}px`,
+                height: isMobile ? '63px' : '84px',
+                transformOrigin: '50% 150%',
+                transform: `translateY(${yOffset}px) rotate(${angle}deg) scale(${isSelected ? 1.05 : 1})`,
+                zIndex: isSelected ? 50 : i + 1,
+                transition: 'transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s, border-color 0.25s',
               }}
-              className={`absolute bottom-1 w-14 h-20 -ml-7 rounded-[10px] border flex flex-col items-center justify-center font-serif text-sm cursor-pointer overflow-hidden ${
-                isRevealed
-                  ? 'bg-gradient-to-br from-[#FFFDF9] via-[#FAF7F2] to-[#F2ECE1] text-[#1A1817] shadow-sm'
-                  : 'bg-[repeating-linear-gradient(45deg,#24201D_0_4px,#1A1817_4px_8px)] text-[#8C6D3B]'
+              className={`absolute rounded-lg sm:rounded-xl cursor-pointer overflow-hidden flex flex-col justify-between p-1 sm:p-1.5 transition-all group ${
+                isSelected
+                  ? 'border-[1.5px] border-[#8C6D3B] bg-[#FFFDF9] shadow-[0_6px_20px_rgba(140,109,59,0.36)]'
+                  : 'border border-[#8C6D3B]/40 bg-[#FAF5EE] shadow-[0_2px_6px_rgba(70,50,20,0.06)] hover:border-[#8C6D3B]/80 hover:shadow-md'
               }`}
             >
-              {/* Sovereign Mini Crown */}
-              {card.isSovereign && (
-                <span className="absolute top-1 right-1.5 text-[9px] text-[#8C6D3B] font-bold leading-none">
-                  ♛
-                </span>
-              )}
+              {/* Inner hairline */}
+              <div className="absolute inset-0.5 sm:inset-1 rounded-md sm:rounded-lg border border-[#8C6D3B]/20 pointer-events-none" />
 
+              {/* Show Face (if revealed or currently selected) OR Card Back (with engraved compass) */}
               {isRevealed ? (
-                <>
-                  <div className="font-bold leading-none flex items-center gap-0.5 font-cinzel">
-                    <span>{card.rank}</span>
-                    <span style={{ color: suitMeta.red ? '#7A1C1C' : card.suit === 'MasterKey' ? '#8C6D3B' : '#2B2927' }}>
+                <div className="w-full h-full flex flex-col justify-between relative z-10 pointer-events-none select-none">
+                  {/* Top-left Index */}
+                  <div className="leading-none text-left">
+                    <span
+                      className="font-cinzel font-bold text-[10px] sm:text-xs block leading-none"
+                      style={{ color: suitMeta.red ? '#7A1C1C' : card.suit === 'MasterKey' ? '#8C6D3B' : '#1A1817' }}
+                    >
+                      {card.rank}
+                    </span>
+                    <span
+                      className="text-[8.5px] sm:text-[10px] font-serif leading-none mt-0.5 block"
+                      style={{ color: suitMeta.red ? '#7A1C1C' : card.suit === 'MasterKey' ? '#8C6D3B' : '#1A1817' }}
+                    >
                       {suitMeta.symbol}
                     </span>
                   </div>
-                  <span className="text-[7.5px] font-sans font-medium text-[#6B635B] tracking-tight truncate max-w-[46px] mt-1 text-center">
-                    {card.label.split(' — ')[0]}
-                  </span>
-                </>
+
+                  {/* Center Label (e.g. Lagna, Surya, Chandra) */}
+                  <div className="my-auto text-center px-0.5">
+                    <span className="font-cinzel text-[7px] sm:text-[8.5px] font-bold text-[#1A1817] leading-tight block truncate uppercase tracking-wider">
+                      {getCardShortName(card)}
+                    </span>
+                  </div>
+
+                  {/* Bottom-right Inverted Index */}
+                  <div className="leading-none text-right rotate-180">
+                    <span
+                      className="font-cinzel font-bold text-[10px] sm:text-xs block leading-none"
+                      style={{ color: suitMeta.red ? '#7A1C1C' : card.suit === 'MasterKey' ? '#8C6D3B' : '#1A1817' }}
+                    >
+                      {card.rank}
+                    </span>
+                    <span
+                      className="text-[8.5px] sm:text-[10px] font-serif leading-none mt-0.5 block"
+                      style={{ color: suitMeta.red ? '#7A1C1C' : card.suit === 'MasterKey' ? '#8C6D3B' : '#1A1817' }}
+                    >
+                      {suitMeta.symbol}
+                    </span>
+                  </div>
+                </div>
               ) : (
-                <span className="text-[#8C6D3B] text-base">✦</span>
+                /* Card Back: Exact Vintage Celestial Compass Engraving */
+                <div className="w-full h-full flex items-center justify-center relative z-10 pointer-events-none select-none">
+                  <svg width={isMobile ? "24" : "36"} height={isMobile ? "24" : "36"} viewBox="0 0 100 100" className="text-[#8C6D3B]/45">
+                    <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
+                    <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                    <circle cx="50" cy="50" r="16" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 2" />
+                    <circle cx="50" cy="50" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    <line x1="50" y1="6" x2="50" y2="94" stroke="currentColor" strokeWidth="1.2" />
+                    <line x1="6" y1="50" x2="94" y2="50" stroke="currentColor" strokeWidth="1.2" />
+                    <line x1="19" y1="19" x2="81" y2="81" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2" />
+                    <line x1="19" y1="81" x2="81" y2="19" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2" />
+                    <circle cx="50" cy="50" r="2.5" fill="#8C6D3B" />
+                  </svg>
+                </div>
               )}
             </div>
           );
