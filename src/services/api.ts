@@ -1,8 +1,26 @@
 import axios from 'axios';
 
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
+const isLoopbackApiUrl = (value: string): boolean => {
+  try {
+    const hostname = new URL(value).hostname;
+    return (
+      hostname === 'localhost' ||
+      hostname.endsWith('.localhost') ||
+      hostname === '[::1]' ||
+      hostname === '0.0.0.0' ||
+      /^127\./.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+};
+
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1');
+  import.meta.env.PROD && configuredApiBaseUrl && isLoopbackApiUrl(configuredApiBaseUrl)
+    ? '/api/v1'
+    : configuredApiBaseUrl || (import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1');
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
