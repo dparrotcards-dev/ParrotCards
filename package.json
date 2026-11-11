@@ -14,6 +14,7 @@
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.4.7",
     "lucide-react": "^0.475.0",
+    "parrot-cards-monorepo": "file:..",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",

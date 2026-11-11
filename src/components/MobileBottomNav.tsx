@@ -55,6 +55,7 @@ export const MobileBottomNav: React.FC = () => {
 
   const isCurrent = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
+    if (path === '/cosmic-store' && (location.pathname.startsWith('/cosmic-store') || location.pathname === '/cart')) return true;
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
   };

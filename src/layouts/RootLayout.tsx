@@ -38,15 +38,15 @@ export const RootLayout: React.FC = () => {
       <Navbar isHome={isHome || isSupport} isDeck={isDeck} />
 
       {/* Dynamic Route Content */}
-      <main className={`relative flex-1 flex flex-col min-h-0 ${isHome || isSupport ? 'justify-center' : ''} ${!isDeck && !isSupport ? 'pb-16 lg:pb-0' : ''}`}>
+      <main className={`relative flex-1 flex flex-col min-h-0 ${isHome || isSupport ? 'justify-center' : ''} pb-14 sm:pb-16 lg:pb-0`}>
         <Outlet />
       </main>
 
       {/* Footer */}
       {!isDeck && !isSupport && <Footer isHome={isHome} />}
 
-      {/* Mobile-first Bottom Navigation Bar */}
-      {!isDeck && !isSupport && <MobileBottomNav />}
+      {/* Mobile-first Bottom Navigation Bar (Permanently Fixed on Mobile Across All Pages) */}
+      <MobileBottomNav />
     </div>
   );
 };

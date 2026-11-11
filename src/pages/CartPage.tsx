@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   ShoppingCart,
   Sparkles,
-  Tag,
   Trash2,
   Truck,
 } from 'lucide-react';
@@ -70,11 +69,6 @@ export const CartPage: React.FC = () => {
   const [productsMap, setProductsMap] = useState<Record<string, StoreProduct>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
-
-  // Coupon state
-  const [couponCode, setCouponCode] = useState<string>('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; desc: string } | null>(null);
-  const [couponError, setCouponError] = useState<string>('');
 
   // Checkout modal / step
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
@@ -242,38 +236,6 @@ export const CartPage: React.FC = () => {
     showToast('Cart cleared');
   };
 
-  // Coupons
-  const handleApplyCoupon = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCouponError('');
-    const code = couponCode.trim().toUpperCase();
-    if (!code) return;
-
-    if (code === 'COSMIC10') {
-      const disc = Math.round(subtotalActual * 0.1);
-      setAppliedCoupon({ code: 'COSMIC10', discount: disc, desc: '10% Cosmic Discount Applied' });
-      showToast('Coupon COSMIC10 applied successfully!');
-    } else if (code === 'VEDIC') {
-      if (subtotalActual < 1000) {
-        setCouponError('Coupon VEDIC is valid on orders above ₹1,000');
-        return;
-      }
-      setAppliedCoupon({ code: 'VEDIC', discount: 200, desc: '₹200 Vedic Blessing Applied' });
-      showToast('Coupon VEDIC applied successfully!');
-    } else if (code === 'FIRST100') {
-      setAppliedCoupon({ code: 'FIRST100', discount: 100, desc: '₹100 First Order Discount' });
-      showToast('Coupon FIRST100 applied successfully!');
-    } else {
-      setCouponError('Invalid coupon code. Try COSMIC10 or VEDIC');
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
-  };
-
   // Calculations
   const resolvedItems = cartEntries
     .map((entry) => ({
@@ -295,10 +257,9 @@ export const CartPage: React.FC = () => {
   );
 
   const discountOnMrp = subtotalMrp - subtotalActual;
-  const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
   const deliveryCharge = subtotalActual > 0 ? (subtotalActual >= 500 ? 0 : 50) : 0;
-  const totalPayable = Math.max(0, subtotalActual - couponDiscount + deliveryCharge);
-  const totalSavings = discountOnMrp + couponDiscount;
+  const totalPayable = Math.max(0, subtotalActual + deliveryCharge);
+  const totalSavings = discountOnMrp;
 
   const formatPrice = (val: number) => new Intl.NumberFormat('en-IN').format(val);
 
@@ -804,49 +765,8 @@ export const CartPage: React.FC = () => {
                     Order Summary
                   </h2>
 
-                  {/* Coupon Code Box */}
-                  <div className="mt-3.5">
-                    {appliedCoupon ? (
-                      <div className="flex items-center justify-between rounded-xl border border-emerald-300 bg-emerald-50/70 p-2.5 text-xs text-emerald-800">
-                        <div className="flex items-center gap-1.5">
-                          <Tag className="h-3.5 w-3.5 text-emerald-600" />
-                          <div>
-                            <span className="font-bold tracking-wider">{appliedCoupon.code}</span>
-                            <p className="text-[10px] text-emerald-600">{appliedCoupon.desc}</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleRemoveCoupon}
-                          className="font-semibold text-emerald-700 hover:text-red-600 cursor-pointer text-[11px]"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleApplyCoupon} className="space-y-1">
-                        <div className="flex gap-1.5">
-                          <input
-                            type="text"
-                            placeholder="Coupon (e.g. COSMIC10)"
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                            className="flex-1 rounded-xl border border-[#E5DDD0] bg-white px-3 py-1.5 text-xs uppercase tracking-wider text-[#1A1817] placeholder-[#A09890] outline-none focus:border-[#8C6D3B]"
-                          />
-                          <button
-                            type="submit"
-                            className="rounded-xl bg-[#8C6D3B]/10 px-3 py-1.5 font-cinzel text-xs font-bold text-[#765722] hover:bg-[#8C6D3B]/20 transition-colors cursor-pointer"
-                          >
-                            Apply
-                          </button>
-                        </div>
-                        {couponError && <p className="text-[10px] text-red-600 pl-1">{couponError}</p>}
-                      </form>
-                    )}
-                  </div>
-
                   {/* Price Breakdown */}
-                  <div className="mt-4 space-y-2.5 border-t border-[#E5DDD0] pt-3 text-xs text-[#5C5650]">
+                  <div className="mt-3.5 space-y-2.5 text-xs text-[#5C5650]">
                     <div className="flex justify-between">
                       <span>Total MRP ({totalItemCount} items)</span>
                       <span>₹{formatPrice(subtotalMrp)}</span>
@@ -856,13 +776,6 @@ export const CartPage: React.FC = () => {
                       <div className="flex justify-between text-emerald-600">
                         <span>Discount on MRP</span>
                         <span>-₹{formatPrice(discountOnMrp)}</span>
-                      </div>
-                    )}
-
-                    {couponDiscount > 0 && (
-                      <div className="flex justify-between text-emerald-600 font-semibold">
-                        <span>Coupon Savings ({appliedCoupon?.code})</span>
-                        <span>-₹{formatPrice(couponDiscount)}</span>
                       </div>
                     )}
 
