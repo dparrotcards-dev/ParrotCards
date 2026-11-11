@@ -309,7 +309,7 @@ export const BirthEntryPage: React.FC = () => {
                   {...register('name')}
                   type="text"
                   placeholder="Arjun Verma"
-                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
+                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                 />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
               </div>
@@ -355,17 +355,17 @@ export const BirthEntryPage: React.FC = () => {
             </div>
 
             {/* Date & Time Grid */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              <div className="space-y-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full min-w-0">
+              <div className="space-y-1 min-w-0 w-full">
                 <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#8C6D3B]" />
                   <span>Date of Birth</span>
                 </label>
-                <div className="relative">
+                <div className="relative min-w-0 w-full">
                   <input
                     {...register('date')}
                     type="date"
-                    className="w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
+                    className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                   />
                 </div>
                 {errors.date && (
@@ -373,17 +373,17 @@ export const BirthEntryPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0 w-full">
                 <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-[#8C6D3B]" />
                   <span>Time of Birth</span>
                 </label>
-                <div className="relative">
+                <div className="relative min-w-0 w-full">
                   <input
                     {...register('time')}
                     type="time"
                     step="60"
-                    className="w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
+                    className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                   />
                 </div>
                 {errors.time && (
@@ -432,7 +432,7 @@ export const BirthEntryPage: React.FC = () => {
                     }, 220);
                   }}
                   placeholder="Search city, district, country..."
-                  className="w-full pl-9 pr-9 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
+                  className="w-full pl-9 pr-9 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                 />
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/70 pointer-events-none text-xs">🔍</span>
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
@@ -487,7 +487,7 @@ export const BirthEntryPage: React.FC = () => {
                       setValue('ianaTimezone', picked.iana);
                     }
                   }}
-                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-sm appearance-none cursor-pointer pr-9 font-sans shadow-xs"
+                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-base sm:text-sm appearance-none cursor-pointer pr-9 font-sans shadow-xs"
                 >
                   {!WORLD_TIMEZONES.some((tz) => Math.abs(tz.value - selectedTz) < 0.01) && (
                     <option
