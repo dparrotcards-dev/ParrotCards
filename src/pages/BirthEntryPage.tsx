@@ -253,21 +253,21 @@ export const BirthEntryPage: React.FC = () => {
   }
 
   return (
-    <div className="relative flex-1 flex flex-col items-center justify-center w-full px-3 sm:px-6 md:px-8 py-3 sm:py-6 md:py-8 my-auto">
-      <div className="relative z-10 w-full max-w-[430px] sm:max-w-[470px] md:max-w-[490px] lg:max-w-[510px] space-y-2 sm:space-y-3">
+    <div className="relative flex-1 flex flex-col items-center justify-center w-full px-3 sm:px-6 md:px-8 py-1 sm:py-6 md:py-8 my-auto">
+      <div className="relative z-10 w-full max-w-[430px] sm:max-w-[470px] md:max-w-[490px] lg:max-w-[510px] space-y-1 sm:space-y-3">
         {/* Hero Title */}
-        <div className="text-center space-y-0.5 sm:space-y-1">
-          <div className="text-[#8C6D3B] text-xs sm:text-sm select-none leading-none">✦</div>
-          <h1 className="font-cinzel text-xl sm:text-2xl md:text-[26px] tracking-[0.16em] font-bold text-[#1A1817] leading-tight">
+        <div className="text-center space-y-0.5">
+          <div className="text-[#8C6D3B] text-[10px] sm:text-sm select-none leading-none">✦</div>
+          <h1 className="font-cinzel text-lg sm:text-2xl md:text-[26px] tracking-[0.14em] font-bold text-[#1A1817] leading-tight">
             PARROT CARDS
           </h1>
-          <p className="font-cormorant italic text-xs sm:text-sm md:text-base text-[#595147]">
+          <p className="font-cormorant italic text-[11px] sm:text-sm md:text-base text-[#595147] leading-tight">
             Draw the deck your birth sky dealt you.
           </p>
         </div>
 
         {/* Main Form Card Container with Vintage Ornate Corner Framing */}
-        <div className="relative bg-[#FAF5EE]/95 backdrop-blur-sm border border-[#8C6D3B]/45 rounded-2xl p-3.5 sm:p-5 md:p-6 shadow-[0_8px_30px_rgba(80,60,30,0.12)] space-y-2.5 sm:space-y-3.5">
+        <div className="relative bg-[#FAF5EE]/95 backdrop-blur-sm border border-[#8C6D3B]/45 rounded-2xl p-3 sm:p-5 md:p-6 shadow-[0_8px_30px_rgba(80,60,30,0.12)] space-y-2 sm:space-y-3.5 overflow-hidden">
           {/* Inner Hairline Framing */}
           <div className="absolute inset-1 sm:inset-1.5 rounded-xl border border-[#8C6D3B]/20 pointer-events-none" />
 
@@ -297,10 +297,10 @@ export const BirthEntryPage: React.FC = () => {
             </svg>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 sm:space-y-3 relative z-10">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-1.5 sm:space-y-3 relative z-10">
             {/* Full Name Field */}
-            <div className="space-y-1">
-              <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+            <div className="space-y-0.5 sm:space-y-1">
+              <label className="text-[10px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-[#8C6D3B]" />
                 <span>Full Name</span>
               </label>
@@ -309,18 +309,18 @@ export const BirthEntryPage: React.FC = () => {
                   {...register('name')}
                   type="text"
                   placeholder="Arjun Verma"
-                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
+                  className="w-full px-3 py-1.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
               </div>
               {errors.name && (
-                <span className="text-[11px] text-red-600 block mt-0.5">{errors.name.message}</span>
+                <span className="text-[10px] text-red-600 block mt-0.5">{errors.name.message}</span>
               )}
             </div>
 
             {/* Gender Field */}
-            <div className="space-y-1">
-              <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+            <div className="space-y-0.5 sm:space-y-1">
+              <label className="text-[10px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-[#8C6D3B]" />
                 <span>Gender</span>
               </label>
@@ -336,7 +336,7 @@ export const BirthEntryPage: React.FC = () => {
                       key={g.id}
                       type="button"
                       onClick={() => setValue('gender', g.id, { shouldValidate: true })}
-                      className={`py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-xl border text-[11.5px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 cursor-pointer ${
+                      className={`py-1.5 sm:py-2 px-1 sm:px-3 rounded-xl border text-[11px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 cursor-pointer ${
                         isSelected
                           ? 'bg-[#E6D7BE] border-2 border-[#8C6D3B] text-[#1A1817] font-bold shadow-inner'
                           : 'bg-[#F4EEE4] border border-[#C9B390]/80 text-[#595147] hover:text-[#1A1817] hover:border-[#8C6D3B]/60'
@@ -350,57 +350,79 @@ export const BirthEntryPage: React.FC = () => {
               </div>
               <input type="hidden" {...register('gender')} />
               {errors.gender && (
-                <span className="text-[11px] text-red-600 block mt-0.5">{errors.gender.message}</span>
+                <span className="text-[10px] text-red-600 block mt-0.5">{errors.gender.message}</span>
               )}
             </div>
 
-            {/* Date & Time Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full min-w-0">
-              <div className="space-y-1 min-w-0 w-full">
-                <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#8C6D3B]" />
+            {/* Date & Time Grid - Side by Side and 100% Contained */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full min-w-0">
+              <div className="space-y-0.5 sm:space-y-1 min-w-0 w-full">
+                <label className="text-[10px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5 truncate">
+                  <Calendar className="w-3.5 h-3.5 text-[#8C6D3B] shrink-0" />
                   <span>Date of Birth</span>
                 </label>
-                <div className="relative min-w-0 w-full">
+                <div className="relative min-w-0 w-full overflow-hidden rounded-xl">
                   <input
                     {...register('date')}
-                    type="date"
-                    className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
+                    type="text"
+                    placeholder="dd-mm-yyyy"
+                    onFocus={(e) => {
+                      e.target.type = 'date';
+                      try {
+                        e.target.showPicker();
+                      } catch {}
+                    }}
+                    onBlur={(e) => {
+                      if (!e.target.value) e.target.type = 'text';
+                    }}
+                    className="w-full min-w-0 max-w-full pl-2.5 pr-7 py-1.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                   />
+                  <Calendar className="w-3.5 h-3.5 text-[#8C6D3B]/70 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
                 {errors.date && (
-                  <span className="text-[11px] text-red-600 block mt-0.5">{errors.date.message}</span>
+                  <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">{errors.date.message}</span>
                 )}
               </div>
 
-              <div className="space-y-1 min-w-0 w-full">
-                <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[#8C6D3B]" />
+              <div className="space-y-0.5 sm:space-y-1 min-w-0 w-full">
+                <label className="text-[10px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5 truncate">
+                  <Clock className="w-3.5 h-3.5 text-[#8C6D3B] shrink-0" />
                   <span>Time of Birth</span>
                 </label>
-                <div className="relative min-w-0 w-full">
+                <div className="relative min-w-0 w-full overflow-hidden rounded-xl">
                   <input
                     {...register('time')}
-                    type="time"
+                    type="text"
                     step="60"
-                    className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
+                    placeholder="--:--"
+                    onFocus={(e) => {
+                      e.target.type = 'time';
+                      try {
+                        e.target.showPicker();
+                      } catch {}
+                    }}
+                    onBlur={(e) => {
+                      if (!e.target.value) e.target.type = 'text';
+                    }}
+                    className="w-full min-w-0 max-w-full pl-2.5 pr-7 py-1.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                   />
+                  <Clock className="w-3.5 h-3.5 text-[#8C6D3B]/70 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
                 {errors.time && (
-                  <span className="text-[11px] text-red-600 block mt-0.5">{errors.time.message}</span>
+                  <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">{errors.time.message}</span>
                 )}
               </div>
             </div>
 
             {/* Birthplace Autocomplete */}
-            <div className="space-y-1 relative">
-              <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center justify-between">
+            <div className="space-y-0.5 sm:space-y-1 relative">
+              <label className="text-[10px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-[#8C6D3B]" />
                   <span>Birthplace (type & pick from list)</span>
                 </span>
                 {selectedPlace && (
-                  <span className="text-[10.5px] text-[#2E5A36] flex items-center gap-1 font-semibold">
+                  <span className="text-[9.5px] text-[#2E5A36] flex items-center gap-1 font-semibold">
                     <Check className="w-3 h-3 text-[#2E5A36]" />
                     <span>Coordinates set</span>
                   </span>
@@ -432,10 +454,10 @@ export const BirthEntryPage: React.FC = () => {
                     }, 220);
                   }}
                   placeholder="Search city, district, country..."
-                  className="w-full pl-9 pr-9 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
+                  className="w-full pl-8 pr-8 py-1.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                 />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/70 pointer-events-none text-xs">🔍</span>
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8C6D3B]/70 pointer-events-none text-xs">🔍</span>
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
               </div>
 
               {/* Autocomplete Dropdown */}
@@ -459,21 +481,21 @@ export const BirthEntryPage: React.FC = () => {
               )}
 
               {isSearchingLocation && (
-                <span className="text-[10px] text-[#6B635B] block mt-0.5 font-serif">Locating coordinates and timezone…</span>
+                <span className="text-[9.5px] text-[#6B635B] block mt-0.5 font-serif">Locating coordinates and timezone…</span>
               )}
               {errors.place && (
-                <span className="text-[11px] text-red-600 block mt-0.5">{errors.place.message}</span>
+                <span className="text-[10px] text-red-600 block mt-0.5">{errors.place.message}</span>
               )}
             </div>
 
             {/* Timezone Selector (Auto-set from place) */}
-            <div className="space-y-1">
+            <div className="space-y-0.5 sm:space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+                <label className="text-[10px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
                   <span className="text-xs">🌐</span>
                   <span>Timezone (auto-set from place)</span>
                 </label>
-                <span className="text-[#8C6D3B] font-mono font-bold px-2 py-0.5 rounded-md bg-[#F4EEE4] border border-[#C9B390]/80 text-[10px]">
+                <span className="text-[#8C6D3B] font-mono font-bold px-1.5 py-0.5 rounded-md bg-[#F4EEE4] border border-[#C9B390]/80 text-[9.5px]">
                   UTC{selectedTz >= 0 ? `+${selectedTz}` : selectedTz}
                 </span>
               </div>
@@ -487,7 +509,7 @@ export const BirthEntryPage: React.FC = () => {
                       setValue('ianaTimezone', picked.iana);
                     }
                   }}
-                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-base sm:text-sm appearance-none cursor-pointer pr-9 font-sans shadow-xs"
+                  className="w-full px-3 py-1.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-base sm:text-sm appearance-none cursor-pointer pr-8 font-sans shadow-xs"
                 >
                   {!WORLD_TIMEZONES.some((tz) => Math.abs(tz.value - selectedTz) < 0.01) && (
                     <option
@@ -507,7 +529,7 @@ export const BirthEntryPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#8C6D3B]">
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#8C6D3B]">
                   <ChevronDown className="w-4 h-4" />
                 </div>
               </div>
@@ -515,11 +537,11 @@ export const BirthEntryPage: React.FC = () => {
 
             {/* Technical Details Disclosure */}
             <details className="text-xs text-[#595147] group pt-0.5">
-              <summary className="cursor-pointer hover:text-[#8C6D3B] inline-flex items-center gap-1 font-serif text-[11px]">
+              <summary className="cursor-pointer hover:text-[#8C6D3B] inline-flex items-center gap-1 font-serif text-[10.5px]">
                 <span>Technical & Ephemeris Details</span>
-                <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
+                <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
               </summary>
-              <div className="p-2 mt-1 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/60 space-y-0.5 font-mono text-[10px] text-[#1A1817]">
+              <div className="p-2 mt-1 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/60 space-y-0.5 font-mono text-[9.5px] text-[#1A1817]">
                 <div>Ayanamsha: Lahiri / Chitrapaksha</div>
                 <div>House System: Bhava Madhya Method 5</div>
                 <div>Nodes: True Node (Chitrapaksha)</div>
@@ -529,13 +551,13 @@ export const BirthEntryPage: React.FC = () => {
 
             {/* Error Banner */}
             {apiError && (
-              <div className="p-2.5 rounded-xl bg-red-100/90 border border-red-300 text-xs text-red-800">
+              <div className="p-2 rounded-xl bg-red-100/90 border border-red-300 text-xs text-red-800">
                 {apiError}
               </div>
             )}
 
             {/* Submit Button */}
-            <div className="pt-1">
+            <div className="pt-0.5">
               <button
                 type="submit"
                 style={{
@@ -543,7 +565,7 @@ export const BirthEntryPage: React.FC = () => {
                   color: '#FFFDF9',
                   boxShadow: '0 4px 18px rgba(117, 88, 41, 0.38)',
                 }}
-                className="w-full py-3 sm:py-3.5 px-6 rounded-xl hover:brightness-110 active:scale-[0.98] font-cinzel font-bold text-xs sm:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-[#C29B58]/60 cursor-pointer select-none"
+                className="w-full py-2.5 sm:py-3.5 px-6 rounded-xl hover:brightness-110 active:scale-[0.98] font-cinzel font-bold text-xs sm:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-[#C29B58]/60 cursor-pointer select-none"
               >
                 <span className="text-xs" style={{ color: '#F5E6CC' }}>✦</span>
                 <span className="font-cinzel font-bold tracking-[0.16em]" style={{ color: '#FFFDF9', textShadow: '0 1px 3px rgba(30, 20, 10, 0.5)' }}>
@@ -556,7 +578,7 @@ export const BirthEntryPage: React.FC = () => {
         </div>
 
         {/* Attribution Footnote */}
-        <div className="text-center text-xs text-[#595147] font-serif pt-1">
+        <div className="text-center text-[10px] sm:text-xs text-[#595147] font-serif pt-0.5">
           Astronomical data verified by{' '}
           <a
             href="https://jagannathahora.com"
