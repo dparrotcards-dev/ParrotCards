@@ -126,7 +126,7 @@ export const Card3D: React.FC<Card3DProps> = ({
   const hasAstroData = isCardActuallyUnlocked && (astro.sign != null || astro.deg != null || astro.nak != null);
 
   return (
-    <div className="relative w-full max-w-[225px] xs:max-w-[235px] sm:max-w-[245px] lg:max-w-[255px] h-[320px] xs:h-[330px] sm:h-[340px] lg:h-[350px] perspective-1200 mx-auto select-none">
+    <div className="relative w-full max-w-[225px] xs:max-w-[240px] sm:max-w-[265px] md:max-w-[280px] lg:max-w-[295px] h-[320px] xs:h-[340px] sm:h-[375px] md:h-[395px] lg:h-[415px] perspective-1200 mx-auto select-none">
       <motion.div
         className="w-full h-full relative transform-style-3d cursor-pointer"
         animate={{ rotateY: showBack ? 180 : 0 }}

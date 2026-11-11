@@ -8,7 +8,7 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ isHome = false }) => {
   return (
     <footer
-      className={`w-full px-4 text-center select-none transition-all ${
+      className={`w-full px-4 text-center select-none transition-all hidden lg:block ${
         isHome
           ? 'py-0.5 sm:py-1 bg-transparent border-t-0'
           : 'py-3.5 bg-[#FAF7F2]/60 backdrop-blur-[2px] border-t border-[#8C6D3B]/25'

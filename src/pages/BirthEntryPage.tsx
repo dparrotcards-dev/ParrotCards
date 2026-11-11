@@ -253,55 +253,55 @@ export const BirthEntryPage: React.FC = () => {
   }
 
   return (
-    <div className="relative flex-1 flex flex-col items-center justify-center px-3 py-1 sm:py-1.5 min-h-0 w-full my-auto">
-      <div className="relative z-10 w-full max-w-[450px] space-y-1 sm:space-y-1.5 my-auto">
-        {/* Hero Title Matching Image */}
-        <div className="text-center space-y-0.5">
+    <div className="relative flex-1 flex flex-col items-center justify-center w-full px-3.5 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 my-auto">
+      <div className="relative z-10 w-full max-w-[430px] sm:max-w-[470px] md:max-w-[490px] lg:max-w-[510px] space-y-2 sm:space-y-3">
+        {/* Hero Title */}
+        <div className="text-center space-y-0.5 sm:space-y-1">
           <div className="text-[#8C6D3B] text-xs sm:text-sm select-none leading-none">✦</div>
-          <h1 className="font-cinzel text-xl sm:text-[22px] tracking-[0.16em] font-bold text-[#1A1817] leading-tight">
+          <h1 className="font-cinzel text-xl sm:text-2xl md:text-[26px] tracking-[0.16em] font-bold text-[#1A1817] leading-tight">
             PARROT CARDS
           </h1>
-          <p className="font-cormorant italic text-xs sm:text-sm text-[#595147] -mt-0.5">
+          <p className="font-cormorant italic text-xs sm:text-sm md:text-base text-[#595147]">
             Draw the deck your birth sky dealt you.
           </p>
         </div>
 
         {/* Main Form Card Container with Vintage Ornate Corner Framing */}
-        <div className="relative bg-[#FAF5EE]/95 backdrop-blur-sm border border-[#8C6D3B]/50 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 shadow-[0_6px_24px_rgba(80,60,30,0.10)] space-y-1.5 sm:space-y-2">
+        <div className="relative bg-[#FAF5EE]/95 backdrop-blur-sm border border-[#8C6D3B]/45 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_8px_30px_rgba(80,60,30,0.12)] space-y-2.5 sm:space-y-3.5">
           {/* Inner Hairline Framing */}
-          <div className="absolute inset-1 rounded-xl border border-[#8C6D3B]/20 pointer-events-none" />
+          <div className="absolute inset-1 sm:inset-1.5 rounded-xl border border-[#8C6D3B]/20 pointer-events-none" />
 
           {/* Vintage Ornate Corner Accents */}
-          <div className="absolute top-1 left-1 text-[#8C6D3B] pointer-events-none select-none">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div className="absolute top-1.5 left-1.5 text-[#8C6D3B] pointer-events-none select-none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2 14V6a4 4 0 0 1 4-4h8" />
               <circle cx="6" cy="6" r="1.5" fill="#8C6D3B" />
             </svg>
           </div>
-          <div className="absolute top-1 right-1 text-[#8C6D3B] pointer-events-none select-none">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div className="absolute top-1.5 right-1.5 text-[#8C6D3B] pointer-events-none select-none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M22 14V6a4 4 0 0 0-4-4h-8" />
               <circle cx="18" cy="6" r="1.5" fill="#8C6D3B" />
             </svg>
           </div>
-          <div className="absolute bottom-1 left-1 text-[#8C6D3B] pointer-events-none select-none">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div className="absolute bottom-1.5 left-1.5 text-[#8C6D3B] pointer-events-none select-none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2 10v8a4 4 0 0 0 4 4h8" />
               <circle cx="6" cy="18" r="1.5" fill="#8C6D3B" />
             </svg>
           </div>
-          <div className="absolute bottom-1 right-1 text-[#8C6D3B] pointer-events-none select-none">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div className="absolute bottom-1.5 right-1.5 text-[#8C6D3B] pointer-events-none select-none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M22 10v8a4 4 0 0 1-4 4h-8" />
               <circle cx="18" cy="18" r="1.5" fill="#8C6D3B" />
             </svg>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-1.5 sm:space-y-2 relative z-10">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 sm:space-y-3 relative z-10">
             {/* Full Name Field */}
-            <div className="space-y-0.5">
-              <label className="text-[9.5px] sm:text-[10px] uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
-                <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8C6D3B]" />
+            <div className="space-y-1">
+              <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-[#8C6D3B]" />
                 <span>Full Name</span>
               </label>
               <div className="relative">
@@ -309,9 +309,9 @@ export const BirthEntryPage: React.FC = () => {
                   {...register('name')}
                   type="text"
                   placeholder="Arjun Verma"
-                  className="w-full px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-[13px] sm:text-xs font-sans shadow-sm"
+                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
               </div>
               {errors.name && (
                 <span className="text-[11px] text-red-600 block mt-0.5">{errors.name.message}</span>
@@ -319,12 +319,12 @@ export const BirthEntryPage: React.FC = () => {
             </div>
 
             {/* Gender Field */}
-            <div className="space-y-0.5">
-              <label className="text-[9.5px] sm:text-[10px] uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
-                <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8C6D3B]" />
+            <div className="space-y-1">
+              <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-[#8C6D3B]" />
                 <span>Gender</span>
               </label>
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {([
                   { id: 'Male', label: 'Male', symbol: '♂' },
                   { id: 'Female', label: 'Female', symbol: '♀' },
@@ -336,13 +336,13 @@ export const BirthEntryPage: React.FC = () => {
                       key={g.id}
                       type="button"
                       onClick={() => setValue('gender', g.id, { shouldValidate: true })}
-                      className={`py-1.5 sm:py-1 px-2.5 rounded-lg sm:rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                      className={`py-2 sm:py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
                         isSelected
                           ? 'bg-[#E6D7BE] border-2 border-[#8C6D3B] text-[#1A1817] font-bold shadow-inner'
                           : 'bg-[#F4EEE4] border border-[#C9B390]/80 text-[#595147] hover:text-[#1A1817] hover:border-[#8C6D3B]/60'
                       }`}
                     >
-                      <span className="text-xs">{g.symbol}</span>
+                      <span className="text-xs sm:text-sm">{g.symbol}</span>
                       <span>{g.label}</span>
                     </button>
                   );
@@ -355,17 +355,17 @@ export const BirthEntryPage: React.FC = () => {
             </div>
 
             {/* Date & Time Grid */}
-            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-              <div className="space-y-0.5">
-                <label className="text-[9.5px] sm:text-[10px] uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
-                  <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8C6D3B]" />
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="space-y-1">
+                <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#8C6D3B]" />
                   <span>Date of Birth</span>
                 </label>
                 <div className="relative">
                   <input
                     {...register('date')}
                     type="date"
-                    className="w-full px-2.5 py-2 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-[13px] sm:text-xs font-sans shadow-sm"
+                    className="w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
                   />
                 </div>
                 {errors.date && (
@@ -373,9 +373,9 @@ export const BirthEntryPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="space-y-0.5">
-                <label className="text-[9.5px] sm:text-[10px] uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
-                  <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8C6D3B]" />
+              <div className="space-y-1">
+                <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#8C6D3B]" />
                   <span>Time of Birth</span>
                 </label>
                 <div className="relative">
@@ -383,7 +383,7 @@ export const BirthEntryPage: React.FC = () => {
                     {...register('time')}
                     type="time"
                     step="60"
-                    className="w-full px-2.5 py-2 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-[13px] sm:text-xs font-sans shadow-sm"
+                    className="w-full px-3 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
                   />
                 </div>
                 {errors.time && (
@@ -393,14 +393,14 @@ export const BirthEntryPage: React.FC = () => {
             </div>
 
             {/* Birthplace Autocomplete */}
-            <div className="space-y-0.5 relative">
-              <label className="text-[9.5px] sm:text-[10px] uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center justify-between">
+            <div className="space-y-1 relative">
+              <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8C6D3B]" />
+                  <MapPin className="w-3.5 h-3.5 text-[#8C6D3B]" />
                   <span>Birthplace (type & pick from list)</span>
                 </span>
                 {selectedPlace && (
-                  <span className="text-[9.5px] text-[#2E5A36] flex items-center gap-1 font-semibold">
+                  <span className="text-[10.5px] text-[#2E5A36] flex items-center gap-1 font-semibold">
                     <Check className="w-3 h-3 text-[#2E5A36]" />
                     <span>Coordinates set</span>
                   </span>
@@ -432,25 +432,25 @@ export const BirthEntryPage: React.FC = () => {
                     }, 220);
                   }}
                   placeholder="Search city, district, country..."
-                  className="w-full pl-8 pr-8 py-2 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-[13px] sm:text-xs font-sans shadow-sm"
+                  className="w-full pl-9 pr-9 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-sm font-sans shadow-xs"
                 />
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8C6D3B]/70 pointer-events-none text-xs">🔍</span>
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/70 pointer-events-none text-xs">🔍</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/60 text-xs select-none pointer-events-none">✦</span>
               </div>
 
               {/* Autocomplete Dropdown */}
               {showDropdown && suggestions.length > 0 && (
-                <ul className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#FFFDF9] border border-[#8C6D3B]/40 rounded-xl shadow-xl z-50 py-1 text-xs divide-y divide-[#8C6D3B]/10 no-scrollbar">
+                <ul className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-[#FFFDF9] border border-[#8C6D3B]/40 rounded-xl shadow-xl z-50 py-1 text-xs divide-y divide-[#8C6D3B]/10 no-scrollbar">
                   {suggestions.map((item, idx) => (
                     <li
                       key={idx}
                       onMouseDown={() => handleSelectPlace(item)}
-                      className="p-2 hover:bg-[#F2ECE1] cursor-pointer text-[#1A1817] flex items-center justify-between transition-colors text-xs"
+                      className="p-2.5 hover:bg-[#F2ECE1] cursor-pointer text-[#1A1817] flex items-center justify-between transition-colors text-xs"
                     >
                       <div className="truncate pr-2">
                         <span className="font-medium text-[#1A1817]">{item.label}</span>
                       </div>
-                      <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-[#8C6D3B]/10 text-[#8C6D3B] border border-[#8C6D3B]/25 font-mono font-semibold flex-shrink-0">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#8C6D3B]/10 text-[#8C6D3B] border border-[#8C6D3B]/25 font-mono font-semibold flex-shrink-0">
                         UTC{item.timezone >= 0 ? `+${item.timezone}` : item.timezone}
                       </span>
                     </li>
@@ -459,24 +459,21 @@ export const BirthEntryPage: React.FC = () => {
               )}
 
               {isSearchingLocation && (
-                <span className="text-[9.5px] text-[#6B635B] block mt-0.5 font-serif">Locating coordinates and timezone…</span>
+                <span className="text-[10px] text-[#6B635B] block mt-0.5 font-serif">Locating coordinates and timezone…</span>
               )}
               {errors.place && (
                 <span className="text-[11px] text-red-600 block mt-0.5">{errors.place.message}</span>
               )}
-              {!errors.place && (errors.latitude || errors.longitude) && (
-                <span className="text-[11px] text-red-600 block mt-0.5">Please select your birthplace from the autocomplete list.</span>
-              )}
             </div>
 
             {/* Timezone Selector (Auto-set from place) */}
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-[9.5px] sm:text-[10px] uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
+                <label className="text-[10.5px] sm:text-[11.5px] md:text-xs uppercase tracking-wider font-bold text-[#595147] font-cinzel flex items-center gap-1.5">
                   <span className="text-xs">🌐</span>
                   <span>Timezone (auto-set from place)</span>
                 </label>
-                <span className="text-[#8C6D3B] font-mono font-bold px-1.5 py-0.5 rounded-md bg-[#F4EEE4] border border-[#C9B390]/80 text-[9.5px]">
+                <span className="text-[#8C6D3B] font-mono font-bold px-2 py-0.5 rounded-md bg-[#F4EEE4] border border-[#C9B390]/80 text-[10px]">
                   UTC{selectedTz >= 0 ? `+${selectedTz}` : selectedTz}
                 </span>
               </div>
@@ -490,7 +487,7 @@ export const BirthEntryPage: React.FC = () => {
                       setValue('ianaTimezone', picked.iana);
                     }
                   }}
-                  className="w-full px-2.5 py-2 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-[13px] sm:text-xs appearance-none cursor-pointer pr-8 font-sans shadow-sm"
+                  className="w-full px-3.5 py-2.5 sm:py-2.5 md:py-3 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-sm appearance-none cursor-pointer pr-9 font-sans shadow-xs"
                 >
                   {!WORLD_TIMEZONES.some((tz) => Math.abs(tz.value - selectedTz) < 0.01) && (
                     <option
@@ -510,19 +507,19 @@ export const BirthEntryPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#8C6D3B]">
-                  <ChevronDown className="w-3.5 h-3.5" />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#8C6D3B]">
+                  <ChevronDown className="w-4 h-4" />
                 </div>
               </div>
             </div>
 
             {/* Technical Details Disclosure */}
-            <details className="text-xs text-[#595147] group pt-0">
-              <summary className="cursor-pointer hover:text-[#8C6D3B] inline-flex items-center gap-1 font-serif text-[10.5px]">
+            <details className="text-xs text-[#595147] group pt-0.5">
+              <summary className="cursor-pointer hover:text-[#8C6D3B] inline-flex items-center gap-1 font-serif text-[11px]">
                 <span>Technical & Ephemeris Details</span>
-                <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
+                <ChevronDown className="w-3.5 h-3.5 group-open:rotate-180 transition-transform" />
               </summary>
-              <div className="p-1.5 mt-0.5 rounded-lg bg-[#F4EEE4] border border-[#C9B390]/60 space-y-0.5 font-mono text-[9.5px] text-[#1A1817]">
+              <div className="p-2 mt-1 rounded-xl bg-[#F4EEE4] border border-[#C9B390]/60 space-y-0.5 font-mono text-[10px] text-[#1A1817]">
                 <div>Ayanamsha: Lahiri / Chitrapaksha</div>
                 <div>House System: Bhava Madhya Method 5</div>
                 <div>Nodes: True Node (Chitrapaksha)</div>
@@ -532,21 +529,21 @@ export const BirthEntryPage: React.FC = () => {
 
             {/* Error Banner */}
             {apiError && (
-              <div className="p-2 rounded-xl bg-red-100/90 border border-red-300 text-xs text-red-800">
+              <div className="p-2.5 rounded-xl bg-red-100/90 border border-red-300 text-xs text-red-800">
                 {apiError}
               </div>
             )}
 
-            {/* Submit Button Matching Image */}
-            <div className="pt-0.5">
+            {/* Submit Button */}
+            <div className="pt-1">
               <button
                 type="submit"
                 style={{
                   background: 'linear-gradient(135deg, #8C6D3B 0%, #9B7B43 50%, #735626 100%)',
                   color: '#FFFDF9',
-                  boxShadow: '0 4px 16px rgba(117, 88, 41, 0.35)',
+                  boxShadow: '0 4px 18px rgba(117, 88, 41, 0.38)',
                 }}
-                className="w-full py-2 sm:py-2.5 px-5 rounded-xl hover:brightness-110 active:scale-[0.98] font-cinzel font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-[#C29B58]/60 cursor-pointer select-none"
+                className="w-full py-3 sm:py-3.5 px-6 rounded-xl hover:brightness-110 active:scale-[0.98] font-cinzel font-bold text-xs sm:text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 border border-[#C29B58]/60 cursor-pointer select-none"
               >
                 <span className="text-xs" style={{ color: '#F5E6CC' }}>✦</span>
                 <span className="font-cinzel font-bold tracking-[0.16em]" style={{ color: '#FFFDF9', textShadow: '0 1px 3px rgba(30, 20, 10, 0.5)' }}>
@@ -558,8 +555,8 @@ export const BirthEntryPage: React.FC = () => {
           </form>
         </div>
 
-        {/* Attribution Footnote Matching Image */}
-        <div className="text-center text-[10px] sm:text-[10.5px] text-[#595147] font-serif mt-0.5">
+        {/* Attribution Footnote */}
+        <div className="text-center text-xs text-[#595147] font-serif pt-1">
           Astronomical data verified by{' '}
           <a
             href="https://jagannathahora.com"
