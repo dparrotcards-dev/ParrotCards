@@ -125,12 +125,6 @@ export const MobileBottomNav: React.FC = () => {
                 <span className="mt-0.5 font-cinzel text-[8.5px] font-bold uppercase tracking-wider text-white">
                   Store
                 </span>
-
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#8F2D1F] px-1 text-[9px] font-bold text-white shadow-xs border border-white">
-                    {cartCount}
-                  </span>
-                )}
               </div>
             </Link>
           </div>

@@ -238,18 +238,13 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
               )}
             </button>
 
-            {/* CART (SHOPPING CART WITH GOLD-BROWN BADGE) */}
+            {/* CART (SHOPPING CART) */}
             <Link
               to="/cart"
-              title={`Shopping Cart (${cartCount})`}
+              title="Shopping Cart"
               className="group relative flex items-center justify-center p-1 text-[#9A7130] select-none cursor-pointer outline-none caret-transparent transition-transform hover:scale-110"
             >
               <ShoppingCart aria-hidden="true" className="h-[19px] w-[19px] stroke-[1.8] text-[#9A7130] transition-colors group-hover:text-[#8C6D3B]" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#8A6730] px-0.5 text-[9px] font-bold leading-none text-white shadow-xs pointer-events-none select-none">
-                  {cartCount}
-                </span>
-              )}
             </Link>
           </div>
         </nav>
@@ -291,16 +286,11 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
             </button>
             <Link
               to="/cart"
-              title={`Cart (${cartCount})`}
+              title="Cart"
               aria-label="Cart"
               className="relative flex items-center justify-center p-1 text-[#9A7130] cursor-pointer"
             >
               <ShoppingCart aria-hidden="true" className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px] stroke-[1.8]" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#8A6730] px-0.5 text-[9px] font-bold leading-none text-white shadow-xs">
-                  {cartCount}
-                </span>
-              )}
             </Link>
           </div>
 
@@ -382,11 +372,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
                   <ShoppingCart className="h-4 w-4 stroke-[1.8] text-[#9A7130]" />
                   <span>Cart</span>
                 </div>
-                {cartCount > 0 && (
-                  <span className="flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#8A6730] px-1.5 text-[9.5px] font-bold text-white">
-                    {cartCount}
-                  </span>
-                )}
               </Link>
               <Link
                 to="/support"

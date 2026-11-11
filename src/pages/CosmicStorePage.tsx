@@ -266,24 +266,22 @@ export const CosmicStorePage: React.FC = () => {
 
   /* ──── Cart add ──── */
   const addToCart = (product: StoreProduct) => {
-    if (cartIds.has(product.id)) {
-      navigate('/cart');
-      return;
-    }
     try {
       const stored = localStorage.getItem('pc_cart');
       const list: any[] = stored ? JSON.parse(stored) : [];
-      const exists = list.some((x: any) =>
+      const item = list.find((x: any) =>
         typeof x === 'object' && x?.id ? x.id === product.id : x === product.id
       );
-      if (!exists) {
+      if (item && typeof item === 'object') {
+        item.quantity = (item.quantity || 1) + 1;
+      } else if (!item) {
         list.push({ id: product.id, quantity: 1 });
-        localStorage.setItem('pc_cart', JSON.stringify(list));
-        setCartIds((prev) => new Set([...prev, product.id]));
-        window.dispatchEvent(new Event('pc_store_updated'));
-        setCartToast({ show: true, name: product.name });
-        setTimeout(() => setCartToast({ show: false, name: '' }), 3200);
       }
+      localStorage.setItem('pc_cart', JSON.stringify(list));
+      setCartIds((prev) => new Set([...prev, product.id]));
+      window.dispatchEvent(new Event('pc_store_updated'));
+      setCartToast({ show: true, name: product.name });
+      setTimeout(() => setCartToast({ show: false, name: '' }), 3200);
     } catch {
       // ignore
     }
@@ -459,26 +457,18 @@ export const CosmicStorePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Add to Cart / View Cart */}
+          {/* Add to Cart */}
           <button
             onClick={() => addToCart(product)}
             className={`mt-2 flex h-7.5 sm:h-8 w-full items-center justify-center gap-1.5 rounded-lg text-[11px] sm:text-[11.5px] font-cinzel font-bold uppercase tracking-wider transition-all cursor-pointer ${
               !product.inStock
                 ? 'cursor-not-allowed bg-[#E8E2D8] text-[#A09890]'
-                : cartIds.has(product.id)
-                ? 'bg-[#2E5A36] text-white shadow-xs hover:brightness-105 active:scale-[0.98]'
                 : 'bg-gradient-to-r from-[#9C7536] via-[#8C6D3B] to-[#7A5B2B] text-white shadow-xs hover:brightness-105 active:scale-[0.98]'
             }`}
             disabled={!product.inStock}
           >
             <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            <span>
-              {!product.inStock
-                ? 'Out of Stock'
-                : cartIds.has(product.id)
-                ? 'In Cart · View Cart'
-                : 'Add to Cart'}
-            </span>
+            <span>{!product.inStock ? 'Out of Stock' : 'Add to Cart'}</span>
           </button>
         </div>
       </div>
