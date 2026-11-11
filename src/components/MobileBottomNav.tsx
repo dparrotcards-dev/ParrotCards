@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Info, Layers, ShoppingCart, Heart, User as UserIcon } from 'lucide-react';
+import { Home, Info, ShoppingCart, Heart, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useDeck } from '../context/DeckContext';
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const { deck } = useDeck();
 
   const [wishlistCount, setWishlistCount] = useState<number>(() => {
     try {
@@ -79,9 +77,9 @@ export const MobileBottomNav: React.FC = () => {
         <div className="flex h-16 items-center justify-between">
           {/* 1. HOME */}
           <Link
-            to={deck ? '/deck' : '/'}
+            to="/"
             className={`flex flex-1 flex-col items-center justify-center py-1 transition-all active:scale-95 ${
-              (location.pathname === '/' || (!deck && isCurrent('/'))) ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
+              location.pathname === '/' ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
             }`}
           >
             <div className="relative">
@@ -89,51 +87,31 @@ export const MobileBottomNav: React.FC = () => {
             </div>
             <span
               className={`mt-1 font-cinzel text-[9.5px] font-bold uppercase tracking-wider ${
-                (location.pathname === '/' || (!deck && isCurrent('/'))) ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
+                location.pathname === '/' ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
               }`}
             >
               Home
             </span>
           </Link>
 
-          {/* 2. ABOUT or MY DECK (Shows My Deck only after user has filled info and generated cards) */}
-          {deck ? (
-            <Link
-              to="/deck"
-              className={`flex flex-1 flex-col items-center justify-center py-1 transition-all active:scale-95 ${
-                isCurrent('/deck') ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
+          {/* 2. ABOUT */}
+          <Link
+            to="/about"
+            className={`flex flex-1 flex-col items-center justify-center py-1 transition-all active:scale-95 ${
+              isCurrent('/about') ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
+            }`}
+          >
+            <div className="relative">
+              <Info className="h-5 w-5 stroke-[1.8]" />
+            </div>
+            <span
+              className={`mt-1 font-cinzel text-[9.5px] font-bold uppercase tracking-wider ${
+                isCurrent('/about') ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
               }`}
             >
-              <div className="relative">
-                <Layers className="h-5 w-5 stroke-[1.8]" />
-              </div>
-              <span
-                className={`mt-1 font-cinzel text-[9.5px] font-bold uppercase tracking-wider ${
-                  isCurrent('/deck') ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
-                }`}
-              >
-                My Deck
-              </span>
-            </Link>
-          ) : (
-            <Link
-              to="/about"
-              className={`flex flex-1 flex-col items-center justify-center py-1 transition-all active:scale-95 ${
-                isCurrent('/about') ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
-              }`}
-            >
-              <div className="relative">
-                <Info className="h-5 w-5 stroke-[1.8]" />
-              </div>
-              <span
-                className={`mt-1 font-cinzel text-[9.5px] font-bold uppercase tracking-wider ${
-                  isCurrent('/about') ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
-                }`}
-              >
-                About
-              </span>
-            </Link>
-          )}
+              About
+            </span>
+          </Link>
 
           {/* 3. STORE (Floating Golden Action Button in Center) */}
           <div className="flex flex-1 justify-center">

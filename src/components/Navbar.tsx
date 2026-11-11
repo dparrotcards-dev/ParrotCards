@@ -178,22 +178,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
 
         {/* ═══ DESKTOP CENTER NAVIGATION ═══ */}
         <nav aria-label="Main navigation" className="hidden items-center gap-5 lg:flex lg:gap-6 xl:gap-8 2xl:gap-9 select-none caret-transparent">
-          {/* MY DECK (Visible only after user has filled info and generated their deck) */}
-          {Boolean(deck) && (
-            <Link
-              to="/deck"
-              className={`relative flex items-center gap-1.5 font-cinzel text-[11px] xl:text-[11.5px] font-bold uppercase tracking-[0.06em] select-none cursor-pointer outline-none caret-transparent transition-colors pb-1 px-1 ${
-                isCurrent('/deck') ? 'text-[#8C6D3B]' : 'text-[#1A1817] hover:text-[#8C6D3B]'
-              }`}
-            >
-              <Layers aria-hidden="true" className="h-4 w-4 stroke-[1.8] text-[#9A7130] pointer-events-none" />
-              <span className="pointer-events-none select-none">My Deck</span>
-              {isCurrent('/deck') && (
-                <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#8C6D3B] rounded-full pointer-events-none" />
-              )}
-            </Link>
-          )}
-
           {/* ABOUT */}
           <Link
             to="/about"
@@ -360,20 +344,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
           {/* Floating Luxury Menu Card */}
           <div className="absolute left-2 right-2 sm:left-4 sm:right-4 top-[50px] sm:top-[54px] z-50 mx-auto max-w-[1360px] max-h-[calc(100dvh-64px)] overflow-y-auto rounded-2xl border border-[#E5DDD0] bg-[#FFFDF9] p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(40,30,15,0.22)] lg:hidden">
             <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-              {Boolean(deck) && (
-                <Link
-                  to="/deck"
-                  onClick={closeMobileMenu}
-                  className={`flex h-10 items-center gap-2.5 rounded-xl px-3.5 font-cinzel text-[12px] font-bold uppercase tracking-[0.06em] transition-colors ${
-                    isCurrent('/deck')
-                      ? 'bg-[#8C6D3B]/15 text-[#765722] border border-[#8C6D3B]/30'
-                      : 'text-[#1A1817] hover:bg-[#8C6D3B]/5'
-                  }`}
-                >
-                  <Layers className="h-4 w-4 stroke-[1.8] text-[#9A7130]" />
-                  <span>My Deck</span>
-                </Link>
-              )}
               <Link
                 to="/about"
                 onClick={closeMobileMenu}
