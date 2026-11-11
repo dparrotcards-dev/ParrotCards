@@ -11,6 +11,7 @@ import {
   Shield,
   ShoppingCart,
   Sparkles,
+  Store,
   User as UserIcon,
   X,
 } from 'lucide-react';
@@ -199,7 +200,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
               isCurrent('/cosmic-store') ? 'text-[#8C6D3B]' : 'text-[#1A1817] hover:text-[#8C6D3B]'
             }`}
           >
-            <ShoppingCart aria-hidden="true" className="h-4 w-4 stroke-[1.8] text-[#9A7130] pointer-events-none" />
+            <Store aria-hidden="true" className="h-4 w-4 stroke-[1.8] text-[#9A7130] pointer-events-none" />
             <span className="pointer-events-none select-none">Cosmic Store</span>
             {isCurrent('/cosmic-store') && (
               <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#8C6D3B] rounded-full pointer-events-none" />
@@ -365,7 +366,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
                     : 'text-[#1A1817] hover:bg-[#8C6D3B]/5'
                 }`}
               >
-                <ShoppingCart className="h-4 w-4 stroke-[1.8] text-[#9A7130]" />
+                <Store className="h-4 w-4 stroke-[1.8] text-[#9A7130]" />
                 <span>Cosmic Store</span>
               </Link>
               <Link

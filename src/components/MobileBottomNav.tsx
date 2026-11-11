@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Info, ShoppingCart, Heart, User as UserIcon } from 'lucide-react';
+import { Home, Info, Store, ShoppingCart, Heart, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const MobileBottomNav: React.FC = () => {
@@ -121,7 +121,7 @@ export const MobileBottomNav: React.FC = () => {
               aria-label="Cosmic Store"
             >
               <div className="relative flex h-[58px] w-[58px] flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#C99C42] via-[#B4882F] to-[#966E20] shadow-[0_6px_18px_rgba(150,110,32,0.4)] ring-4 ring-[#FAF7F2]">
-                <ShoppingCart className="h-5 w-5 stroke-[2] text-white -mt-0.5" />
+                <Store className="h-5 w-5 stroke-[2] text-white -mt-0.5" />
                 <span className="mt-0.5 font-cinzel text-[8.5px] font-bold uppercase tracking-wider text-white">
                   Store
                 </span>

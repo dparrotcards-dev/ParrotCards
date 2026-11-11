@@ -18,6 +18,7 @@ import {
   ExternalLink,
   ShieldCheck,
   ShoppingCart,
+  Store,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { IUser } from '../../types';
@@ -27,7 +28,7 @@ const NAV_ITEMS = [
   { label: 'Seekers & Users', to: '/admin/users', icon: Users },
   { label: 'Personalized Decks', to: '/admin/decks', icon: Layers },
   { label: '55-Card Catalog', to: '/admin/cards', icon: Sparkles },
-  { label: 'Cosmic Store', to: '/admin/store', icon: ShoppingCart },
+  { label: 'Cosmic Store', to: '/admin/store', icon: Store },
   { label: 'Payments & Revenue', to: '/admin/payments', icon: CreditCard },
   { label: 'Analytics & Trends', to: '/admin/analytics', icon: TrendingUp },
   { label: 'System Health', to: '/admin/system', icon: Activity },
