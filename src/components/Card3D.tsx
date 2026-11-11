@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Sparkles, RotateCw } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { ICard } from '../types';
 import { SUIT_METADATA } from './SuitTabs';
 
@@ -331,35 +331,13 @@ export const Card3D: React.FC<Card3DProps> = ({
             </svg>
           </div>
 
-          {/* Header with Title and Action Icons */}
+          {/* Header with Title */}
           <div className="relative text-center pb-1 pt-0.5 border-b border-[#8C6D3B]/25 z-10">
             <h3 className="font-cinzel text-base sm:text-lg font-bold text-[#73582D] tracking-wide inline-flex items-center gap-1.5">
               <span className="text-xs text-[#8C6D3B]">✦</span>
               <span>{card.label}</span>
               <span className="text-xs text-[#8C6D3B]">✦</span>
             </h3>
-            <div className="absolute top-0 right-0 flex items-center gap-1 z-20">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenDetail?.(card);
-                }}
-                className="p-1 rounded-full bg-[#FAF5EE] border border-[#8C6D3B]/40 hover:bg-[#F2ECE1] text-[#8C6D3B] transition-colors"
-                title="Deep Oracle Reading"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsFlipped(false);
-                }}
-                className="p-1 rounded-full bg-[#FAF5EE] border border-[#8C6D3B]/40 hover:bg-[#F2ECE1] text-[#73582D] transition-colors"
-                title="Flip to Front"
-              >
-                <RotateCw className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
 
           {/* Astronomical Placement Rows Matching Image 2 */}
