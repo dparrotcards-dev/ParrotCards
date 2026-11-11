@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  X,
+  Sparkles,
+  Shield,
+  CheckCircle2,
+  AlertCircle,
+  Mail,
+  Lock,
+  User,
+  ArrowLeft,
+  ArrowRight,
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { ICard } from '../types';
 import { paymentService } from '../services/paymentService';
@@ -20,19 +32,24 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, isAuthenticated, login, register: registerUser } = useAuth();
   const { refreshDeck } = useDeck();
   const [selectedMode, setSelectedMode] = useState<'CARD' | 'PASS'>(mode);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleCheckout = async () => {
-    if (!isAuthenticated) {
-      setError('Please sign in or create an account to process your payment.');
-      return;
-    }
+  // Authentication view state (for users who are not logged in)
+  const [authView, setAuthView] = useState<'LOGIN' | 'REGISTER' | null>(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
 
+  const startPaymentFlow = async () => {
     setLoading(true);
     setError(null);
 
@@ -120,6 +137,40 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
     }
   };
 
+  const handleCheckoutClick = () => {
+    if (!isAuthenticated) {
+      setAuthView('LOGIN');
+      setError(null);
+      return;
+    }
+    startPaymentFlow();
+  };
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthLoading(true);
+
+    try {
+      if (authView === 'LOGIN') {
+        await login({ email: authEmail, password: authPassword });
+      } else {
+        if (!authName.trim()) {
+          throw new Error('Please enter your full name');
+        }
+        await registerUser({ email: authEmail, password: authPassword, name: authName.trim() });
+      }
+
+      // Successfully logged in / registered! Proceed directly to payment
+      setAuthView(null);
+      await startPaymentFlow();
+    } catch (err: any) {
+      setAuthError(err.message || 'Authentication failed. Please check credentials.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   return createPortal(
     <div
       onClick={onClose}
@@ -137,99 +188,286 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        <div className="text-center space-y-2">
-          <span className="text-[#8C6D3B] text-2xl font-serif">✦</span>
-          <h3 className="font-cinzel text-2xl font-bold text-[#8C6D3B]">Unlock Cosmic Wisdom</h3>
-          <p className="text-xs text-[#6B635B] max-w-xs mx-auto font-serif">
-            Choose an option below to reveal your authentic astrological placements & deep interpretations.
-          </p>
-        </div>
-
-        {/* Pricing Options */}
-        <div className="grid grid-cols-2 gap-3">
-          {card && (
-            <button
-              onClick={() => setSelectedMode('CARD')}
-              className={`p-4 rounded-2xl border text-left transition-all ${
-                selectedMode === 'CARD'
-                  ? 'border-[#8C6D3B] bg-[#FFFDF9] shadow-[0_4px_16px_rgba(140,109,59,0.22)]'
-                  : 'border-[#8C6D3B]/25 bg-[#F2ECE1]/60 hover:bg-[#F2ECE1]'
-              }`}
-            >
-              <div className="text-[10px] uppercase font-bold tracking-wider text-[#8C6D3B] mb-1 font-cinzel">
-                Single Card
-              </div>
-              <div className="font-cinzel text-2xl font-bold text-[#1A1817]">₹2</div>
-              <div className="text-[11px] text-[#6B635B] mt-1 line-clamp-1 truncate font-serif">
-                {card.title}
-              </div>
-            </button>
-          )}
-
-          <button
-            onClick={() => setSelectedMode('PASS')}
-            className={`p-4 rounded-2xl border text-left transition-all ${
-              selectedMode === 'PASS' || !card
-                ? 'border-[#8C6D3B] bg-[#FFFDF9] shadow-[0_4px_16px_rgba(140,109,59,0.22)]'
-                : 'border-[#8C6D3B]/25 bg-[#F2ECE1]/60 hover:bg-[#F2ECE1]'
-            } ${!card ? 'col-span-2' : ''}`}
-          >
-            <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-[#8C6D3B] mb-1 font-cinzel">
-              <span>All 55 Cards</span>
-              <span className="px-1.5 py-0.5 rounded bg-[#8C6D3B]/15 text-[#8C6D3B] text-[9px] font-bold">Best Value</span>
+        {/* ════════════════════ AUTHENTICATION VIEW ════════════════════ */}
+        {authView ? (
+          <div className="space-y-5">
+            {/* Back Button & Price Tag Header */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#8C6D3B]/20">
+              <button
+                type="button"
+                onClick={() => setAuthView(null)}
+                className="flex items-center gap-1.5 text-xs font-cinzel font-semibold text-[#8C6D3B] hover:text-[#73582D] transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Options</span>
+              </button>
+              <span className="text-[11px] font-mono font-bold text-[#8C6D3B] px-2 py-0.5 rounded-full bg-[#FAF0D9] border border-[#D5B87D]">
+                {selectedMode === 'CARD' ? '₹2 UNLOCK' : '₹25 PASS'}
+              </span>
             </div>
-            <div className="font-cinzel text-2xl font-bold text-[#1A1817]">₹25</div>
-            <div className="text-[11px] text-[#6B635B] mt-1 font-serif">30-Day All-Access Pass</div>
-          </button>
-        </div>
 
-        {/* Feature Highlights */}
-        <div className="p-4 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/20 space-y-2 text-xs text-[#5C5650]">
-          <div className="flex items-center gap-2 text-[#1A1817]">
-            <CheckCircle2 className="w-4 h-4 text-[#2E5A36] flex-shrink-0" />
-            <span className="font-serif">
-              {selectedMode === 'CARD'
-                ? `Permanent unlock for "${card?.label || 'Selected Card'}"`
-                : 'Full access to all 55 cards & 3 Master Keys for 30 days'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-[#1A1817]">
-            <Sparkles className="w-4 h-4 text-[#8C6D3B] flex-shrink-0" />
-            <span className="font-serif">AI Oracle deep interpretations, reflection inquiries & action steps</span>
-          </div>
-          <div className="flex items-center gap-2 text-[#1A1817]">
-            <Shield className="w-4 h-4 text-[#8C6D3B] flex-shrink-0" />
-            <span className="font-serif">Secure 256-bit encrypted checkout via Razorpay</span>
-          </div>
-        </div>
+            {/* Title & Subtitle */}
+            <div className="text-center space-y-1">
+              <span className="text-[#8C6D3B] text-2xl font-serif">✦</span>
+              <h3 className="font-cinzel text-xl sm:text-2xl font-bold text-[#8C6D3B]">
+                {authView === 'LOGIN' ? 'Sign In to Unlock' : 'Create Account to Unlock'}
+              </h3>
+              <p className="text-xs text-[#6B635B] max-w-xs mx-auto font-serif">
+                {authView === 'LOGIN'
+                  ? `Sign in to unlock ${card?.title || 'your card'} and link it permanently to your account.`
+                  : 'Create an account to save your natal sky & access purchased cards anytime.'}
+              </p>
+            </div>
 
-        {/* Status Messages */}
-        {error && (
-          <div className="p-3 rounded-xl bg-red-100 border border-red-300 text-xs text-red-800 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/20 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthView('LOGIN');
+                  setAuthError(null);
+                }}
+                className={`py-2 rounded-xl transition-all cursor-pointer ${
+                  authView === 'LOGIN'
+                    ? 'bg-[#8C6D3B] text-[#FFFDF9] shadow-md font-bold'
+                    : 'text-[#6B635B] hover:text-[#1A1817]'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthView('REGISTER');
+                  setAuthError(null);
+                }}
+                className={`py-2 rounded-xl transition-all cursor-pointer ${
+                  authView === 'REGISTER'
+                    ? 'bg-[#8C6D3B] text-[#FFFDF9] shadow-md font-bold'
+                    : 'text-[#6B635B] hover:text-[#1A1817]'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+
+            {/* Form Fields */}
+            <form onSubmit={handleAuthSubmit} className="space-y-3.5">
+              {authView === 'REGISTER' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-[#6B635B] uppercase tracking-wider mb-1 font-cinzel">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]/60" />
+                    <input
+                      type="text"
+                      required
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      placeholder="Enter your name"
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#8C6D3B]/30 bg-[#FFFDF9] text-sm text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B]"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#6B635B] uppercase tracking-wider mb-1 font-cinzel">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]/60" />
+                  <input
+                    type="email"
+                    required
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#8C6D3B]/30 bg-[#FFFDF9] text-sm text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#6B635B] uppercase tracking-wider mb-1 font-cinzel">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]/60" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#8C6D3B]/30 bg-[#FFFDF9] text-sm text-[#1A1817] focus:outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B]"
+                  />
+                </div>
+              </div>
+
+              {authError && (
+                <div className="p-3 rounded-xl bg-red-100 border border-red-300 text-xs text-red-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full py-3.5 px-6 rounded-2xl bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-sm uppercase tracking-wider shadow-md hover:brightness-105 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {authLoading ? (
+                  <div className="w-5 h-5 border-2 border-[#FAF7F2] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span>
+                    {authView === 'LOGIN' ? 'Sign In & Pay' : 'Create Account & Pay'} · {selectedMode === 'CARD' ? '₹2' : '₹25'}
+                  </span>
+                )}
+              </button>
+            </form>
+
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate('/login', { state: { from: location.pathname } });
+                }}
+                className="text-xs text-[#8C6D3B] hover:text-[#73582D] underline font-serif cursor-pointer"
+              >
+                Or open full login / register page →
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* ════════════════════ PRICING OPTIONS VIEW ════════════════════ */
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <span className="text-[#8C6D3B] text-2xl font-serif">✦</span>
+              <h3 className="font-cinzel text-2xl font-bold text-[#8C6D3B]">Unlock Cosmic Wisdom</h3>
+              <p className="text-xs text-[#6B635B] max-w-xs mx-auto font-serif">
+                Choose an option below to reveal your authentic astrological placements & deep interpretations.
+              </p>
+            </div>
+
+            {/* Pricing Options */}
+            <div className="grid grid-cols-2 gap-3">
+              {card && (
+                <button
+                  onClick={() => setSelectedMode('CARD')}
+                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                    selectedMode === 'CARD'
+                      ? 'border-[#8C6D3B] bg-[#FFFDF9] shadow-[0_4px_16px_rgba(140,109,59,0.22)]'
+                      : 'border-[#8C6D3B]/25 bg-[#F2ECE1]/60 hover:bg-[#F2ECE1]'
+                  }`}
+                >
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-[#8C6D3B] mb-1 font-cinzel">
+                    Single Card
+                  </div>
+                  <div className="font-cinzel text-2xl font-bold text-[#1A1817]">₹2</div>
+                  <div className="text-[11px] text-[#6B635B] mt-1 line-clamp-1 truncate font-serif">
+                    {card.title}
+                  </div>
+                </button>
+              )}
+
+              <button
+                onClick={() => setSelectedMode('PASS')}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                  selectedMode === 'PASS' || !card
+                    ? 'border-[#8C6D3B] bg-[#FFFDF9] shadow-[0_4px_16px_rgba(140,109,59,0.22)]'
+                    : 'border-[#8C6D3B]/25 bg-[#F2ECE1]/60 hover:bg-[#F2ECE1]'
+                } ${!card ? 'col-span-2' : ''}`}
+              >
+                <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-[#8C6D3B] mb-1 font-cinzel">
+                  <span>All 55 Cards</span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#8C6D3B]/15 text-[#8C6D3B] text-[9px] font-bold">Best Value</span>
+                </div>
+                <div className="font-cinzel text-2xl font-bold text-[#1A1817]">₹25</div>
+                <div className="text-[11px] text-[#6B635B] mt-1 font-serif">30-Day All-Access Pass</div>
+              </button>
+            </div>
+
+            {/* Feature Highlights */}
+            <div className="p-4 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/20 space-y-2 text-xs text-[#5C5650]">
+              <div className="flex items-center gap-2 text-[#1A1817]">
+                <CheckCircle2 className="w-4 h-4 text-[#2E5A36] flex-shrink-0" />
+                <span className="font-serif">
+                  {selectedMode === 'CARD'
+                    ? `Permanent unlock for "${card?.label || 'Selected Card'}"`
+                    : 'Full access to all 55 cards & 3 Master Keys for 30 days'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-[#1A1817]">
+                <Sparkles className="w-4 h-4 text-[#8C6D3B] flex-shrink-0" />
+                <span className="font-serif">AI Oracle deep interpretations, reflection inquiries & action steps</span>
+              </div>
+              <div className="flex items-center gap-2 text-[#1A1817]">
+                <Shield className="w-4 h-4 text-[#8C6D3B] flex-shrink-0" />
+                <span className="font-serif">Secure 256-bit encrypted checkout via Razorpay</span>
+              </div>
+            </div>
+
+            {/* Friendly Sign-In Reminder for Guests */}
+            {!isAuthenticated && (
+              <div
+                onClick={() => setAuthView('LOGIN')}
+                className="p-3 rounded-2xl bg-[#FAF0D9] border border-[#D5B87D] text-xs text-[#8C6D3B] flex items-center justify-between gap-2 cursor-pointer hover:bg-[#F5E6C3] transition-colors"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Lock className="w-4 h-4 flex-shrink-0 text-[#8C6D3B]" />
+                  <span className="truncate">Sign in required to link & save cards permanently.</span>
+                </div>
+                <span className="font-cinzel font-bold text-[11px] underline shrink-0">Sign In →</span>
+              </div>
+            )}
+
+            {/* Status Messages */}
+            {error && (
+              <div
+                onClick={() => {
+                  if (!isAuthenticated) setAuthView('LOGIN');
+                }}
+                className={`p-3 rounded-xl bg-red-100 border border-red-300 text-xs text-red-800 flex items-center justify-between gap-2 ${
+                  !isAuthenticated ? 'cursor-pointer hover:bg-red-200/80 transition-colors' : ''
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+                {!isAuthenticated && (
+                  <span className="font-bold underline text-[11px] shrink-0 font-cinzel">Sign In →</span>
+                )}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-xs text-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            {/* Action Button */}
+            <button
+              disabled={loading || !!successMessage}
+              onClick={handleCheckoutClick}
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-sm uppercase tracking-wider shadow-md hover:brightness-105 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-[#FAF7F2] border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span>
+                  {!isAuthenticated ? 'Sign In & Proceed to Pay' : 'Proceed to Pay'} · {selectedMode === 'CARD' ? '₹2' : '₹25'}
+                </span>
+              )}
+            </button>
           </div>
         )}
-
-        {successMessage && (
-          <div className="p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-xs text-emerald-800 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        {/* Action Button */}
-        <button
-          disabled={loading || !!successMessage}
-          onClick={handleCheckout}
-          className="w-full py-3.5 px-6 rounded-2xl bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-sm uppercase tracking-wider shadow-md hover:brightness-105 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-[#FAF7F2] border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <span>Proceed to Pay · {selectedMode === 'CARD' ? '₹2' : '₹25'}</span>
-          )}
-        </button>
       </div>
     </div>,
     document.body
