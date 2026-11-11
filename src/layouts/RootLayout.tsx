@@ -24,7 +24,7 @@ export const RootLayout: React.FC = () => {
           : 'bg-[#FAF7F2] bg-parchment-pattern'
       } ${
         isHome || isSupport
-          ? 'min-h-[100dvh] lg:h-screen lg:max-h-screen overflow-y-auto lg:overflow-hidden justify-between'
+          ? 'min-h-[100dvh] lg:min-h-screen overflow-y-auto justify-between'
           : isDeck
           ? 'h-[100dvh] max-h-[100dvh] overflow-hidden justify-between'
           : 'min-h-[100dvh]'
@@ -38,7 +38,7 @@ export const RootLayout: React.FC = () => {
       <Navbar isHome={isHome || isSupport} isDeck={isDeck} />
 
       {/* Dynamic Route Content */}
-      <main className="relative flex-1 flex flex-col min-h-0 overflow-y-auto lg:overflow-visible pb-24 lg:pb-0">
+      <main className="relative flex-1 flex flex-col min-h-0 justify-center pb-20 sm:pb-24 lg:pb-0">
         <Outlet />
       </main>
 
