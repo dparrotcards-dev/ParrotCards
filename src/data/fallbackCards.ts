@@ -12,7 +12,7 @@ export const DEMO_PROFILE: IBirthProfile = {
   timezone: 5.5,
   ianaTimezone: 'Asia/Kolkata',
   utcDateTime: '1998-05-15T09:00:00.000Z',
-  createdAt: '2026-01-01T00:00:00.000Z',
+  createdAt: new Date().toISOString(),
 };
 
 export const DEMO_DECK: IPersonalizedDeck = {
@@ -20,9 +20,9 @@ export const DEMO_DECK: IPersonalizedDeck = {
   profileId: DEMO_PROFILE,
   sovereignCardKey: 'Lagna',
   avatarPhrase: 'The Inception Point',
-  avatarSummary: 'Primary anchor of physical embodiment and core life vector.',
+  avatarSummary: 'Your soul chose this exact rising. Everything begins here.',
   totalCards: 55,
-  generatedAt: '2026-01-01T00:00:00.000Z',
+  generatedAt: new Date().toISOString(),
 };
 
 export const DEMO_ENTITLEMENTS: IEntitlementStatus = {

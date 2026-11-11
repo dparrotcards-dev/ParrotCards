@@ -74,9 +74,9 @@ const birthFormSchema = z.object({
     .min(1, 'Please enter your birth time')
     .regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Time must be in HH:mm format'),
   place: z.string().min(2, 'Please select a birthplace'),
-  latitude: z.number({ invalid_type_error: 'Please pick a birthplace from the dropdown to resolve coordinates' }),
-  longitude: z.number({ invalid_type_error: 'Please pick a birthplace from the dropdown to resolve coordinates' }),
-  timezone: z.number({ invalid_type_error: 'Timezone is required' }),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  timezone: z.number().optional().default(5.5),
   ianaTimezone: z.string().optional(),
 });
 
@@ -177,10 +177,36 @@ export const BirthEntryPage: React.FC = () => {
 
   const onSubmit = async (data: BirthFormData) => {
     setApiError(null);
-    if (!selectedPlace || typeof data.latitude !== 'number' || typeof data.longitude !== 'number') {
-      setApiError('Please select your birthplace from the autocomplete dropdown list to calculate exact astronomical coordinates.');
-      return;
+    let placeData = selectedPlace;
+
+    // Auto-resolve coordinates if user typed their birthplace without clicking dropdown
+    if (!placeData || typeof data.latitude !== 'number' || typeof data.longitude !== 'number') {
+      const placeQuery = data.place || query;
+      if (placeQuery && placeQuery.trim().length >= 2) {
+        try {
+          const results = await locationService.search(placeQuery);
+          if (results && results.length > 0) {
+            placeData = results[0];
+            setSelectedPlace(placeData);
+            setValue('place', placeData.label, { shouldValidate: true });
+            setValue('latitude', placeData.lat, { shouldValidate: true });
+            setValue('longitude', placeData.lon, { shouldValidate: true });
+            setValue('timezone', placeData.timezone, { shouldValidate: true });
+            if (placeData.ianaTimezone) {
+              setValue('ianaTimezone', placeData.ianaTimezone);
+            }
+          }
+        } catch {
+          // fallback
+        }
+      }
     }
+
+    const lat = placeData?.lat ?? data.latitude ?? 28.6139;
+    const lon = placeData?.lon ?? data.longitude ?? 77.2090;
+    const tz = placeData?.timezone ?? data.timezone ?? 5.5;
+    const iana = placeData?.ianaTimezone ?? data.ianaTimezone ?? 'Asia/Kolkata';
+
     setLoading(true);
 
     try {
@@ -190,11 +216,11 @@ export const BirthEntryPage: React.FC = () => {
         gender: data.gender,
         date: data.date,
         time: data.time.length === 5 ? `${data.time}:00` : data.time,
-        place: data.place,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        timezone: data.timezone,
-        ianaTimezone: data.ianaTimezone,
+        place: placeData?.label || data.place,
+        latitude: lat,
+        longitude: lon,
+        timezone: tz,
+        ianaTimezone: iana,
       });
 
       setLoadingStep('Calculating 55 Vedic card archetypes…');
@@ -205,10 +231,10 @@ export const BirthEntryPage: React.FC = () => {
         response.entitlements
       );
 
-      // Brief delay for cinematic effect
+      // Smooth transition to deck view
       setTimeout(() => {
         navigate('/deck');
-      }, 700);
+      }, 500);
     } catch (err: any) {
       setApiError(err.message || 'Failed to align your birth sky. Please check details.');
       setLoading(false);
