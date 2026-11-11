@@ -67,7 +67,7 @@ export const MobileBottomNav: React.FC = () => {
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
     >
       {/* Background Bar with Top Rounded Corners & Subtle Top Shadow */}
       <div

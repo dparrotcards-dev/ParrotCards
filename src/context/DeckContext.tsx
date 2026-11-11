@@ -4,6 +4,7 @@ import { deckService } from '../services/deckService';
 import { paymentService } from '../services/paymentService';
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
+import { DEMO_PROFILE, DEMO_DECK, DEMO_ENTITLEMENTS, FALLBACK_55_CARDS } from '../data/fallbackCards';
 
 interface DeckContextType {
   profile: IBirthProfile | null;
@@ -30,23 +31,43 @@ export const DeckProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { isAuthenticated } = useAuth();
 
   const [profile, setProfile] = useState<IBirthProfile | null>(() => {
-    const saved = localStorage.getItem('pc_profile');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('pc_profile');
+      return saved ? JSON.parse(saved) : DEMO_PROFILE;
+    } catch {
+      return DEMO_PROFILE;
+    }
   });
 
   const [deck, setDeck] = useState<IPersonalizedDeck | null>(() => {
-    const saved = localStorage.getItem('pc_deck');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('pc_deck');
+      return saved ? JSON.parse(saved) : DEMO_DECK;
+    } catch {
+      return DEMO_DECK;
+    }
   });
 
   const [cards, setCards] = useState<ICard[]>(() => {
-    const saved = localStorage.getItem('pc_cards');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('pc_cards');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return FALLBACK_55_CARDS;
+    } catch {
+      return FALLBACK_55_CARDS;
+    }
   });
 
   const [entitlements, setEntitlements] = useState<IEntitlementStatus | null>(() => {
-    const saved = localStorage.getItem('pc_entitlements');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('pc_entitlements');
+      return saved ? JSON.parse(saved) : DEMO_ENTITLEMENTS;
+    } catch {
+      return DEMO_ENTITLEMENTS;
+    }
   });
 
   const [selectedSuit, setSelectedSuitState] = useState<CardSuit>('Dharma');

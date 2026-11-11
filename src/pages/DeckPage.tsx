@@ -7,6 +7,7 @@ import { Card3D } from '../components/Card3D';
 import { HandFan } from '../components/HandFan';
 import { CardDetailModal } from '../components/CardDetailModal';
 import { UnlockModal } from '../components/UnlockModal';
+import { AligningSkyLoader } from '../components/AligningSkyLoader';
 import { ICard } from '../types';
 import { api } from '../services/api';
 import { deckService } from '../services/deckService';
@@ -31,26 +32,22 @@ export const DeckPage: React.FC = () => {
   const [unlockTargetCard, setUnlockTargetCard] = useState<ICard | null>(null);
   const [unlockMode, setUnlockMode] = useState<'CARD' | 'PASS'>('CARD');
 
-  // If no deck generated yet, try to load user's saved deck or guide back to entry
+  // If user is authenticated and has cloud decks, load latest saved deck
   useEffect(() => {
-    if (!profile || cards.length === 0) {
-      api
-        .get('/account')
-        .then(async (res) => {
-          const decks = res.data?.data?.decks;
-          if (Array.isArray(decks) && decks.length > 0) {
-            const latest = decks[0];
-            const data = await deckService.getDeckCards(latest._id);
-            setProfileAndDeck(latest.profileId, latest, data.cards, data.entitlements);
-          } else {
-            navigate('/');
-          }
-        })
-        .catch(() => {
-          navigate('/');
-        });
-    }
-  }, [profile, cards.length, navigate, setProfileAndDeck]);
+    api
+      .get('/account')
+      .then(async (res) => {
+        const decks = res.data?.data?.decks;
+        if (Array.isArray(decks) && decks.length > 0) {
+          const latest = decks[0];
+          const data = await deckService.getDeckCards(latest._id);
+          setProfileAndDeck(latest.profileId, latest, data.cards, data.entitlements);
+        }
+      })
+      .catch(() => {
+        // Guest user or offline - retain active/fallback deck seamlessly
+      });
+  }, [setProfileAndDeck]);
 
   const currentSuitCards = cardsOfSuit(selectedSuit);
 
@@ -113,7 +110,14 @@ export const DeckPage: React.FC = () => {
   };
 
   if (!selectedCard) {
-    return null;
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[70vh]">
+        <AligningSkyLoader
+          message="Drawing the Cosmic Deck…"
+          subMessage="Aligning Vedic archetypes and planetary sphutas"
+        />
+      </div>
+    );
   }
 
   return (
