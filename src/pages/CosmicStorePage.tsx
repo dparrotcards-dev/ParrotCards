@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Loader2,
   Search,
+  Star,
   ShoppingCart,
   Sparkles,
   X,
@@ -387,9 +388,10 @@ export const CosmicStorePage: React.FC = () => {
   /* ──── Product Card ──── */
   const ProductCard = ({ product }: { product: StoreProduct }) => {
     const isWished = wishlist.has(product.id);
+    const hasRating = product.rating > 0 && product.ratingCount > 0;
 
     return (
-      <div className="group relative flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8E2D8] bg-white shadow-[0_2px_8px_rgba(70,50,20,0.04)] transition-all duration-200 hover:shadow-[0_6px_22px_rgba(70,50,20,0.10)] hover:-translate-y-0.5">
+      <div className="group relative flex w-full max-w-[420px] flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8E2D8] bg-white shadow-[0_2px_8px_rgba(70,50,20,0.04)] transition-all duration-200 hover:shadow-[0_6px_22px_rgba(70,50,20,0.10)] hover:-translate-y-0.5">
         {/* Image */}
         <div className="relative aspect-[4/3.2] overflow-hidden bg-[#F7F3EE]">
           <img
@@ -427,29 +429,42 @@ export const CosmicStorePage: React.FC = () => {
         </div>
 
         {/* Info */}
-        <div className="flex flex-1 flex-col p-2.5 sm:p-3 justify-between">
+        <div className="flex flex-1 flex-col justify-between p-3 sm:p-4">
           <div>
             <h3
               title={product.name}
-              className="text-[12.5px] sm:text-[13px] font-bold leading-snug text-[#1A1817] line-clamp-1"
+              className="line-clamp-2 text-sm font-bold leading-snug text-[#1A1817] first-letter:uppercase sm:text-base"
             >
               {product.name}
             </h3>
-            <p className="mt-0.5 text-[10.5px] sm:text-[11px] leading-tight text-[#8B8178] line-clamp-1">
+            <p className="mt-1 min-h-[3.75em] line-clamp-3 text-xs leading-snug text-[#6B635B]">
               {product.shortDescription}
             </p>
 
+            <div className="mt-2 flex min-h-5 items-center justify-between gap-2">
+              <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-[#8C6D3B]">
+                {product.category}
+              </span>
+              {hasRating && (
+                <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-[#6B635B]">
+                  <Star className="h-3.5 w-3.5 fill-[#D9A94D] text-[#D9A94D]" />
+                  {product.rating.toFixed(1)}
+                  <span className="text-[#9C958C]">({product.ratingCount})</span>
+                </span>
+              )}
+            </div>
+
             {/* Price */}
-            <div className="mt-1.5 flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-[13.5px] sm:text-[14px] font-bold text-[#1A1817]">
+            <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span className="text-base font-bold text-[#1A1817] sm:text-lg">
                 ₹{formatPrice(product.priceRupees)}
               </span>
               {product.mrpRupees > product.priceRupees && (
                 <>
-                  <span className="text-[10.5px] sm:text-[11px] text-[#A09890] line-through">
+                  <span className="text-xs text-[#8B8178] line-through">
                     ₹{formatPrice(product.mrpRupees)}
                   </span>
-                  <span className="text-[10px] sm:text-[10.5px] font-semibold text-[#059669]">
+                  <span className="rounded-full bg-[#E8F3EB] px-1.5 py-0.5 text-[10px] font-bold text-[#2E6B43]">
                     -{product.discountPercent}%
                   </span>
                 </>
@@ -460,15 +475,15 @@ export const CosmicStorePage: React.FC = () => {
           {/* Add to Cart */}
           <button
             onClick={() => addToCart(product)}
-            className={`mt-2 flex h-7.5 sm:h-8 w-full items-center justify-center gap-1.5 rounded-lg text-[11px] sm:text-[11.5px] font-cinzel font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C6D3B] focus-visible:ring-offset-2 cursor-pointer sm:text-[13px] ${
               !product.inStock
-                ? 'cursor-not-allowed bg-[#E8E2D8] text-[#A09890]'
-                : 'bg-gradient-to-r from-[#9C7536] via-[#8C6D3B] to-[#7A5B2B] text-white shadow-xs hover:brightness-105 active:scale-[0.98]'
+                ? 'cursor-not-allowed bg-[#E8E2D8] text-[#746B60]'
+                : 'bg-[#7A5B28] text-white shadow-sm hover:bg-[#65491F] active:scale-[0.99]'
             }`}
             disabled={!product.inStock}
           >
-            <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            <span>{!product.inStock ? 'Out of Stock' : 'Add to Cart'}</span>
+            <ShoppingCart className="h-4 w-4" />
+            <span>{!product.inStock ? 'Out of stock' : 'Add to cart'}</span>
           </button>
         </div>
       </div>
@@ -694,7 +709,13 @@ export const CosmicStorePage: React.FC = () => {
 
             {/* Product Grid (renders immediately from cache/memory with 0ms delay) */}
             {displayProducts.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-3.5 lg:gap-4">
+              <div
+                className={`grid gap-3 sm:gap-3.5 lg:gap-4 ${
+                  displayProducts.length === 1
+                    ? 'grid-cols-1'
+                    : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+                }`}
+              >
                 {displayProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
