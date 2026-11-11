@@ -10,6 +10,7 @@ export const RootLayout: React.FC = () => {
   const isHome = location.pathname === '/';
   const isDeck = location.pathname === '/deck';
   const isSupport = location.pathname === '/support';
+  const isAdminLogin = location.pathname === '/admin/login';
   const isParchment = isHome || isDeck || isSupport;
 
   const bgStyle = isParchment
@@ -35,18 +36,18 @@ export const RootLayout: React.FC = () => {
       {!isParchment && <StarrySky />}
 
       {/* Main Top Navigation */}
-      <Navbar isHome={isHome || isSupport} isDeck={isDeck} />
+      {!isAdminLogin && <Navbar isHome={isHome || isSupport} isDeck={isDeck} />}
 
       {/* Dynamic Route Content */}
-      <main className="relative flex-1 flex flex-col min-h-0 justify-center pb-16 sm:pb-20 lg:pb-0">
+      <main className={`relative flex-1 flex flex-col min-h-0 justify-center ${isAdminLogin ? '' : 'pb-16 sm:pb-20 lg:pb-0'}`}>
         <Outlet />
       </main>
 
       {/* Footer */}
-      {!isDeck && !isSupport && <Footer isHome={isHome} />}
+      {!isDeck && !isSupport && !isAdminLogin && <Footer isHome={isHome} />}
 
       {/* Mobile-first Bottom Navigation Bar (Permanently Fixed on Mobile Across All Pages) */}
-      <MobileBottomNav />
+      {!isAdminLogin && <MobileBottomNav />}
     </div>
   );
 };

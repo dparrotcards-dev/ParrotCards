@@ -185,7 +185,7 @@ export const AdminLoginPage: React.FC = () => {
             onClick={() => navigate('/')}
             className="text-xs text-[#8C6D3B] hover:text-[#1A1817] transition-colors font-serif font-medium"
           >
-            ← Return to Seeker Deck Experience
+            ← Back to site
           </button>
         </div>
       </div>
