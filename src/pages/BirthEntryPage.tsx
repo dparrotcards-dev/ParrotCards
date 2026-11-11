@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -66,8 +66,17 @@ const birthFormSchema = z.object({
     .min(1, 'Please select your birth date')
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
     .refine((val) => {
-      const d = new Date(val);
-      return !isNaN(d.getTime()) && d <= new Date();
+      const [year, month, day] = val.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      const today = new Date();
+      date.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      return (
+        date.getFullYear() === year &&
+        date.getMonth() === month - 1 &&
+        date.getDate() === day &&
+        date <= today
+      );
     }, 'Date of birth must be a valid date in the past'),
   time: z
     .string()
@@ -95,7 +104,8 @@ export const BirthEntryPage: React.FC = () => {
   const [selectedPlace, setSelectedPlace] = useState<ILocationResult | null>(null);
   const [isSearchingLocation, setIsSearchingLocation] = useState<boolean>(false);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
-  const debounceTimer = useRef<any>(null);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number>(-1);
+  const [locationSearchMessage, setLocationSearchMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -133,24 +143,38 @@ export const BirthEntryPage: React.FC = () => {
     if (query.trim().length < 2 || (selectedPlace && selectedPlace.label === query)) {
       setSuggestions([]);
       setShowDropdown(false);
+      setIsSearchingLocation(false);
+      setLocationSearchMessage(null);
       return;
     }
 
-    clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(async () => {
+    let isCurrentSearch = true;
+    const timer = setTimeout(async () => {
       setIsSearchingLocation(true);
+      setLocationSearchMessage(null);
       try {
         const results = await locationService.search(query);
+        if (!isCurrentSearch) return;
         setSuggestions(results);
         setShowDropdown(results.length > 0);
+        setActiveSuggestionIndex(-1);
+        setLocationSearchMessage(
+          results.length === 0 ? 'No places found. Try adding a nearby city or country.' : null
+        );
       } catch {
+        if (!isCurrentSearch) return;
         setSuggestions([]);
+        setShowDropdown(false);
+        setLocationSearchMessage('Location search is unavailable. Please try again in a moment.');
       } finally {
-        setIsSearchingLocation(false);
+        if (isCurrentSearch) setIsSearchingLocation(false);
       }
     }, 250);
 
-    return () => clearTimeout(debounceTimer.current);
+    return () => {
+      isCurrentSearch = false;
+      clearTimeout(timer);
+    };
   }, [query, selectedPlace]);
 
   const handleSelectPlace = (place: ILocationResult) => {
@@ -173,6 +197,7 @@ export const BirthEntryPage: React.FC = () => {
       setValue('ianaTimezone', iana);
     }
     setShowDropdown(false);
+    setLocationSearchMessage(null);
   };
 
   const onSubmit = async (data: BirthFormData) => {
@@ -437,15 +462,29 @@ export const BirthEntryPage: React.FC = () => {
                     setQuery(val);
                     setValue('place', val, { shouldValidate: true });
                     setSelectedPlace(null);
+                    setSuggestions([]);
+                    setShowDropdown(false);
+                    setActiveSuggestionIndex(-1);
+                    setLocationSearchMessage(null);
                     setValue('latitude', undefined as any, { shouldValidate: true });
                     setValue('longitude', undefined as any, { shouldValidate: true });
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'ArrowDown' && suggestions.length > 0) {
                       e.preventDefault();
-                      if (suggestions.length > 0) {
-                        handleSelectPlace(suggestions[0]);
-                      }
+                      setShowDropdown(true);
+                      setActiveSuggestionIndex((index) => (index + 1) % suggestions.length);
+                    } else if (e.key === 'ArrowUp' && suggestions.length > 0) {
+                      e.preventDefault();
+                      setShowDropdown(true);
+                      setActiveSuggestionIndex((index) =>
+                        index < 0 ? suggestions.length - 1 : (index - 1 + suggestions.length) % suggestions.length
+                      );
+                    } else if (e.key === 'Escape') {
+                      setShowDropdown(false);
+                    } else if (e.key === 'Enter' && showDropdown && suggestions.length > 0) {
+                      e.preventDefault();
+                      handleSelectPlace(suggestions[activeSuggestionIndex] || suggestions[0]);
                     }
                   }}
                   onBlur={() => {
@@ -454,6 +493,17 @@ export const BirthEntryPage: React.FC = () => {
                     }, 220);
                   }}
                   placeholder="Search city, district, country..."
+                  autoComplete="off"
+                  role="combobox"
+                  aria-label="Birthplace"
+                  aria-autocomplete="list"
+                  aria-expanded={showDropdown}
+                  aria-controls="birthplace-suggestions"
+                  aria-activedescendant={
+                    showDropdown && activeSuggestionIndex >= 0
+                      ? `birthplace-suggestion-${activeSuggestionIndex}`
+                      : undefined
+                  }
                   className="w-full pl-9 pr-9 birth-input-padding rounded-xl bg-[#F4EEE4] border border-[#C9B390]/80 text-[#1A1817] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#8C6D3B] focus:bg-[#FFFDF9] transition-all text-base sm:text-sm font-sans shadow-xs"
                 />
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8C6D3B]/70 pointer-events-none text-xs">🔍</span>
@@ -462,12 +512,25 @@ export const BirthEntryPage: React.FC = () => {
 
               {/* Autocomplete Dropdown */}
               {showDropdown && suggestions.length > 0 && (
-                <ul className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-[#FFFDF9] border border-[#8C6D3B]/40 rounded-xl shadow-xl z-50 py-1 text-xs divide-y divide-[#8C6D3B]/10 no-scrollbar">
+                <ul
+                  id="birthplace-suggestions"
+                  role="listbox"
+                  className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-[#FFFDF9] border border-[#8C6D3B]/40 rounded-xl shadow-xl z-50 py-1 text-xs divide-y divide-[#8C6D3B]/10 no-scrollbar"
+                >
                   {suggestions.map((item, idx) => (
                     <li
-                      key={idx}
-                      onMouseDown={() => handleSelectPlace(item)}
-                      className="p-2.5 hover:bg-[#F2ECE1] cursor-pointer text-[#1A1817] flex items-center justify-between transition-colors text-xs"
+                      id={`birthplace-suggestion-${idx}`}
+                      key={`${item.label}-${item.lat}-${item.lon}`}
+                      role="option"
+                      aria-selected={idx === activeSuggestionIndex}
+                      onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectPlace(item);
+                      }}
+                      className={`p-2.5 cursor-pointer text-[#1A1817] flex items-center justify-between transition-colors text-xs ${
+                        idx === activeSuggestionIndex ? 'bg-[#F2ECE1]' : 'hover:bg-[#F2ECE1]'
+                      }`}
                     >
                       <div className="truncate pr-2">
                         <span className="font-medium text-[#1A1817]">{item.label}</span>
@@ -480,8 +543,10 @@ export const BirthEntryPage: React.FC = () => {
                 </ul>
               )}
 
-              {isSearchingLocation && (
-                <span className="text-[10px] text-[#6B635B] block mt-0.5 font-serif">Locating coordinates and timezone…</span>
+              {(isSearchingLocation || locationSearchMessage) && (
+                <span role="status" aria-live="polite" className="text-[10px] text-[#6B635B] block mt-0.5 font-serif">
+                  {isSearchingLocation ? 'Searching locations…' : locationSearchMessage}
+                </span>
               )}
               {errors.place && (
                 <span className="text-[11px] text-red-600 block mt-0.5">{errors.place.message}</span>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShieldAlert, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export const AdminLoginPage: React.FC = () => {
@@ -77,13 +77,13 @@ export const AdminLoginPage: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F2ECE1] border border-[#8C6D3B]/40 text-[#8C6D3B] text-xs font-semibold uppercase tracking-wider mb-2 shadow-sm">
             <ShieldAlert className="w-3.5 h-3.5 text-[#8C6D3B]" />
-            Parrot Cards • Command Center
+            Parrot Cards Admin
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1A1817]">
             Admin Portal
           </h1>
           <p className="font-serif italic text-sm text-[#8C6D3B]">
-            Privileged access for astronomical calibration & system oversight
+            Sign in with your administrator account.
           </p>
         </div>
 
@@ -103,7 +103,7 @@ export const AdminLoginPage: React.FC = () => {
           {success && (
             <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 text-xs font-medium">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>Credentials verified! Directing to command dashboard...</span>
+              <span>Signed in. Opening the admin dashboard…</span>
             </div>
           )}
 
@@ -119,7 +119,7 @@ export const AdminLoginPage: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@parrotcards.com"
+                  placeholder="admin@example.com"
                   autoComplete="email"
                   required
                   className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F2ECE1]/50 border border-[#8C6D3B]/30 focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-[#1A1817] text-sm outline-none transition-all placeholder:text-[#8C6D3B]/40"
@@ -130,7 +130,7 @@ export const AdminLoginPage: React.FC = () => {
             {/* Password Field */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-[#8C6D3B] tracking-wide uppercase">
-                Master Password
+                Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B] pointer-events-none" />
@@ -164,7 +164,7 @@ export const AdminLoginPage: React.FC = () => {
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-[#FFFDF9] border-t-transparent rounded-full animate-spin" />
-                    <span>Authorizing Admin Access...</span>
+                    <span>Signing in...</span>
                   </>
                 ) : (
                   <>
@@ -176,15 +176,6 @@ export const AdminLoginPage: React.FC = () => {
             </div>
           </form>
 
-          {/* Quick Credential Card Information */}
-          <div className="p-3.5 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/25 text-[11px] text-[#1A1817]/80 space-y-1">
-            <div className="flex items-center gap-1.5 text-[#8C6D3B] font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-[#8C6D3B]" />
-              <span>Configured System Admin:</span>
-            </div>
-            <p className="font-mono text-[#1A1817]">Email: <span className="text-[#8C6D3B] font-bold">dparrotcards@gmail.com</span></p>
-            <p className="font-mono text-[#1A1817]">Password: <span className="text-[#8C6D3B] font-bold">hemant123</span></p>
-          </div>
         </div>
 
         {/* Back Link */}
