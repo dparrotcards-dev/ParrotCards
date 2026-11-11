@@ -253,7 +253,7 @@ export const BirthEntryPage: React.FC = () => {
   }
 
   return (
-    <div className="relative flex-1 flex flex-col items-center justify-center w-full px-3.5 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 my-auto">
+    <div className="relative flex-1 flex flex-col items-center justify-center w-full px-3 sm:px-6 md:px-8 py-3 sm:py-6 md:py-8 my-auto">
       <div className="relative z-10 w-full max-w-[430px] sm:max-w-[470px] md:max-w-[490px] lg:max-w-[510px] space-y-2 sm:space-y-3">
         {/* Hero Title */}
         <div className="text-center space-y-0.5 sm:space-y-1">
@@ -267,7 +267,7 @@ export const BirthEntryPage: React.FC = () => {
         </div>
 
         {/* Main Form Card Container with Vintage Ornate Corner Framing */}
-        <div className="relative bg-[#FAF5EE]/95 backdrop-blur-sm border border-[#8C6D3B]/45 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_8px_30px_rgba(80,60,30,0.12)] space-y-2.5 sm:space-y-3.5">
+        <div className="relative bg-[#FAF5EE]/95 backdrop-blur-sm border border-[#8C6D3B]/45 rounded-2xl p-3.5 sm:p-5 md:p-6 shadow-[0_8px_30px_rgba(80,60,30,0.12)] space-y-2.5 sm:space-y-3.5">
           {/* Inner Hairline Framing */}
           <div className="absolute inset-1 sm:inset-1.5 rounded-xl border border-[#8C6D3B]/20 pointer-events-none" />
 
@@ -324,7 +324,7 @@ export const BirthEntryPage: React.FC = () => {
                 <Users className="w-3.5 h-3.5 text-[#8C6D3B]" />
                 <span>Gender</span>
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 {([
                   { id: 'Male', label: 'Male', symbol: '♂' },
                   { id: 'Female', label: 'Female', symbol: '♀' },
@@ -336,14 +336,14 @@ export const BirthEntryPage: React.FC = () => {
                       key={g.id}
                       type="button"
                       onClick={() => setValue('gender', g.id, { shouldValidate: true })}
-                      className={`py-2 sm:py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
+                      className={`py-2 sm:py-2.5 px-1.5 sm:px-3 rounded-xl border text-[11.5px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 cursor-pointer ${
                         isSelected
                           ? 'bg-[#E6D7BE] border-2 border-[#8C6D3B] text-[#1A1817] font-bold shadow-inner'
                           : 'bg-[#F4EEE4] border border-[#C9B390]/80 text-[#595147] hover:text-[#1A1817] hover:border-[#8C6D3B]/60'
                       }`}
                     >
                       <span className="text-xs sm:text-sm">{g.symbol}</span>
-                      <span>{g.label}</span>
+                      <span className="truncate">{g.label}</span>
                     </button>
                   );
                 })}
