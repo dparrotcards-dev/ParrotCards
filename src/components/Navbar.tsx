@@ -146,9 +146,9 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full px-2 sm:px-4 lg:px-6 select-none py-1 sm:py-1.5 relative">
+    <header className="sticky top-0 z-50 w-full px-2 max-[359px]:px-1 sm:px-4 lg:px-6 select-none py-1 sm:py-1.5 relative">
       <div
-        className={`mx-auto flex max-w-[1360px] items-center justify-between rounded-2xl border border-[#E5DDD0] bg-[#FFFDF9] px-2.5 sm:px-4 lg:px-5 select-none h-[46px] sm:h-[48px] relative z-50 transition-shadow duration-200 ${
+        className={`mx-auto flex max-w-[1360px] items-center justify-between rounded-2xl border border-[#E5DDD0] bg-[#FFFDF9] px-2.5 max-[359px]:px-1.5 sm:px-4 lg:px-5 select-none h-[46px] sm:h-[48px] relative z-50 transition-shadow duration-200 ${
           isScrolled
             ? 'shadow-[0_4px_20px_rgba(70,50,20,0.12)]'
             : 'shadow-[0_2px_12px_rgba(70,50,20,0.06)]'
@@ -250,7 +250,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
         </nav>
 
         {/* ═══ RIGHT ACTIONS (MY PROFILE & PREMIUM) ═══ */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3.5 select-none shrink-0">
+        <div className="flex items-center gap-1.5 max-[359px]:gap-0 sm:gap-2.5 lg:gap-3.5 select-none shrink-0">
           {/* Vertical divider */}
           <span aria-hidden="true" className="hidden h-5 w-px bg-[#E2D9CC] lg:block" />
 

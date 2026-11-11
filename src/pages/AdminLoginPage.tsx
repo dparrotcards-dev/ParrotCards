@@ -70,7 +70,7 @@ export const AdminLoginPage: React.FC = () => {
   return (
     <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-8 relative">
       {/* Background Ambient Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#8C6D3B]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(500px,calc(100vw-2rem))] aspect-square bg-[#8C6D3B]/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 space-y-6">
         {/* Header Branding */}
