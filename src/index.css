@@ -99,6 +99,28 @@ html, body {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", sans-serif;
 }
 
+/* Responsive Dynamic Fluid Spacing for Birth Form across Mobile, Tablet & Desktop */
+.birth-card-container {
+  padding: clamp(14px, 2.3vh, 24px);
+}
+.birth-form-space {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.6vh, 16px);
+}
+.birth-input-padding {
+  padding-top: clamp(8px, 1.3vh, 13px);
+  padding-bottom: clamp(8px, 1.3vh, 13px);
+}
+.birth-button-padding {
+  padding-top: clamp(10px, 1.6vh, 15px);
+  padding-bottom: clamp(10px, 1.6vh, 15px);
+}
+.birth-gender-padding {
+  padding-top: clamp(7px, 1.1vh, 12px);
+  padding-bottom: clamp(7px, 1.1vh, 12px);
+}
+
 /* Ensure native select dropdown menus have high contrast parchment styling */
 select {
   color-scheme: light;

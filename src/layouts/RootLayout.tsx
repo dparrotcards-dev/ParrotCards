@@ -38,7 +38,7 @@ export const RootLayout: React.FC = () => {
       <Navbar isHome={isHome || isSupport} isDeck={isDeck} />
 
       {/* Dynamic Route Content */}
-      <main className="relative flex-1 flex flex-col min-h-0 justify-center pb-20 sm:pb-24 lg:pb-0">
+      <main className="relative flex-1 flex flex-col min-h-0 justify-center pb-16 sm:pb-20 lg:pb-0">
         <Outlet />
       </main>
 
