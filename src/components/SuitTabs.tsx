@@ -18,7 +18,7 @@ export const SuitTabs: React.FC = () => {
   const suits: CardSuit[] = ['Dharma', 'Artha', 'Kama', 'Moksha', 'MasterKey'];
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3.5 overflow-x-auto px-3 sm:px-4 py-1 sm:py-1.5 no-scrollbar max-w-4xl mx-auto justify-start sm:justify-center snap-x snap-mandatory touch-pan-x">
+    <div className="flex items-center gap-1.5 sm:gap-3 overflow-x-auto px-2 sm:px-4 py-0.5 sm:py-1 no-scrollbar max-w-4xl mx-auto justify-start sm:justify-center snap-x snap-mandatory touch-pan-x">
       {suits.map((suit) => {
         const meta = SUIT_METADATA[suit];
         const suitCards = cardsOfSuit(suit);
@@ -42,7 +42,7 @@ export const SuitTabs: React.FC = () => {
                     boxShadow: '0 2px 8px rgba(80, 60, 30, 0.06)',
                   }
             }
-            className="flex-shrink-0 snap-center flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border transition-all text-left group hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            className="flex-shrink-0 snap-center flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border transition-all text-left group hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             <span
               style={{ color: isSelected ? '#E6C98F' : meta.color }}

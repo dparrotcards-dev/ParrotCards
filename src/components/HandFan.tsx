@@ -73,7 +73,7 @@ export const HandFan: React.FC<HandFanProps> = ({ cards }) => {
         className="relative flex items-end justify-center my-0"
         style={{
           width: `${totalWidth}px`,
-          height: isMobile ? '70px' : '82px',
+          height: isMobile ? '68px' : '78px',
         }}
       >
         {cards.map((card, i) => {
@@ -81,12 +81,12 @@ export const HandFan: React.FC<HandFanProps> = ({ cards }) => {
           // Rotation angle: gentle fan spread
           const angle = diff * (isMobile ? (n > 8 ? 1.3 : 2.6) : n > 8 ? 1.8 : 3.5);
           // Subtle convex arch: center card is at peak, edge cards curve down gently
-          const arcY = Math.pow(Math.abs(diff) / (mid || 1), 2) * (isMobile ? 3.5 : 5);
+          const arcY = Math.pow(Math.abs(diff) / (mid || 1), 2) * (isMobile ? 3 : 4.5);
           const isSelected = i === selectedCardIndex;
           const isRevealed = revealedCardKeys.has(card.key) || isSelected;
 
           // Lift selected card straight up
-          const yOffset = isSelected ? (isMobile ? -8 : -10) : arcY;
+          const yOffset = isSelected ? (isMobile ? -6 : -8) : arcY;
 
           return (
             <div
@@ -98,7 +98,7 @@ export const HandFan: React.FC<HandFanProps> = ({ cards }) => {
                 left: `${i * cardSpacing}px`,
                 bottom: '1px',
                 width: `${cardWidth}px`,
-                height: isMobile ? '58px' : '72px',
+                height: isMobile ? '56px' : '68px',
                 transformOrigin: '50% 150%',
                 transform: `translateY(${yOffset}px) rotate(${angle}deg) scale(${isSelected ? 1.05 : 1})`,
                 zIndex: isSelected ? 50 : i + 1,

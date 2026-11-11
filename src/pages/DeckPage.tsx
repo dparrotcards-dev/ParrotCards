@@ -117,9 +117,9 @@ export const DeckPage: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 w-full flex flex-col justify-between select-none overflow-hidden pb-1 min-h-0">
+    <div className="flex-1 w-full flex flex-col justify-between select-none overflow-hidden pb-0.5 min-h-0">
       {/* Top Status & Controls Bar Matching Reference Image */}
-      <div className="w-full flex items-center justify-between px-3 sm:px-6 md:px-12 py-1 sm:py-2 border-b border-[#8C6D3B]/20 bg-[#FAF7F2]/40 backdrop-blur-xs shrink-0">
+      <div className="w-full flex items-center justify-between px-3 sm:px-6 md:px-12 py-1 border-b border-[#8C6D3B]/20 bg-[#FAF7F2]/40 backdrop-blur-xs shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-cinzel text-xs sm:text-base text-[#1A1817] font-bold tracking-[0.14em] uppercase truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
             {profile?.name ? profile.name.toUpperCase() : 'VARUN MENARIYA'}
@@ -136,7 +136,7 @@ export const DeckPage: React.FC = () => {
       </div>
 
       {/* Suit / Category Navigation Tabs */}
-      <div className="pt-1.5 sm:pt-2 pb-0.5 shrink-0">
+      <div className="pt-1 pb-0.5 shrink-0">
         <SuitTabs />
       </div>
 
@@ -144,7 +144,7 @@ export const DeckPage: React.FC = () => {
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="flex-1 relative flex items-center justify-center px-2 sm:px-12 py-1 min-h-0 touch-pan-y"
+        className="flex-1 relative flex items-center justify-center px-2 sm:px-12 py-0.5 sm:py-1 min-h-0 touch-pan-y"
       >
         {/* Left Navigation Chevron Button (Circular pill matching Image) */}
         <button
@@ -156,7 +156,7 @@ export const DeckPage: React.FC = () => {
         </button>
 
         {/* 3D Card Stage */}
-        <div className="w-full flex justify-center items-center">
+        <div className="w-full h-full flex justify-center items-center min-h-0 py-0.5">
           <Card3D
             key={selectedCard._id || selectedCard.key}
             card={selectedCard}
@@ -182,7 +182,7 @@ export const DeckPage: React.FC = () => {
       </div>
 
       {/* Bottom Celestial Moon Hairline Matching Reference Image */}
-      <div className="w-full relative flex items-center justify-center py-1 select-none shrink-0">
+      <div className="w-full relative flex items-center justify-center py-0.5 select-none shrink-0">
         <div className="absolute inset-x-8 sm:inset-x-24 top-1/2 h-px bg-gradient-to-r from-transparent via-[#8C6D3B]/30 to-transparent" />
         <span className="relative z-10 px-3 bg-[#FAF6EE] text-[#8C6D3B] text-sm leading-none">☾</span>
       </div>
