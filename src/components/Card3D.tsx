@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import { ICard } from '../types';
 import { SUIT_METADATA } from './SuitTabs';
@@ -109,31 +108,29 @@ export const Card3D: React.FC<Card3DProps> = ({
     astro.houseLord || (astro.sign != null && astro.sign >= 0 && astro.sign < 12 ? HOUSE_LORDS[astro.sign] : '—');
 
   const rows = [
-    ['Zodiac sign (Rashi)', formatSign()],
-    ['Exact position', fmtDeg(astro.deg)],
-    ['Life area (House)', astro.house ? String(astro.house) : '—'],
-    ['Birth star (Nakshatra)', astro.nak || '—'],
-    ['Star quarter (Pada)', astro.pada != null ? String(astro.pada) : '—'],
-    ['Star ruling planet', astro.lord || '—'],
-    ['Nadi position', fmtNadi()],
-    ['Navamsha sign (D9)', formatNavamsha()],
-    ['House ruling planet', resolvedHouseLord],
-    ...(astro.kar && astro.kar.name && astro.kar.code ? [['Key planet role (Chara Karaka)', `${astro.kar.name} (${astro.kar.code})`]] : []),
-    ...(astro.ruler ? [['Division ruling planet', astro.ruler]] : []),
-    ...(astro.state ? [['Planet condition', astro.state]] : []),
+    ['Sign (Rashi)', formatSign()],
+    ['Position', fmtDeg(astro.deg)],
+    ['House', astro.house ? String(astro.house) : '—'],
+    ['Birth star', astro.nak || '—'],
+    ['Pada', astro.pada != null ? String(astro.pada) : '—'],
+    ['Star lord', astro.lord || '—'],
+    ['Nadi', fmtNadi()],
+    ['Navamsha (D9)', formatNavamsha()],
+    ['House lord', resolvedHouseLord],
+    ...(astro.kar && astro.kar.name && astro.kar.code ? [['Key planet (Karaka)', `${astro.kar.name} (${astro.kar.code})`]] : []),
+    ...(astro.ruler ? [['Division ruler', astro.ruler]] : []),
+    ...(astro.state ? [['Condition', astro.state]] : []),
   ];
 
   const hasAstroData = isCardActuallyUnlocked && (astro.sign != null || astro.deg != null || astro.nak != null);
 
   return (
     <div
-      className="relative h-[clamp(310px,50vh,415px)] max-h-full max-w-[min(285px,calc(100vw-88px))] perspective-1200 mx-auto select-none"
+      className="relative h-[clamp(310px,50vh,415px)] max-h-full max-w-[min(285px,calc(100vw-88px))] mx-auto select-none"
       style={{ aspectRatio: '2.7 / 4' }}
     >
-      <motion.div
-        className="w-full h-full relative transform-style-3d cursor-pointer"
-        animate={{ rotateY: showBack ? 180 : 0 }}
-        transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+      <div
+        className="w-full h-full relative cursor-pointer"
         onClick={() => {
           if (isCardActuallyUnlocked) {
             setIsFlipped(!isFlipped);
@@ -144,7 +141,9 @@ export const Card3D: React.FC<Card3DProps> = ({
       >
         {/* ================= FRONT FACE (EXACT VINTAGE VELLUM EMBLEM) ================= */}
         <div
-          className={`absolute inset-0 rounded-2xl border-[1.5px] backface-hidden overflow-hidden flex flex-col justify-between p-2.5 sm:p-3 transition-all ${
+          className={`absolute inset-0 rounded-2xl border-[1.5px] overflow-hidden flex flex-col justify-between p-2.5 sm:p-3 transition-all duration-300 ${
+            showBack ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          } ${
             card.isSovereign
               ? 'border-[#8C6D3B] shadow-[0_16px_36px_rgba(140,109,59,0.32),0_0_20px_rgba(140,109,59,0.2)]'
               : 'border-[#8C6D3B]/60 shadow-[0_12px_28px_rgba(80,60,30,0.14)]'
@@ -294,7 +293,9 @@ export const Card3D: React.FC<Card3DProps> = ({
 
         {/* ================= BACK FACE (EXACT VINTAGE ASTRO TABLE - IMAGE 2) ================= */}
         <div
-          className={`absolute inset-0 rounded-2xl border-[1.5px] backface-hidden rotate-y-180 overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 shadow-xl ${
+          className={`absolute inset-0 rounded-2xl border-[1.5px] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 shadow-xl transition-opacity duration-300 ${
+            showBack ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          } ${
             card.isSovereign ? 'border-[#8C6D3B]' : 'border-[#8C6D3B]/60'
           }`}
           style={{
@@ -368,15 +369,14 @@ export const Card3D: React.FC<Card3DProps> = ({
               <p className="font-serif text-xs text-[#8C6D3B]">Aligning celestial coordinates…</p>
             </div>
           ) : (
-            <div className="flex-1 my-1 space-y-0.5 overflow-y-auto pr-0.5 card-chart-scrollbar z-10">
+            <div className="flex-1 min-h-0 my-1 space-y-0.5 overflow-y-auto pr-0.5 card-chart-scrollbar z-10">
               {rows.map(([label, val], idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1 py-1 border-b border-[#8C6D3B]/15 text-[9px] sm:text-[10px]"
+                  className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-1 py-1 border-b border-[#8C6D3B]/15 text-[9px] sm:text-[10px] leading-tight"
                 >
-                  <span className="min-w-0 text-[#595147] font-serif leading-tight">{label}</span>
-                  <span className="text-[#8C6D3B] text-[7px] select-none">✦</span>
-                  <span className="min-w-0 font-sans font-bold text-[#1A1817] text-right leading-tight break-words">{val}</span>
+                  <span className="min-w-0 text-[#595147] font-serif break-words">{label}</span>
+                  <span className="min-w-0 font-sans font-bold text-[#1A1817] text-right break-words">{val}</span>
                 </div>
               ))}
             </div>
@@ -394,7 +394,7 @@ export const Card3D: React.FC<Card3DProps> = ({
             </span>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
