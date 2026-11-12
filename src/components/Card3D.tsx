@@ -109,18 +109,18 @@ export const Card3D: React.FC<Card3DProps> = ({
     astro.houseLord || (astro.sign != null && astro.sign >= 0 && astro.sign < 12 ? HOUSE_LORDS[astro.sign] : '—');
 
   const rows = [
-    ['Sign', formatSign()],
-    ['Degree', fmtDeg(astro.deg)],
-    ['House', astro.house ? String(astro.house) : '—'],
-    ['Nakshatra', astro.nak || '—'],
-    ['Pada', astro.pada != null ? String(astro.pada) : '—'],
-    ['Nakshatra lord', astro.lord || '—'],
-    ['Nadi Amsa', fmtNadi()],
-    ['Navamsha (D9)', formatNavamsha()],
-    ['House lord', resolvedHouseLord],
-    ...(astro.kar && astro.kar.name && astro.kar.code ? [['Chara Karaka', `${astro.kar.name} (${astro.kar.code})`]] : []),
-    ...(astro.ruler ? [['Amsa ruler', astro.ruler]] : []),
-    ...(astro.state ? [['State', astro.state]] : []),
+    ['Zodiac sign (Rashi)', formatSign()],
+    ['Exact position', fmtDeg(astro.deg)],
+    ['Life area (House)', astro.house ? String(astro.house) : '—'],
+    ['Birth star (Nakshatra)', astro.nak || '—'],
+    ['Star quarter (Pada)', astro.pada != null ? String(astro.pada) : '—'],
+    ['Star ruling planet', astro.lord || '—'],
+    ['Nadi position', fmtNadi()],
+    ['Navamsha sign (D9)', formatNavamsha()],
+    ['House ruling planet', resolvedHouseLord],
+    ...(astro.kar && astro.kar.name && astro.kar.code ? [['Key planet role (Chara Karaka)', `${astro.kar.name} (${astro.kar.code})`]] : []),
+    ...(astro.ruler ? [['Division ruling planet', astro.ruler]] : []),
+    ...(astro.state ? [['Planet condition', astro.state]] : []),
   ];
 
   const hasAstroData = isCardActuallyUnlocked && (astro.sign != null || astro.deg != null || astro.nak != null);
@@ -372,11 +372,11 @@ export const Card3D: React.FC<Card3DProps> = ({
               {rows.map(([label, val], idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between py-0.5 border-b border-[#8C6D3B]/15 text-[10.5px] sm:text-[11.5px]"
+                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1 py-1 border-b border-[#8C6D3B]/15 text-[9px] sm:text-[10px]"
                 >
-                  <span className="text-[#595147] font-serif capitalize">{label}</span>
-                  <span className="text-[#8C6D3B] text-[8px] select-none">✦</span>
-                  <span className="font-sans font-bold text-[#1A1817] text-right">{val}</span>
+                  <span className="min-w-0 text-[#595147] font-serif leading-tight">{label}</span>
+                  <span className="text-[#8C6D3B] text-[7px] select-none">✦</span>
+                  <span className="min-w-0 font-sans font-bold text-[#1A1817] text-right leading-tight break-words">{val}</span>
                 </div>
               ))}
             </div>
