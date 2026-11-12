@@ -43,14 +43,16 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose 
       const stored = localStorage.getItem('pc_wishlist');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.every((id): id is string => typeof id === 'string')) {
           setWishlistIds(parsed);
-          return;
+          return parsed;
         }
       }
       setWishlistIds([]);
+      return [];
     } catch {
       setWishlistIds([]);
+      return [];
     }
   }, []);
 
@@ -71,12 +73,17 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose 
   }, []);
 
   // Fetch product details when drawer opens
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
+  const fetchProducts = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await api.get('/store/products', { params: { limit: '100' } });
       const allProducts: StoreProduct[] = res.data?.data?.products || [];
       setProducts(allProducts);
+      try {
+        sessionStorage.setItem('pc_store_products', JSON.stringify(allProducts));
+      } catch {
+        // Keep the wishlist usable when session storage is unavailable.
+      }
     } catch (err) {
       console.error('Failed to fetch wishlist products:', err);
     } finally {
@@ -86,9 +93,28 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose 
 
   useEffect(() => {
     if (isOpen) {
-      syncWishlist();
+      const ids = syncWishlist();
       syncCart();
-      fetchProducts();
+      if (ids.length === 0) {
+        setProducts([]);
+        setLoading(false);
+      } else {
+        let cachedProducts: StoreProduct[] = [];
+        try {
+          const cached = sessionStorage.getItem('pc_store_products');
+          const parsed = cached ? JSON.parse(cached) : null;
+          if (Array.isArray(parsed)) cachedProducts = parsed;
+        } catch {
+          // A cache miss falls back to the product API.
+        }
+        if (cachedProducts.length > 0) {
+          setProducts(cachedProducts);
+          setLoading(false);
+          fetchProducts(true);
+        } else {
+          fetchProducts();
+        }
+      }
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -383,4 +409,3 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose 
     </div>
   );
 };
-
