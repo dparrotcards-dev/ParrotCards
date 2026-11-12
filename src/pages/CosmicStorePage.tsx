@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -89,6 +89,7 @@ export const CosmicStorePage: React.FC = () => {
     }
     return [];
   });
+  const hasProducts = useRef(products.length > 0);
 
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>(() => {
     try {
@@ -197,8 +198,8 @@ export const CosmicStorePage: React.FC = () => {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   /* ──── Fetch products (Fast background refresh with session cache) ──── */
-  const fetchProducts = useCallback(async (isSilent = false) => {
-    if (!isSilent && products.length === 0) {
+  const fetchProducts = useCallback(async (isSilent = hasProducts.current) => {
+    if (!isSilent && !hasProducts.current) {
       setLoading(true);
     }
     try {
@@ -214,6 +215,7 @@ export const CosmicStorePage: React.FC = () => {
       const res = await api.get('/store/products', { params });
       const data = res.data.data;
       setProducts(data.products);
+      hasProducts.current = data.products.length > 0;
       setCategoryCounts(data.categoryCounts || {});
       setTotalProducts(data.pagination?.total || data.products.length);
 
@@ -228,10 +230,10 @@ export const CosmicStorePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, searchQuery, priceRange, inStockOnly, products.length]);
+  }, [sortBy, searchQuery, priceRange, inStockOnly]);
 
   useEffect(() => {
-    fetchProducts(products.length > 0);
+    fetchProducts();
   }, [fetchProducts]);
 
   /* ──── Filtered products (instant client-side category chip, checkbox & wishlist) ──── */
@@ -397,6 +399,8 @@ export const CosmicStorePage: React.FC = () => {
           <img
             src={product.imageUrl}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
