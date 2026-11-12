@@ -47,12 +47,12 @@ const CATEGORIES = [
 ] as const;
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  All: <LayoutGrid className="h-5 w-5" />,
-  Gemstones: <Diamond className="h-5 w-5" />,
+  All: <LayoutGrid className="h-[18px] w-[18px] sm:h-5 sm:w-5" />,
+  Gemstones: <Diamond className="h-[18px] w-[18px] sm:h-5 sm:w-5" />,
   Rudraksha: <span className="text-lg">📿</span>,
-  Yantra: <Grid3X3 className="h-5 w-5" />,
-  'Astrology Books': <BookOpen className="h-5 w-5" />,
-  'Spiritual Accessories': <Sparkles className="h-5 w-5" />,
+  Yantra: <Grid3X3 className="h-[18px] w-[18px] sm:h-5 sm:w-5" />,
+  'Astrology Books': <BookOpen className="h-[18px] w-[18px] sm:h-5 sm:w-5" />,
+  'Spiritual Accessories': <Sparkles className="h-[18px] w-[18px] sm:h-5 sm:w-5" />,
 };
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
@@ -253,18 +253,16 @@ export const CosmicStorePage: React.FC = () => {
 
   /* ──── Wishlist toggle ──── */
   const toggleWishlist = (id: string) => {
-    setWishlist((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      try {
-        localStorage.setItem('pc_wishlist', JSON.stringify([...next]));
-        window.dispatchEvent(new Event('pc_store_updated'));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+    const next = new Set(wishlist);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setWishlist(next);
+    try {
+      localStorage.setItem('pc_wishlist', JSON.stringify([...next]));
+      window.dispatchEvent(new Event('pc_store_updated'));
+    } catch {
+      // ignore
+    }
   };
 
   /* ──── Cart add ──── */
@@ -393,9 +391,9 @@ export const CosmicStorePage: React.FC = () => {
     const hasRating = product.rating > 0 && product.ratingCount > 0;
 
     return (
-      <div className="group relative flex w-full max-w-[420px] flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8E2D8] bg-white shadow-[0_2px_8px_rgba(70,50,20,0.04)] transition-all duration-200 hover:shadow-[0_6px_22px_rgba(70,50,20,0.10)] hover:-translate-y-0.5">
+      <div className="group relative flex w-full max-w-none flex-col overflow-hidden rounded-xl border border-[#E8E2D8] bg-white shadow-[0_2px_8px_rgba(70,50,20,0.04)] transition-all duration-200 hover:shadow-[0_6px_22px_rgba(70,50,20,0.10)] active:translate-y-px sm:max-w-[360px] sm:rounded-2xl lg:max-w-[420px]">
         {/* Image */}
-        <div className="relative aspect-[4/3.2] overflow-hidden bg-[#F7F3EE]">
+        <div className="relative aspect-square overflow-hidden bg-[#F4EEE4] sm:aspect-[4/3.2]">
           <img
             src={product.imageUrl}
             alt={product.name}
@@ -422,7 +420,7 @@ export const CosmicStorePage: React.FC = () => {
               toggleWishlist(product.id);
             }}
             title={isWished ? 'Remove from Wishlist' : 'Add to Wishlist'}
-            className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs shadow-xs transition-colors hover:bg-white cursor-pointer"
+            className="absolute right-2.5 top-2.5 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-xs shadow-xs transition-colors hover:bg-white active:scale-95 cursor-pointer"
           >
             <Heart
               className={`h-3.5 w-3.5 transition-colors ${
@@ -433,19 +431,19 @@ export const CosmicStorePage: React.FC = () => {
         </div>
 
         {/* Info */}
-        <div className="flex flex-1 flex-col justify-between p-3 sm:p-4">
+        <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4">
           <div>
             <h3
               title={product.name}
-              className="line-clamp-2 text-sm font-bold leading-snug text-[#1A1817] first-letter:uppercase sm:text-base"
+              className="line-clamp-2 text-[15px] font-bold leading-snug text-[#1A1817] first-letter:uppercase sm:text-base"
             >
               {product.name}
             </h3>
-            <p className="mt-1 min-h-[3.75em] line-clamp-3 text-xs leading-snug text-[#6B635B]">
+            <p className="mt-1.5 min-h-[3.5em] line-clamp-3 text-[13px] leading-relaxed text-[#6B635B] sm:text-xs">
               {product.shortDescription}
             </p>
 
-            <div className="mt-2 flex min-h-5 items-center justify-between gap-2">
+            <div className="mt-2.5 flex min-h-5 items-center justify-between gap-2">
               <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-[#8C6D3B]">
                 {product.category}
               </span>
@@ -459,8 +457,8 @@ export const CosmicStorePage: React.FC = () => {
             </div>
 
             {/* Price */}
-            <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span className="text-base font-bold text-[#1A1817] sm:text-lg">
+            <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span className="text-lg font-bold text-[#1A1817] sm:text-lg">
                 ₹{formatPrice(product.priceRupees)}
               </span>
               {product.mrpRupees > product.priceRupees && (
@@ -479,7 +477,7 @@ export const CosmicStorePage: React.FC = () => {
           {/* Add to Cart */}
           <button
             onClick={() => addToCart(product)}
-            className={`mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C6D3B] focus-visible:ring-offset-2 cursor-pointer sm:text-[13px] ${
+            className={`mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-3 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C6D3B] focus-visible:ring-offset-2 cursor-pointer sm:min-h-11 sm:text-[13px] ${
               !product.inStock
                 ? 'cursor-not-allowed bg-[#E8E2D8] text-[#746B60]'
                 : 'bg-[#7A5B28] text-white shadow-sm hover:bg-[#65491F] active:scale-[0.99]'
@@ -496,10 +494,10 @@ export const CosmicStorePage: React.FC = () => {
 
 
   return (
-    <div className="store-page flex-1 pb-10">
+    <div className="store-page min-w-0 flex-1 pb-10">
       {/* ═══ HERO BANNER ═══ */}
       <section
-        className="store-hero relative mx-2 sm:mx-4 lg:mx-7 mt-2 sm:mt-3 flex min-h-[150px] sm:min-h-[180px] items-center overflow-hidden rounded-2xl sm:rounded-[20px] px-4 py-5 sm:px-10 sm:py-7 text-white lg:px-[7%]"
+        className="store-hero relative mx-2 sm:mx-4 lg:mx-7 mt-2 sm:mt-3 flex min-h-[140px] sm:min-h-[180px] items-center overflow-hidden rounded-2xl sm:rounded-[20px] px-4 py-4 sm:px-10 sm:py-7 text-white lg:px-[7%]"
         aria-labelledby="store-title"
       >
         <div className="store-hero-copy relative z-10 max-w-[520px]">
@@ -509,18 +507,18 @@ export const CosmicStorePage: React.FC = () => {
           </div>
           <h1
             id="store-title"
-            className="font-cinzel text-xl sm:text-2xl lg:text-[26px] font-bold uppercase tracking-[0.08em] leading-tight text-white"
+            className="font-cinzel text-lg min-[360px]:text-xl sm:text-2xl lg:text-[26px] font-bold uppercase tracking-[0.07em] sm:tracking-[0.08em] leading-tight text-white"
           >
             Astrology &amp; Spiritual
             <br />
             Products
           </h1>
-          <p className="mt-2 text-[11px] sm:text-xs text-[#F4EBDD] max-w-md leading-relaxed">
+          <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-[#F4EBDD] max-w-md leading-relaxed">
             Genuine, Energetically Charged &amp; Expert-Recommended
           </p>
           <a
             href="#products-section"
-            className="mt-3.5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F4D788] to-[#D9A94D] px-4 py-2 font-cinzel text-xs font-bold uppercase tracking-wider text-[#2A1B11] shadow-lg transition-all hover:brightness-110 active:scale-[0.98]"
+            className="mt-2.5 sm:mt-3.5 inline-flex min-h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#F4D788] to-[#D9A94D] px-4 py-2 font-cinzel text-xs font-bold uppercase tracking-wider text-[#2A1B11] shadow-lg transition-all hover:brightness-110 active:scale-[0.98]"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             Shop Now
@@ -535,8 +533,8 @@ export const CosmicStorePage: React.FC = () => {
       </section>
 
       {/* ═══ CATEGORY TABS ═══ */}
-      <div id="products-section" className="mx-auto mt-4 sm:mt-6 max-w-[1325px] px-2 sm:px-6 lg:px-7">
-        <div className="no-scrollbar flex gap-2 sm:gap-3 overflow-x-auto pb-2">
+      <div id="products-section" className="mx-auto mt-3 sm:mt-6 max-w-[1325px] px-2 sm:px-6 lg:px-7">
+        <div className="no-scrollbar flex snap-x snap-mandatory gap-2.5 overflow-x-auto overscroll-x-contain pb-2 sm:gap-3">
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat;
             const count = categoryCounts[cat] ?? 0;
@@ -547,16 +545,20 @@ export const CosmicStorePage: React.FC = () => {
                   setActiveCategory(cat);
                   setFilterCategories(new Set());
                 }}
-                className={`flex shrink-0 flex-col items-center gap-1 sm:gap-2 rounded-xl sm:rounded-2xl border px-3.5 py-2 sm:px-6 sm:py-3.5 transition-all cursor-pointer ${
+                className={`flex min-h-[68px] min-w-[78px] shrink-0 snap-start flex-col items-center justify-center gap-1 rounded-xl border px-3 py-2.5 transition-colors cursor-pointer sm:min-h-0 sm:gap-2 sm:rounded-2xl sm:px-6 sm:py-3.5 ${
                   isActive
                     ? 'border-[#8C6D3B] bg-[#FFFBF0] text-[#7A5B28] shadow-[0_2px_8px_rgba(140,109,59,0.12)]'
                     : 'border-[#E8E2D8] bg-white text-[#6B635B] hover:border-[#C8B88A] hover:bg-[#FEFCF7]'
                 }`}
               >
                 <span className={isActive ? 'text-[#8C6D3B]' : 'text-[#9C958C]'}>
-                  {CATEGORY_ICONS[cat]}
+                  {React.isValidElement(CATEGORY_ICONS[cat])
+                    ? React.cloneElement(CATEGORY_ICONS[cat] as React.ReactElement<{ className?: string }>, {
+                        className: 'h-[18px] w-[18px] sm:h-5 sm:w-5',
+                      })
+                    : CATEGORY_ICONS[cat]}
                 </span>
-                <span className="whitespace-nowrap text-[11px] sm:text-[12px] font-semibold">{cat}</span>
+                <span className="whitespace-nowrap text-[10px] font-semibold sm:text-[12px]">{cat}</span>
               </button>
             );
           })}
@@ -564,7 +566,7 @@ export const CosmicStorePage: React.FC = () => {
       </div>
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <div className="mx-auto mt-4 sm:mt-6 max-w-[1325px] px-2 sm:px-6 lg:px-7">
+      <div className="mx-auto mt-2 sm:mt-6 w-full max-w-[1325px] px-2 sm:px-6 lg:px-7">
         <div className="flex gap-6">
           {/* ─── LEFT SIDEBAR FILTERS (Desktop) ─── */}
           <aside className="hidden w-[220px] shrink-0 lg:block">
@@ -575,32 +577,32 @@ export const CosmicStorePage: React.FC = () => {
           {/* ─── RIGHT: TOOLBAR + PRODUCTS GRID ─── */}
           <div className="flex-1">
             {/* Toolbar */}
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5 sm:mb-5 sm:gap-3">
               <h2 className="font-cinzel text-sm sm:text-base font-bold uppercase tracking-wider text-[#1A1817]">
                 {activeCategory === 'All' ? 'All Products' : activeCategory}{' '}
                 <span className="font-normal font-sans text-xs text-[#8B8178]">({totalProducts})</span>
               </h2>
 
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-start sm:justify-end">
+              <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end sm:gap-3">
                 {/* Search (mobile-friendly) */}
-                <div className="relative flex-1 sm:flex-none">
+                <div className="relative col-span-2 min-w-0 sm:col-span-1 sm:flex-none">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A09890]" />
                   <input
                     type="text"
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-9 w-full sm:w-44 md:w-48 rounded-lg border border-[#E0DAD0] bg-white pl-9 pr-3 text-[13px] text-[#1A1817] outline-none transition-colors placeholder:text-[#B8B1A8] focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B]/20"
+                    className="h-11 w-full rounded-xl border border-[#E0DAD0] bg-white pl-10 pr-3 text-base text-[#1A1817] outline-none transition-colors placeholder:text-[#B8B1A8] focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B]/20 sm:h-10 sm:w-44 sm:rounded-lg sm:text-[13px] md:w-48"
                   />
                 </div>
 
                 {/* Sort By */}
-                <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="min-w-0 sm:flex sm:items-center sm:gap-2">
                   <span className="hidden text-[12px] text-[#6B635B] sm:inline">Sort:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="h-9 rounded-lg border border-[#E0DAD0] bg-white px-2.5 sm:px-3 pr-7 sm:pr-8 text-xs sm:text-[13px] text-[#1A1817] outline-none transition-colors focus:border-[#8C6D3B]"
+                    className="h-11 w-full min-w-0 rounded-xl border border-[#E0DAD0] bg-white px-3 pr-7 text-base text-[#1A1817] outline-none transition-colors focus:border-[#8C6D3B] sm:h-10 sm:w-auto sm:rounded-lg sm:px-3 sm:pr-8 sm:text-[13px]"
                   >
                     {SORT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -613,7 +615,7 @@ export const CosmicStorePage: React.FC = () => {
                 {/* Mobile Filter Button */}
                 <button
                   onClick={() => setMobileFilterOpen(true)}
-                  className="flex h-9 items-center gap-1.5 rounded-lg border border-[#E0DAD0] bg-white px-3 text-xs sm:text-[13px] text-[#6B635B] lg:hidden cursor-pointer"
+                  className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-[#E0DAD0] bg-white px-3 text-xs sm:h-10 sm:rounded-lg sm:text-[13px] lg:hidden cursor-pointer"
                 >
                   <ChevronDown className="h-3.5 w-3.5" />
                   Filters
@@ -653,13 +655,13 @@ export const CosmicStorePage: React.FC = () => {
 
             {/* Loading Skeleton Cards (instant visual feedback on cold load) */}
             {loading && products.length === 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-3.5 lg:gap-4">
+              <div className="store-product-grid grid gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
                     className="flex flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8E2D8] bg-white p-3 shadow-xs animate-pulse"
                   >
-                    <div className="aspect-[4/3.2] w-full rounded-lg bg-[#F0EBE1]" />
+                    <div className="aspect-square w-full rounded-lg bg-[#F0EBE1] sm:aspect-[4/3.2]" />
                     <div className="mt-2.5 h-3.5 w-3/4 rounded bg-[#E8E2D8]" />
                     <div className="mt-1.5 h-2.5 w-1/2 rounded bg-[#EFE9DF]" />
                     <div className="mt-3 flex items-center justify-between">
@@ -713,13 +715,7 @@ export const CosmicStorePage: React.FC = () => {
 
             {/* Product Grid (renders immediately from cache/memory with 0ms delay) */}
             {displayProducts.length > 0 && (
-              <div
-                className={`grid gap-3 sm:gap-3.5 lg:gap-4 ${
-                  displayProducts.length === 1
-                    ? 'grid-cols-1'
-                    : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
-                }`}
-              >
+              <div className="store-product-grid grid gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {displayProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

@@ -2,7 +2,6 @@ import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { StarrySky } from '../components/StarrySky';
 import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/Footer';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 
 export const RootLayout: React.FC = () => {
@@ -39,12 +38,9 @@ export const RootLayout: React.FC = () => {
       {!isAdminLogin && <Navbar isHome={isHome || isSupport} isDeck={isDeck} />}
 
       {/* Dynamic Route Content */}
-      <main className={`relative flex-1 flex flex-col min-h-0 justify-center ${isAdminLogin ? '' : 'pb-16 sm:pb-20 lg:pb-0'}`}>
+      <main className={`relative flex-1 flex flex-col min-h-0 justify-center ${isAdminLogin ? '' : 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0'}`}>
         <Outlet />
       </main>
-
-      {/* Footer */}
-      {!isDeck && !isSupport && !isAdminLogin && <Footer isHome={isHome} />}
 
       {/* Mobile-first Bottom Navigation Bar (Permanently Fixed on Mobile Across All Pages) */}
       {!isAdminLogin && <MobileBottomNav />}

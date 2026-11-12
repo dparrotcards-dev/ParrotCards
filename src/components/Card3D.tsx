@@ -127,7 +127,7 @@ export const Card3D: React.FC<Card3DProps> = ({
   return (
     <div
       className="relative h-[clamp(310px,50vh,415px)] max-h-full max-w-[min(285px,calc(100vw-88px))] mx-auto select-none"
-      style={{ aspectRatio: '2.7 / 4' }}
+      style={{ aspectRatio: '2 / 3' }}
     >
       <div
         className="w-full h-full relative cursor-pointer"
@@ -153,34 +153,12 @@ export const Card3D: React.FC<Card3DProps> = ({
             color: rankColor,
           }}
         >
-          {/* Inner Hairline Framing */}
-          <div className="absolute inset-1.5 rounded-xl border border-[#8C6D3B]/20 pointer-events-none z-0" />
-
-          {/* Ornate Corner Fleurons */}
-          <div className="absolute top-1.5 left-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M2 14V6a4 4 0 0 1 4-4h8" />
-              <circle cx="6" cy="6" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
-          <div className="absolute top-1.5 right-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M22 14V6a4 4 0 0 0-4-4h-8" />
-              <circle cx="18" cy="6" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
-          <div className="absolute bottom-1.5 left-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M2 10v8a4 4 0 0 0 4 4h8" />
-              <circle cx="6" cy="18" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
-          <div className="absolute bottom-1.5 right-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M22 10v8a4 4 0 0 1-4 4h-8" />
-              <circle cx="18" cy="18" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
+          <img
+            src="/card-front-art.svg"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full pointer-events-none select-none"
+          />
 
           {/* Top-Left Corner Index */}
           <div className="text-left font-serif leading-none select-none z-10 pt-0.5 pl-0.5">
@@ -303,34 +281,12 @@ export const Card3D: React.FC<Card3DProps> = ({
             color: '#1A1817',
           }}
         >
-          {/* Inner Hairline Framing */}
-          <div className="absolute inset-1.5 rounded-xl border border-[#8C6D3B]/20 pointer-events-none z-0" />
-
-          {/* Ornate Corner Fleurons */}
-          <div className="absolute top-1.5 left-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M2 14V6a4 4 0 0 1 4-4h8" />
-              <circle cx="6" cy="6" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
-          <div className="absolute top-1.5 right-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M22 14V6a4 4 0 0 0-4-4h-8" />
-              <circle cx="18" cy="6" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
-          <div className="absolute bottom-1.5 left-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M2 10v8a4 4 0 0 0 4 4h8" />
-              <circle cx="6" cy="18" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
-          <div className="absolute bottom-1.5 right-1.5 text-[#8C6D3B]/70 pointer-events-none select-none z-10">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M22 10v8a4 4 0 0 1-4 4h-8" />
-              <circle cx="18" cy="18" r="1.5" fill="#8C6D3B" />
-            </svg>
-          </div>
+          <img
+            src="/card-back-art.svg"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full pointer-events-none select-none"
+          />
 
           {/* Header with Title */}
           <div className="relative text-center pb-1 pt-0.5 border-b border-[#8C6D3B]/25 z-10">

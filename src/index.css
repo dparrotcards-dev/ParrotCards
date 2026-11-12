@@ -708,6 +708,12 @@ select option:checked {
   text-shadow: 0 0 14px rgba(245, 208, 112, 0.85);
 }
 
+@media (max-width: 639px) {
+  .store-product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  }
+}
+
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   * {

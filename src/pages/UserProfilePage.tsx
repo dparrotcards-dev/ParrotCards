@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Shield, Calendar, MapPin, Clock, LogOut, Crown, CreditCard, History } from 'lucide-react';
+import { User, Shield, Calendar, MapPin, Clock, LogOut, Crown, CreditCard, History, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDeck } from '../context/DeckContext';
 import { api } from '../services/api';
@@ -62,7 +62,7 @@ export const UserProfilePage: React.FC = () => {
       </div>
 
       {/* Grid Status Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pass Status */}
         <div className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 shadow-md space-y-2">
           <span className="text-[10px] uppercase tracking-widest font-bold text-[#8C6D3B] block">
@@ -118,6 +118,20 @@ export const UserProfilePage: React.FC = () => {
             <History className="w-5 h-5 text-[#8C6D3B]/60 group-hover:text-[#8C6D3B] transition-colors" />
           </div>
           <span className="text-[11px] text-[#8C6D3B] font-semibold">View Payment Receipts →</span>
+        </Link>
+
+        <Link
+          to="/support"
+          className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 hover:border-[#8C6D3B] shadow-md hover:shadow-lg space-y-2 transition-all block group"
+        >
+          <span className="text-[10px] uppercase tracking-widest font-bold text-[#8C6D3B] block">
+            Support
+          </span>
+          <div className="flex items-center justify-between">
+            <span className="font-serif text-2xl font-bold text-[#1A1817]">Contact Us</span>
+            <Phone className="w-5 h-5 text-[#8C6D3B]/60 group-hover:text-[#8C6D3B] transition-colors" />
+          </div>
+          <span className="text-[11px] text-[#8C6D3B] font-semibold">Get help from our team →</span>
         </Link>
       </div>
 
