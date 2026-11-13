@@ -43,171 +43,7 @@ export interface TransactionRecord {
   gatewayStatus?: string;
 }
 
-// Initial 8 transactions matching the user's reference screenshot
-const INITIAL_TRANSACTIONS: TransactionRecord[] = [
-  {
-    id: 'txn-1',
-    transactionId: 'TXN78421',
-    orderId: '#PC78421',
-    customerName: 'Aarav Sharma',
-    customerInitial: 'A',
-    customerEmail: 'aarav.sharma@example.com',
-    customerPhone: '+91 98765 43210',
-    amountRupees: 5299,
-    paymentMethod: 'UPI',
-    paymentId: 'pay_Q7X9k3mP4z8L',
-    status: 'Success',
-    dateFormatted: '30 Jan 2025',
-    timeFormatted: '10:24 AM',
-    gatewayStatus: 'Captured · Verified',
-  },
-  {
-    id: 'txn-2',
-    transactionId: 'TXN78420',
-    orderId: '#PC78420',
-    customerName: 'Nisha Verma',
-    customerInitial: 'N',
-    customerEmail: 'nisha.verma@example.com',
-    customerPhone: '+91 98765 43211',
-    amountRupees: 1499,
-    paymentMethod: 'Credit Card',
-    paymentId: 'pay_J8Lmd2kR9x1P',
-    status: 'Success',
-    dateFormatted: '30 Jan 2025',
-    timeFormatted: '09:57 AM',
-    gatewayStatus: 'Captured · Verified',
-  },
-  {
-    id: 'txn-3',
-    transactionId: 'TXN78419',
-    orderId: '#PC78419',
-    customerName: 'Rohit Mehta',
-    customerInitial: 'R',
-    customerEmail: 'rohit.mehta@example.com',
-    customerPhone: '+91 98765 43212',
-    amountRupees: 1798,
-    paymentMethod: 'UPI',
-    paymentId: 'pay_K2Pq8wL7z3Nx',
-    status: 'Failed',
-    dateFormatted: '30 Jan 2025',
-    timeFormatted: '09:18 AM',
-    gatewayStatus: 'Declined by Bank',
-  },
-  {
-    id: 'txn-4',
-    transactionId: 'TXN78418',
-    orderId: '#PC78418',
-    customerName: 'Priya Desai',
-    customerInitial: 'P',
-    customerEmail: 'priya.desai@example.com',
-    customerPhone: '+91 98765 43213',
-    amountRupees: 4200,
-    paymentMethod: 'Net Banking',
-    paymentId: 'pay_M9Zt4qR2w8Lk',
-    status: 'Success',
-    dateFormatted: '29 Jan 2025',
-    timeFormatted: '11:36 PM',
-    gatewayStatus: 'Captured · Verified',
-  },
-  {
-    id: 'txn-5',
-    transactionId: 'TXN78417',
-    orderId: '#PC78417',
-    customerName: 'Kunal Singh',
-    customerInitial: 'K',
-    customerEmail: 'kunal.singh@example.com',
-    customerPhone: '+91 98765 43214',
-    amountRupees: 2000,
-    paymentMethod: 'UPI',
-    paymentId: 'pay_N4Vr7xP9z2Lm',
-    status: 'Success',
-    dateFormatted: '29 Jan 2025',
-    timeFormatted: '10:11 PM',
-    gatewayStatus: 'Captured · Verified',
-  },
-  {
-    id: 'txn-6',
-    transactionId: 'TXN78416',
-    orderId: '#PC78416',
-    customerName: 'Sneha Patel',
-    customerInitial: 'S',
-    customerEmail: 'sneha.patel@example.com',
-    customerPhone: '+91 98765 43215',
-    amountRupees: 599,
-    paymentMethod: 'Wallet',
-    paymentId: 'pay_P7Dwx2kM8r4Q',
-    status: 'Refunded',
-    dateFormatted: '29 Jan 2025',
-    timeFormatted: '08:53 PM',
-    gatewayStatus: 'Refund Credited to Source',
-  },
-  {
-    id: 'txn-7',
-    transactionId: 'TXN78415',
-    orderId: '#PC78415',
-    customerName: 'Vikram Rao',
-    customerInitial: 'V',
-    customerEmail: 'vikram.rao@example.com',
-    customerPhone: '+91 98765 43216',
-    amountRupees: 4499,
-    paymentMethod: 'Credit Card',
-    paymentId: 'pay_R3Ht9qP1x7Zk',
-    status: 'Success',
-    dateFormatted: '29 Jan 2025',
-    timeFormatted: '07:42 PM',
-    gatewayStatus: 'Captured · Verified',
-  },
-  {
-    id: 'txn-8',
-    transactionId: 'TXN78414',
-    orderId: '#PC78414',
-    customerName: 'Meera Joshi',
-    customerInitial: 'M',
-    customerEmail: 'meera.joshi@example.com',
-    customerPhone: '+91 98765 43217',
-    amountRupees: 1200,
-    paymentMethod: 'UPI',
-    paymentId: 'pay_T6Nx2mK9r3Lp',
-    status: 'Success',
-    dateFormatted: '29 Jan 2025',
-    timeFormatted: '06:18 PM',
-    gatewayStatus: 'Captured · Verified',
-  },
-  {
-    id: 'txn-9',
-    transactionId: 'TXN78413',
-    orderId: '#PC78413',
-    customerName: 'Aditya Chawla',
-    customerInitial: 'A',
-    customerEmail: 'aditya.c@example.com',
-    customerPhone: '+91 98765 43218',
-    amountRupees: 2499,
-    paymentMethod: 'Net Banking',
-    paymentId: 'pay_U9Lk3mR8x1Pq',
-    status: 'Success',
-    dateFormatted: '29 Jan 2025',
-    timeFormatted: '04:12 PM',
-    gatewayStatus: 'Captured · Verified',
-  },
-  {
-    id: 'txn-10',
-    transactionId: 'TXN78412',
-    orderId: '#PC78412',
-    customerName: 'Kavita Nair',
-    customerInitial: 'K',
-    customerEmail: 'kavita.n@example.com',
-    customerPhone: '+91 98765 43219',
-    amountRupees: 899,
-    paymentMethod: 'Wallet',
-    paymentId: 'pay_V2Rm7kL4z9Nx',
-    status: 'Success',
-    dateFormatted: '29 Jan 2025',
-    timeFormatted: '02:30 PM',
-    gatewayStatus: 'Captured · Verified',
-  },
-];
-
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 /**
  * Payment method pill badge matching reference screenshot
@@ -278,8 +114,8 @@ const StatusBadge: React.FC<{ status: PaymentStatus }> = ({ status }) => {
 };
 
 export const AdminPaymentsPage: React.FC = () => {
-  const [transactions, setTransactions] = useState<TransactionRecord[]>(INITIAL_TRANSACTIONS);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [methodFilter, setMethodFilter] = useState<string>('all');
@@ -296,39 +132,42 @@ export const AdminPaymentsPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Load real transactions from backend if available
+  // Load real transactions strictly from backend
   const loadTransactions = async () => {
+    setLoading(true);
     try {
       const data = await adminService.getPayments({ page: 1, limit: 100 });
-      if (data?.payments && data.payments.length > 0) {
+      if (data?.payments && Array.isArray(data.payments)) {
         const liveMapped: TransactionRecord[] = data.payments.map((p: any, idx: number) => {
-          const name = p.seekerName || p.userEmail?.split('@')[0] || `Customer ${idx + 1}`;
-          const isSuccess = p.status === 'paid' || p.status === 'completed';
-          const isFailed = p.status === 'failed';
-          const isRefund = p.status === 'refunded';
+          const rawName = p.userName || p.customer?.name || (p.userEmail ? p.userEmail.split('@')[0] : `Customer ${idx + 1}`);
+          const customerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+          const isSuccess = p.status === 'PAID' || p.status === 'paid' || p.status === 'SUCCESS' || p.status === 'completed';
+          const isFailed = p.status === 'FAILED' || p.status === 'failed';
+          const isRefund = p.status === 'REFUNDED' || p.status === 'refunded';
           const resolvedStatus: PaymentStatus = isRefund ? 'Refunded' : isFailed ? 'Failed' : 'Success';
 
           const methods: PaymentMethod[] = ['UPI', 'Credit Card', 'Net Banking', 'Wallet'];
-          const resolvedMethod = p.paymentMethod || methods[idx % methods.length];
+          const resolvedMethod = (p.paymentMethod as PaymentMethod) || methods[idx % methods.length];
+          const rawAmount = p.amountRupees ?? (p.amountPaise ? Math.round(p.amountPaise / 100) : 0);
 
           return {
             id: p.id || `live-${idx}`,
-            transactionId: `TXN${78430 + idx}`,
-            orderId: p.orderId?.startsWith('#') ? p.orderId : `#${p.orderId || `PC${78430 + idx}`}`,
-            customerName: name,
-            customerInitial: name.charAt(0).toUpperCase(),
-            customerEmail: p.userEmail || 'customer@example.com',
-            customerPhone: p.phone || '+91 98765 43210',
-            amountRupees: p.amountRupees || Math.round((p.amount || 29900) / 100),
+            transactionId: p.razorpayPaymentId || `TXN${String(idx + 1).padStart(5, '0')}`,
+            orderId: p.orderId?.startsWith('#') ? p.orderId : `#${p.orderId || `PC${String(idx + 1).padStart(5, '0')}`}`,
+            customerName,
+            customerInitial: customerName.charAt(0).toUpperCase() || 'C',
+            customerEmail: p.userEmail || p.customer?.email || 'customer@example.com',
+            customerPhone: p.phone || p.customer?.phone || '—',
+            amountRupees: rawAmount,
             paymentMethod: resolvedMethod,
-            paymentId: p.paymentId || `pay_L${idx}X9k${idx}mP`,
+            paymentId: p.razorpayPaymentId || p.paymentId || '—',
             status: resolvedStatus,
-            dateFormatted: new Date(p.createdAt || Date.now()).toLocaleDateString('en-GB', {
+            dateFormatted: new Date(p.createdAt || Date.now()).toLocaleDateString('en-IN', {
               day: '2-digit',
               month: 'short',
               year: 'numeric',
             }),
-            timeFormatted: new Date(p.createdAt || Date.now()).toLocaleTimeString('en-US', {
+            timeFormatted: new Date(p.createdAt || Date.now()).toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
               hour12: true,
@@ -337,19 +176,48 @@ export const AdminPaymentsPage: React.FC = () => {
           };
         });
 
-        // Merge with initial showcase transactions
-        const existingTxnIds = new Set(liveMapped.map((t) => t.transactionId));
-        const combined = [...liveMapped, ...INITIAL_TRANSACTIONS.filter((it) => !existingTxnIds.has(it.transactionId))];
-        setTransactions(combined);
+        setTransactions(liveMapped);
+      } else {
+        setTransactions([]);
       }
-    } catch {
-      // Keep showcase transactions
+    } catch (err) {
+      console.error('Failed to load transactions:', err);
+      setTransactions([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     loadTransactions();
   }, []);
+
+  // Dynamic metrics computed from real database transactions
+  const metrics = useMemo(() => {
+    let successCount = 0;
+    let failedCount = 0;
+    let refundedCount = 0;
+    let totalAmount = 0;
+
+    for (const t of transactions) {
+      if (t.status === 'Success') {
+        successCount++;
+        totalAmount += t.amountRupees;
+      } else if (t.status === 'Failed') {
+        failedCount++;
+      } else if (t.status === 'Refunded') {
+        refundedCount++;
+      }
+    }
+
+    return {
+      total: transactions.length,
+      success: successCount,
+      failed: failedCount,
+      refunded: refundedCount,
+      totalAmount,
+    };
+  }, [transactions]);
 
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
@@ -429,53 +297,61 @@ export const AdminPaymentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Metric Stat Cards Strip Matching Reference Image */}
+      {/* 1. Metric Stat Cards Strip with Dynamic Real Data */}
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        {/* Total Transactions (7,842) */}
+        {/* Total Transactions */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <CreditCard className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Total Transactions</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">7,842</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.total.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Successful (7,356) */}
+        {/* Successful */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#1D7E33]">
             <CheckCircle2 className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Successful</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">7,356</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.success.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Failed (324) */}
+        {/* Failed */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#B82B33]">
             <XCircle className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Failed</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">324</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.failed.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Refunded (62) */}
+        {/* Refunded */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#71449B]">
             <RotateCcw className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Refunded</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">62</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.refunded.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Total Amount (₹ 4,27,600) */}
+        {/* Total Amount */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <span className="w-6 h-6 rounded-full border border-[#8C6D3B] flex items-center justify-center font-serif font-bold text-xs">
@@ -485,7 +361,7 @@ export const AdminPaymentsPage: React.FC = () => {
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Total Amount</div>
             <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight whitespace-nowrap">
-              ₹ 4,27,600
+              ₹ {metrics.totalAmount.toLocaleString('en-IN')}
             </div>
           </div>
         </div>
@@ -614,7 +490,14 @@ export const AdminPaymentsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F0E5D8]">
-              {displayedTransactions.length ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={10} className="py-20 text-center text-[#735e49]">
+                    <span className="mx-auto mb-3 block h-8 w-8 rounded-full border-2 border-[#8C6D3B] border-t-transparent animate-spin" />
+                    <span className="font-serif text-sm">Loading transactions…</span>
+                  </td>
+                </tr>
+              ) : displayedTransactions.length ? (
                 displayedTransactions.map((txn, index) => {
                   const truncatedPayId =
                     txn.paymentId.length > 12 ? `${txn.paymentId.slice(0, 10)}...` : txn.paymentId;
@@ -692,8 +575,22 @@ export const AdminPaymentsPage: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={10} className="py-16 text-center italic text-[#806A57]">
-                    No transactions found matching current criteria.
+                  <td colSpan={10} className="py-16 text-center text-[#806A57]">
+                    {transactions.length === 0 ? (
+                      <div className="mx-auto flex max-w-sm flex-col items-center justify-center">
+                        <div className="w-14 h-14 rounded-2xl bg-[#F5EDE1] border border-[#E8DCCF] flex items-center justify-center text-[#8C6D3B] mb-3 shadow-inner">
+                          <CreditCard className="w-7 h-7" />
+                        </div>
+                        <h4 className="font-serif text-base font-bold text-[#2C2016] mb-1">
+                          No Transactions Yet
+                        </h4>
+                        <p className="text-xs text-[#7A6A58]">
+                          There are currently no payment transactions recorded.
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="italic">No transactions found matching current criteria.</span>
+                    )}
                   </td>
                 </tr>
               )}
@@ -701,86 +598,48 @@ export const AdminPaymentsPage: React.FC = () => {
           </table>
         </div>
 
-        {/* 4. Pagination Bar Matching Reference Screenshot */}
+        {/* 4. Pagination Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-[#EADCCE] bg-[#FAF6F0]/40">
           <p className="font-serif text-sm text-[#665444]">
-            Showing {firstIndex} – {lastIndex} of 7,842 transactions
+            Showing {firstIndex} – {lastIndex} of {filteredTransactions.length} transactions
           </p>
 
-          <div className="flex items-center gap-1">
-            {/* Prev Button */}
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              {/* Prev Button */}
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-            {/* Page Numbers */}
-            <button
-              onClick={() => setPage(1)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 1 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              1
-            </button>
-            <button
-              onClick={() => setPage(2)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 2 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              2
-            </button>
-            <button
-              onClick={() => setPage(3)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 3 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              3
-            </button>
-            <button
-              onClick={() => setPage(4)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 4 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              4
-            </button>
-            <button
-              onClick={() => setPage(5)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 5 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              5
-            </button>
+              {/* Dynamic Page Numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+                <button
+                  key={pNum}
+                  onClick={() => setPage(pNum)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    page === pNum ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
+                  }`}
+                >
+                  {pNum}
+                </button>
+              ))}
 
-            <span className="px-1 text-xs text-[#8C7A68]">…</span>
-
-            <button
-              onClick={() => setPage(981)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 981 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              981
-            </button>
-
-            {/* Next Button */}
-            <button
-              onClick={() => setPage(Math.min(981, page + 1))}
-              disabled={page === 981}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Next page"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+              {/* Next Button */}
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Next page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

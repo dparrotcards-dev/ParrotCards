@@ -55,151 +55,7 @@ export interface CustomerOrder {
   trackingNumber?: string;
 }
 
-// Initial orders matching the user's reference screenshot
-const INITIAL_ORDERS: CustomerOrder[] = [
-  {
-    id: 'ord-1',
-    orderId: '#PC78421',
-    customerName: 'Aarav Sharma',
-    customerPhone: '+91 98765 43210',
-    customerEmail: 'aarav.sharma@example.com',
-    customerInitial: 'A',
-    products: [
-      { name: 'Rudraksha Mala', category: 'Rudraksha', quantity: 1, priceRupees: 800 },
-      { name: 'Amethyst Gemstone', category: 'Gemstones', quantity: 1, priceRupees: 4200 },
-      { name: 'Shree Yantra', category: 'Yantra', quantity: 1, priceRupees: 299 },
-    ],
-    totalAmountRupees: 5299,
-    shippingCity: 'Udaipur',
-    shippingState: 'Rajasthan',
-    shippingPincode: '313001',
-    orderDateFormatted: '30 Jan 2025',
-    orderTimeFormatted: '10:24 AM',
-    status: 'Delivered',
-    courierName: 'Blue Dart Express',
-    trackingNumber: 'BD-847291039',
-  },
-  {
-    id: 'ord-2',
-    orderId: '#PC78420',
-    customerName: 'Nisha Verma',
-    customerPhone: '+91 98765 43211',
-    customerEmail: 'nisha.verma@example.com',
-    customerInitial: 'N',
-    products: [
-      { name: 'Shree Yantra', category: 'Yantra', quantity: 1, priceRupees: 1499 },
-    ],
-    totalAmountRupees: 1499,
-    shippingCity: 'Jaipur',
-    shippingState: 'Rajasthan',
-    shippingPincode: '302015',
-    orderDateFormatted: '30 Jan 2025',
-    orderTimeFormatted: '09:57 AM',
-    status: 'Shipped',
-    courierName: 'Delhivery Surface',
-    trackingNumber: 'DEL-992384712',
-  },
-  {
-    id: 'ord-3',
-    orderId: '#PC78419',
-    customerName: 'Rohit Mehta',
-    customerPhone: '+91 98765 43212',
-    customerEmail: 'rohit.mehta@example.com',
-    customerInitial: 'R',
-    products: [
-      { name: 'Vedic Astrology Guide', category: 'Astrology Books', quantity: 1, priceRupees: 599 },
-      { name: 'Brass Dhoop Dani', category: 'Spiritual Accessories', quantity: 1, priceRupees: 1199 },
-    ],
-    totalAmountRupees: 1798,
-    shippingCity: 'Ahmedabad',
-    shippingState: 'Gujarat',
-    shippingPincode: '380015',
-    orderDateFormatted: '30 Jan 2025',
-    orderTimeFormatted: '09:18 AM',
-    status: 'Processing',
-    courierName: 'DTDC Courier',
-    trackingNumber: 'DTDC-4829104',
-  },
-  {
-    id: 'ord-4',
-    orderId: '#PC78418',
-    customerName: 'Priya Desai',
-    customerPhone: '+91 98765 43213',
-    customerEmail: 'priya.desai@example.com',
-    customerInitial: 'P',
-    products: [
-      { name: 'Amethyst Gemstone', category: 'Gemstones', quantity: 1, priceRupees: 4200 },
-    ],
-    totalAmountRupees: 4200,
-    shippingCity: 'Mumbai',
-    shippingState: 'Maharashtra',
-    shippingPincode: '400001',
-    orderDateFormatted: '29 Jan 2025',
-    orderTimeFormatted: '11:36 PM',
-    status: 'Delivered',
-    courierName: 'Blue Dart Air',
-    trackingNumber: 'BD-77382910',
-  },
-  {
-    id: 'ord-5',
-    orderId: '#PC78417',
-    customerName: 'Kunal Singh',
-    customerPhone: '+91 98765 43214',
-    customerEmail: 'kunal.singh@example.com',
-    customerInitial: 'K',
-    products: [
-      { name: 'Rudraksha Mala', category: 'Rudraksha', quantity: 1, priceRupees: 800 },
-      { name: 'Brass Dhoop Dani', category: 'Spiritual Accessories', quantity: 1, priceRupees: 1200 },
-    ],
-    totalAmountRupees: 2000,
-    shippingCity: 'Delhi',
-    shippingState: 'Delhi',
-    shippingPincode: '110034',
-    orderDateFormatted: '29 Jan 2025',
-    orderTimeFormatted: '10:11 PM',
-    status: 'Shipped',
-    courierName: 'Delhivery Express',
-    trackingNumber: 'DEL-38291023',
-  },
-  {
-    id: 'ord-6',
-    orderId: '#PC78416',
-    customerName: 'Sneha Kulkarni',
-    customerPhone: '+91 98765 43215',
-    customerEmail: 'sneha.k@example.com',
-    customerInitial: 'S',
-    products: [
-      { name: 'Yellow Sapphire (Pukhraj)', category: 'Gemstones', quantity: 1, priceRupees: 11500 },
-    ],
-    totalAmountRupees: 11500,
-    shippingCity: 'Pune',
-    shippingState: 'Maharashtra',
-    shippingPincode: '411001',
-    orderDateFormatted: '29 Jan 2025',
-    orderTimeFormatted: '08:45 PM',
-    status: 'Confirmed',
-  },
-  {
-    id: 'ord-7',
-    orderId: '#PC78415',
-    customerName: 'Vikram Rajput',
-    customerPhone: '+91 98765 43216',
-    customerEmail: 'vikram.r@example.com',
-    customerInitial: 'V',
-    products: [
-      { name: 'Ek Mukhi Rudraksha', category: 'Rudraksha', quantity: 1, priceRupees: 8500 },
-    ],
-    totalAmountRupees: 8500,
-    shippingCity: 'Jodhpur',
-    shippingState: 'Rajasthan',
-    shippingPincode: '342001',
-    orderDateFormatted: '28 Jan 2025',
-    orderTimeFormatted: '04:15 PM',
-    status: 'Cancelled',
-  },
-];
-
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 /**
  * Renders small mini SVG artwork thumbnail for product in table cell
@@ -267,8 +123,8 @@ const ProductMiniIcon: React.FC<{ productName: string }> = ({ productName }) => 
 };
 
 export const AdminOrdersPage: React.FC = () => {
-  const [orders, setOrders] = useState<CustomerOrder[]>(INITIAL_ORDERS);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
@@ -291,70 +147,113 @@ export const AdminOrdersPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Try to load any real live orders from backend payments/orders API
+  // Load real live orders from backend payments/orders API
   const loadOrders = async () => {
+    setLoading(true);
     try {
-      const data = await adminService.getPayments({ page: 1, limit: 50 });
-      if (data?.payments && data.payments.length > 0) {
+      const data = await adminService.getPayments({ page: 1, limit: 100 });
+      if (data?.payments && Array.isArray(data.payments)) {
         const liveMapped: CustomerOrder[] = data.payments.map((p: any, idx: number) => {
-          const name = p.seekerName || p.userEmail?.split('@')[0] || `Seeker ${idx + 1}`;
+          const rawName = p.userName || p.customer?.name || (p.userEmail ? p.userEmail.split('@')[0] : `Seeker ${idx + 1}`);
+          const customerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+          const customerEmail = p.userEmail || p.customer?.email || 'N/A';
+          const customerPhone = p.phone || p.customer?.phone || '—';
+
           const statusMap: Record<string, OrderStatus> = {
-            paid: 'Delivered',
-            completed: 'Delivered',
-            created: 'Confirmed',
-            processing: 'Processing',
-            shipped: 'Shipped',
-            failed: 'Cancelled',
-            refunded: 'Cancelled',
+            PAID: 'Delivered',
+            SUCCESS: 'Delivered',
+            COMPLETED: 'Delivered',
+            CREATED: 'Confirmed',
+            PROCESSING: 'Processing',
+            SHIPPED: 'Shipped',
+            FAILED: 'Cancelled',
+            EXPIRED: 'Cancelled',
+            REFUNDED: 'Cancelled',
           };
-          const resolvedStatus: OrderStatus = statusMap[p.status] || 'Confirmed';
+          const resolvedStatus: OrderStatus = statusMap[p.status?.toUpperCase()] || 'Confirmed';
+
+          const getItemTitle = (itemType: string, itemId?: string) => {
+            if (itemType === 'DECK_PASS') return 'Full 55-Card Cosmic Deck Pass';
+            if (itemType === 'CARD_UNLOCK') return itemId ? `Card Unlock (${itemId})` : 'Personalized Natal Card';
+            if (itemType === 'STORE_PRODUCT') return itemId || 'Cosmic Store Sacred Item';
+            return 'Cosmic Reading Pass';
+          };
+
+          const rawAmount = p.amountRupees ?? (p.amountPaise ? Math.round(p.amountPaise / 100) : 0);
 
           return {
             id: p.id || `live-${idx}`,
-            orderId: p.orderId?.startsWith('#') ? p.orderId : `#${p.orderId || `PC78${430 + idx}`}`,
-            customerName: name,
-            customerPhone: p.phone || '+91 98765 43210',
-            customerEmail: p.userEmail || 'customer@example.com',
-            customerInitial: name.charAt(0).toUpperCase(),
+            orderId: p.orderId ? (p.orderId.startsWith('#') ? p.orderId : `#${p.orderId}`) : `#PC${String(idx + 1).padStart(5, '0')}`,
+            customerName,
+            customerPhone,
+            customerEmail,
+            customerInitial: customerName.charAt(0).toUpperCase() || 'S',
             products: [
               {
-                name: p.itemTitle || (p.itemType === 'DECK_PASS' ? 'Full 55-Card Cosmic Deck Pass' : 'Personalized Natal Card'),
-                category: 'Cosmic Entitlement',
+                name: getItemTitle(p.itemType, p.itemId),
+                category: p.itemType === 'STORE_PRODUCT' ? 'Store Product' : 'Cosmic Entitlement',
                 quantity: 1,
-                priceRupees: p.amountRupees || 299,
+                priceRupees: rawAmount,
               },
             ],
-            totalAmountRupees: p.amountRupees || 299,
-            shippingCity: p.city || 'Udaipur',
-            shippingState: p.state || 'Rajasthan',
-            shippingPincode: p.pincode || '313001',
-            orderDateFormatted: new Date(p.createdAt || Date.now()).toLocaleDateString('en-GB', {
+            totalAmountRupees: rawAmount,
+            shippingCity: p.shippingCity || 'Digital Delivery',
+            shippingState: p.shippingState || 'Online',
+            shippingPincode: p.shippingPincode || 'Instant',
+            orderDateFormatted: new Date(p.createdAt || Date.now()).toLocaleDateString('en-IN', {
               day: '2-digit',
               month: 'short',
               year: 'numeric',
             }),
-            orderTimeFormatted: new Date(p.createdAt || Date.now()).toLocaleTimeString('en-US', {
+            orderTimeFormatted: new Date(p.createdAt || Date.now()).toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
               hour12: true,
             }),
             status: resolvedStatus,
+            courierName: resolvedStatus === 'Delivered' ? 'Instant Digital Access' : undefined,
           };
         });
 
-        // Merge live orders with showcase reference orders
-        const existingOrderIds = new Set(liveMapped.map((o) => o.orderId));
-        const combined = [...liveMapped, ...INITIAL_ORDERS.filter((io) => !existingOrderIds.has(io.orderId))];
-        setOrders(combined);
+        setOrders(liveMapped);
+      } else {
+        setOrders([]);
       }
-    } catch {
-      // Keep initial showcase orders
+    } catch (err) {
+      console.error('Failed to load orders from API:', err);
+      setOrders([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     loadOrders();
   }, []);
+
+  // Dynamic metrics computed from real orders
+  const metrics = useMemo(() => {
+    let confirmed = 0;
+    let shipped = 0;
+    let delivered = 0;
+    let cancelled = 0;
+
+    for (const o of orders) {
+      if (o.status === 'Confirmed') confirmed++;
+      else if (o.status === 'Shipped') shipped++;
+      else if (o.status === 'Delivered') delivered++;
+      else if (o.status === 'Cancelled') cancelled++;
+      else if (o.status === 'Processing') confirmed++;
+    }
+
+    return {
+      total: orders.length,
+      confirmed,
+      shipped,
+      delivered,
+      cancelled,
+    };
+  }, [orders]);
 
   // Filtered orders
   const filteredOrders = useMemo(() => {
@@ -482,60 +381,70 @@ export const AdminOrdersPage: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Metric Stat Cards Strip Matching Reference Image */}
+      {/* 1. Metric Stat Cards Strip with Dynamic Real Data */}
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        {/* Total Orders (1,204) */}
+        {/* Total Orders */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <ShoppingCart className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Total Orders</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">1,204</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.total.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Confirmed (920) */}
+        {/* Confirmed */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <Package className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Confirmed</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">920</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.confirmed.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Shipped (110) */}
+        {/* Shipped */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <Truck className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Shipped</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">110</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.shipped.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Delivered (86) */}
+        {/* Delivered */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <CheckCircle2 className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Delivered</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">86</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.delivered.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
 
-        {/* Cancelled (24) */}
+        {/* Cancelled */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#B82B33]">
             <XCircle className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Cancelled</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">24</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {metrics.cancelled.toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
       </section>
@@ -643,7 +552,14 @@ export const AdminOrdersPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F0E5D8]">
-              {displayedOrders.length ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="py-20 text-center text-[#735e49]">
+                    <span className="mx-auto mb-3 block h-8 w-8 rounded-full border-2 border-[#8C6D3B] border-t-transparent animate-spin" />
+                    <span className="font-serif text-sm">Loading customer orders…</span>
+                  </td>
+                </tr>
+              ) : displayedOrders.length ? (
                 displayedOrders.map((order, index) => {
                   const badge = getStatusBadge(order.status);
                   const firstTwo = order.products.slice(0, 2);
@@ -766,8 +682,22 @@ export const AdminOrdersPage: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-16 text-center italic text-[#806A57]">
-                    No customer orders found matching current criteria.
+                  <td colSpan={9} className="py-16 text-center text-[#806A57]">
+                    {orders.length === 0 ? (
+                      <div className="mx-auto flex max-w-sm flex-col items-center justify-center">
+                        <div className="w-14 h-14 rounded-2xl bg-[#F5EDE1] border border-[#E8DCCF] flex items-center justify-center text-[#8C6D3B] mb-3 shadow-inner">
+                          <ShoppingCart className="w-7 h-7" />
+                        </div>
+                        <h4 className="font-serif text-base font-bold text-[#2C2016] mb-1">
+                          No Customer Orders Yet
+                        </h4>
+                        <p className="text-xs text-[#7A6A58]">
+                          There are currently no customer orders placed in the system.
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="italic">No customer orders found matching current criteria.</span>
+                    )}
                   </td>
                 </tr>
               )}
@@ -775,86 +705,48 @@ export const AdminOrdersPage: React.FC = () => {
           </table>
         </div>
 
-        {/* 4. Pagination Bar Matching Reference Screenshot */}
+        {/* 4. Pagination Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-[#EADCCE] bg-[#FAF6F0]/40">
           <p className="font-serif text-sm text-[#665444]">
-            Showing {firstIndex} – {lastIndex} of 1,204 orders
+            Showing {firstIndex} – {lastIndex} of {filteredOrders.length} orders
           </p>
 
-          <div className="flex items-center gap-1">
-            {/* Prev Button */}
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              {/* Prev Button */}
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-            {/* Page Numbers */}
-            <button
-              onClick={() => setPage(1)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 1 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              1
-            </button>
-            <button
-              onClick={() => setPage(2)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 2 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              2
-            </button>
-            <button
-              onClick={() => setPage(3)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 3 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              3
-            </button>
-            <button
-              onClick={() => setPage(4)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 4 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              4
-            </button>
-            <button
-              onClick={() => setPage(5)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 5 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              5
-            </button>
+              {/* Dynamic Page Numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+                <button
+                  key={pNum}
+                  onClick={() => setPage(pNum)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    page === pNum ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
+                  }`}
+                >
+                  {pNum}
+                </button>
+              ))}
 
-            <span className="px-1 text-xs text-[#8C7A68]">…</span>
-
-            <button
-              onClick={() => setPage(241)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 241 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              241
-            </button>
-
-            {/* Next Button */}
-            <button
-              onClick={() => setPage(Math.min(241, page + 1))}
-              disabled={page === 241}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Next page"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+              {/* Next Button */}
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Next page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
