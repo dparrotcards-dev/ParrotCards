@@ -29,6 +29,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminDecksPage } from './pages/admin/AdminDecksPage';
 import { AdminCardsPage } from './pages/admin/AdminCardsPage';
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage';
+import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminSystemPage } from './pages/admin/AdminSystemPage';
 import { AdminChangePasswordPage } from './pages/admin/AdminChangePasswordPage';
 import { CosmicStorePage } from './pages/CosmicStorePage';
@@ -52,7 +53,8 @@ export const App: React.FC = () => {
               <Route path="store" element={<AdminProductsPage />} />
               <Route path="store/products" element={<Navigate to="/admin/store" replace />} />
               <Route path="store/add-product" element={<AdminAddProductPage />} />
-              <Route path="payments" element={<AdminPaymentsPage />} />
+              <Route path="orders" element={<AdminOrdersPage />} />
+              <Route path="payments" element={<AdminOrdersPage />} />
               <Route path="transactions" element={<AdminPaymentsPage />} />
               <Route path="ai-monitoring" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="astronomy" element={<Navigate to="/admin/dashboard" replace />} />

@@ -25,7 +25,7 @@ const NAV_ITEMS = [
   { label: 'Users', to: '/admin/users', icon: Users },
   { label: 'Cards Management', to: '/admin/cards', icon: Layers },
   { label: 'Products Management', to: '/admin/store', icon: Package },
-  { label: 'Orders', to: '/admin/payments', icon: ShoppingCart },
+  { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Transactions', to: '/admin/transactions', icon: CreditCard },
 ] as const;
 
@@ -34,7 +34,8 @@ const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
   '/admin/users': { title: 'Users', subtitle: 'Manage customers and their account details' },
   '/admin/cards': { title: 'Cards Management', subtitle: 'Manage all 55 cards, their content, and access settings.' },
   '/admin/store': { title: 'Products Management', subtitle: 'Manage all store products, categories, price and inventory' },
-  '/admin/payments': { title: 'Orders', subtitle: 'Orders, fulfillment & revenue' },
+  '/admin/orders': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
+  '/admin/payments': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
   '/admin/transactions': { title: 'Transactions', subtitle: 'Payment records & revenue' },
 };
 
