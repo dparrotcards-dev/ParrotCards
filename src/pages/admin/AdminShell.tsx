@@ -36,7 +36,7 @@ const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
   '/admin/store': { title: 'Products Management', subtitle: 'Manage all store products, categories, price and inventory' },
   '/admin/orders': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
   '/admin/payments': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
-  '/admin/transactions': { title: 'Transactions', subtitle: 'Payment records & revenue' },
+  '/admin/transactions': { title: 'Transactions', subtitle: 'View and manage all payment transactions' },
 };
 
 export const AdminShell: React.FC = () => {
