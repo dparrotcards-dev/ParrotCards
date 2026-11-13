@@ -116,12 +116,12 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
     return location.pathname === to;
   };
   return (
-    <header className="sticky top-0 z-50 w-full px-2 max-[359px]:px-1 sm:px-4 lg:px-6 select-none py-1 sm:py-1.5 relative">
+    <header className="sticky top-0 z-50 w-full px-1.5 sm:px-4 lg:px-6 select-none py-0.5 sm:py-1.5 relative">
       <div
-        className={`mx-auto flex max-w-[1360px] items-center justify-between rounded-2xl border border-[#E5DDD0] bg-[#FFFDF9] px-2.5 max-[359px]:px-1 sm:px-4 lg:px-5 select-none h-[46px] sm:h-[48px] relative z-50 transition-shadow duration-200 ${
+        className={`mx-auto flex max-w-[1360px] items-center justify-between px-2 sm:px-4 lg:px-5 select-none h-[44px] sm:h-[48px] relative z-50 transition-all duration-200 ${
           isScrolled
-            ? 'shadow-[0_4px_20px_rgba(70,50,20,0.12)]'
-            : 'shadow-[0_2px_12px_rgba(70,50,20,0.06)]'
+            ? 'max-sm:bg-[#FAF7F2]/90 max-sm:backdrop-blur-md max-sm:border-b max-sm:border-[#E5DDD0]/60 sm:rounded-2xl sm:border sm:border-[#E5DDD0] sm:bg-[#FFFDF9] shadow-[0_2px_12px_rgba(70,50,20,0.06)]'
+            : 'max-sm:bg-transparent max-sm:border-transparent sm:rounded-2xl sm:border sm:border-[#E5DDD0] sm:bg-[#FFFDF9] sm:shadow-[0_2px_12px_rgba(70,50,20,0.06)]'
         }`}
       >
         {/* ═══ BRAND LOGO ═══ */}
