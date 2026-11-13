@@ -23,7 +23,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
   const { entitlements } = useDeck();
   const location = useLocation();
   const [wishlistDrawerOpen, setWishlistDrawerOpen] = React.useState(false);
-  const [isScrolled, setIsScrolled] = React.useState(false);
 
   // Sync wishlist & cart counts (real-time from localStorage)
   const [wishlistCount, setWishlistCount] = React.useState<number>(() => {
@@ -51,15 +50,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
     }
     return 0;
   });
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 6);
-    };
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   React.useEffect(() => {
     const handleSync = () => {
@@ -116,13 +106,9 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
     return location.pathname === to;
   };
   return (
-    <header className="sticky top-0 z-50 w-full px-1.5 sm:px-4 lg:px-6 select-none py-0.5 sm:py-1.5 relative">
+    <header className="sticky top-0 z-50 w-full px-1 sm:px-4 lg:px-6 select-none py-px sm:py-1.5 relative">
       <div
-        className={`mx-auto flex max-w-[1360px] items-center justify-between px-2 sm:px-4 lg:px-5 select-none h-[44px] sm:h-[48px] relative z-50 transition-all duration-200 ${
-          isScrolled
-            ? 'max-sm:bg-[#FAF7F2]/90 max-sm:backdrop-blur-md max-sm:border-b max-sm:border-[#E5DDD0]/60 sm:rounded-2xl sm:border sm:border-[#E5DDD0] sm:bg-[#FFFDF9] shadow-[0_2px_12px_rgba(70,50,20,0.06)]'
-            : 'max-sm:bg-transparent max-sm:border-transparent sm:rounded-2xl sm:border sm:border-[#E5DDD0] sm:bg-[#FFFDF9] sm:shadow-[0_2px_12px_rgba(70,50,20,0.06)]'
-        }`}
+        className="relative z-50 mx-auto flex h-[44px] max-w-[1360px] items-center justify-between rounded-[16px] border border-[#E5DDD0] bg-[#FFFDF9] px-2 shadow-[0_2px_12px_rgba(70,50,20,0.06)] transition-all duration-200 sm:h-[48px] sm:rounded-2xl sm:px-4 lg:px-5 select-none"
       >
         {/* ═══ BRAND LOGO ═══ */}
         <div className="flex items-center shrink-0">
