@@ -24,6 +24,8 @@ const NAV_ITEMS = [
   { label: 'Dashboard', to: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Users', to: '/admin/users', icon: Users },
   { label: 'Cards Management', to: '/admin/cards', icon: Layers },
+  { label: 'Products Management', to: '/admin/store', icon: Package },
+  { label: 'Orders', to: '/admin/payments', icon: ShoppingCart },
   { label: 'Transactions', to: '/admin/transactions', icon: CreditCard },
 ] as const;
 
@@ -31,8 +33,8 @@ const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
   '/admin/dashboard': { title: 'Dashboard', subtitle: 'Cosmic Store Overview & Insights' },
   '/admin/users': { title: 'Users', subtitle: 'Manage customers and their account details' },
   '/admin/cards': { title: 'Cards Management', subtitle: 'Manage all 55 cards, their content, and access settings.' },
-  '/admin/store': { title: 'Products Management', subtitle: 'Cosmic store catalogue' },
-  '/admin/payments': { title: 'Transactions', subtitle: 'Payment records & revenue' },
+  '/admin/store': { title: 'Products Management', subtitle: 'Manage all store products, categories, price and inventory' },
+  '/admin/payments': { title: 'Orders', subtitle: 'Orders, fulfillment & revenue' },
   '/admin/transactions': { title: 'Transactions', subtitle: 'Payment records & revenue' },
 };
 
@@ -174,8 +176,8 @@ export const AdminShell: React.FC = () => {
             </div>
             <div className="mt-[-2px] font-serif text-[26px] font-bold tracking-[0.02em] text-[#331a0f]">PARROT CARDS</div>
             <div className="admin-brand-divider mx-auto mt-2 w-[162px]" />
-            <p className="mt-2 font-serif text-[14px] font-semibold tracking-[0.16em] uppercase text-[#735235]">
-              — ADMIN PANEL —
+            <p className="mt-2 font-serif text-[12px] font-bold tracking-[0.16em] uppercase text-[#6B4E36] leading-tight">
+              COSMIC STORE<br />ADMIN PANEL
             </p>
           </div>
 
