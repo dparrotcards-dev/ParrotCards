@@ -1,519 +1,365 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Users,
-  Layers,
-  Sparkles,
-  CreditCard,
-  Cpu,
-  Database,
-  RefreshCw,
-  CheckCircle2,
-  TrendingUp,
-  Shield,
   ArrowRight,
-  Compass,
+  Box,
+  ChevronDown,
+  Package,
+  RefreshCw,
+  ShoppingCart,
+  Truck,
+  Users,
 } from 'lucide-react';
 import { adminService, AdminDashboardData } from '../../services/adminService';
+
+type StoreProduct = {
+  id: string;
+  name: string;
+  shortDescription: string;
+  category: string;
+  priceRupees: number;
+  imageUrl: string;
+};
+
+type StatusSlice = {
+  label: string;
+  value: number;
+  color: string;
+};
+
+const numberFormat = new Intl.NumberFormat('en-IN');
+const moneyFormat = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+
+const fallbackProducts: StoreProduct[] = [
+  {
+    id: 'catalog-rudraksha',
+    name: 'Rudraksha',
+    shortDescription: 'Spiritual Protection & Energy',
+    category: 'Rudraksha',
+    priceRupees: 0,
+    imageUrl: '/store_rudraksha_bracelet.jpg',
+  },
+  {
+    id: 'catalog-gemstone',
+    name: 'Gemstones',
+    shortDescription: 'Healing & Planetary Balance',
+    category: 'Gemstones',
+    priceRupees: 0,
+    imageUrl: '/store_cosmic_watch.jpg',
+  },
+  {
+    id: 'catalog-yantra',
+    name: 'Sacred Yantras',
+    shortDescription: 'Wealth, Protection & Harmony',
+    category: 'Yantra',
+    priceRupees: 0,
+    imageUrl: '/card_emblem_sun.png',
+  },
+];
+
+const formatDate = (date?: string) => {
+  if (!date) return '—';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const formatChartDate = (date: string) => {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+};
+
+const formatItemType = (value: string) =>
+  value
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+
+const orderStatus = (status: string) => {
+  const normalized = status.toUpperCase();
+  if (normalized === 'PAID') return { label: 'Paid', className: 'admin-status-paid' };
+  if (normalized === 'PENDING' || normalized === 'CREATED') return { label: 'Processing', className: 'admin-status-processing' };
+  if (normalized === 'FAILED') return { label: 'Failed', className: 'admin-status-failed' };
+  return { label: status, className: 'admin-status-pending' };
+};
+
+const MetricCard: React.FC<{
+  label: string;
+  value: React.ReactNode;
+  icon: React.ReactNode;
+  valueClassName?: string;
+}> = ({ label, value, icon, valueClassName = '' }) => (
+  <article className="admin-stat-card flex min-h-[148px] flex-col items-center justify-center px-3 py-4 text-center">
+    <div className="mb-2 text-[#9a6113]">{icon}</div>
+    <h2 className="font-serif text-[18px] font-bold leading-tight text-[#2c180f]">{label}</h2>
+    <div className={`mt-1 font-serif text-[36px] font-bold leading-none tracking-[-0.04em] text-[#30170e] ${valueClassName}`}>{value}</div>
+  </article>
+);
+
+const SalesChart: React.FC<{ trend: AdminDashboardData['revenueTrend'] }> = ({ trend }) => {
+  const chartData = trend.length > 0 ? trend.slice(-30) : [];
+  const width = 700;
+  const height = 235;
+  const padding = { top: 20, right: 18, bottom: 34, left: 48 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+  const maxRevenue = Math.max(...chartData.map((item) => item.revenueRupees), 1);
+  const points = chartData.map((item, index) => {
+    const x = padding.left + (chartData.length === 1 ? chartWidth / 2 : (index / (chartData.length - 1)) * chartWidth);
+    const y = padding.top + chartHeight - (item.revenueRupees / maxRevenue) * chartHeight;
+    return { ...item, x, y };
+  });
+  const linePath = points.map((point) => `${point.x},${point.y}`).join(' ');
+  const areaPath = points.length
+    ? `M ${points[0].x} ${padding.top + chartHeight} L ${points.map((point) => `${point.x} ${point.y}`).join(' L ')} L ${points[points.length - 1].x} ${padding.top + chartHeight} Z`
+    : '';
+  const labelStep = Math.max(1, Math.ceil(chartData.length / 6));
+
+  if (!chartData.length) {
+    return <div className="flex h-[230px] items-center justify-center text-sm italic text-[#8b7562]">No completed sales recorded in the last 30 days.</div>;
+  }
+
+  return (
+    <div className="h-[230px] w-full">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full overflow-visible" role="img" aria-label="Sales overview chart">
+        <defs>
+          <linearGradient id="salesArea" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#d18b1e" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#f6e0b4" stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
+        {[0, 0.25, 0.5, 0.75, 1].map((line) => {
+          const y = padding.top + chartHeight - line * chartHeight;
+          const amount = Math.round(maxRevenue * line);
+          return (
+            <g key={line}>
+              <line x1={padding.left} x2={width - padding.right} y1={y} y2={y} stroke="#9a6b2f" strokeOpacity="0.15" />
+              <text x={padding.left - 12} y={y + 4} textAnchor="end" fill="#6e5440" fontFamily="Georgia, serif" fontSize="12">
+                {amount === 0 ? '0' : `₹${numberFormat.format(amount)}`}
+              </text>
+            </g>
+          );
+        })}
+        <path d={areaPath} fill="url(#salesArea)" />
+        <polyline fill="none" points={linePath} stroke="#ba790d" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+        {points.map((point, index) => (
+          <g key={`${point.date}-${index}`}>
+            <circle cx={point.x} cy={point.y} r="4.5" fill="#c17b0f" />
+            <circle cx={point.x} cy={point.y} r="2" fill="#f9ebce" />
+            {(index % labelStep === 0 || index === points.length - 1) && (
+              <text x={point.x} y={height - 9} textAnchor="middle" fill="#523a28" fontFamily="Georgia, serif" fontSize="12">
+                {formatChartDate(point.date)}
+              </text>
+            )}
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+};
 
 export const AdminOverviewPage: React.FC = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<AdminDashboardData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [products, setProducts] = useState<StoreProduct[]>([]);
+  const [productTotal, setProductTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'decks' | 'orders' | 'users'>('decks');
 
-  const fetchStats = async () => {
+  const fetchDashboard = async () => {
     setLoading(true);
     setError(null);
-    try {
-      const stats = await adminService.getStats();
-      setData(stats);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch executive dashboard statistics');
-    } finally {
-      setLoading(false);
+    const [statsResult, productsResult] = await Promise.allSettled([
+      adminService.getStats(),
+      adminService.getProducts({ page: 1, limit: 3, isActive: 'true' }),
+    ]);
+
+    if (statsResult.status === 'fulfilled') {
+      setData(statsResult.value);
+    } else {
+      setError('Dashboard data could not be refreshed. Please try again.');
     }
+
+    if (productsResult.status === 'fulfilled') {
+      setProducts(productsResult.value?.products || []);
+      setProductTotal(productsResult.value?.metrics?.totalProducts || 0);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchStats();
+    fetchDashboard();
   }, []);
 
-  if (loading && !data) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
-        <div className="w-8 h-8 border-2 border-[#C9A45C] border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs text-[#A7A4C4] font-serif italic">Loading executive telemetry...</p>
-      </div>
-    );
-  }
-
   const metrics = data?.metrics;
-  const systemStatus = data?.systemStatus;
-  const revenueTrend = data?.revenueTrend || [];
-  const userGrowthTrend = data?.userGrowthTrend || [];
+  const totalOrders = metrics?.totalOrders || 0;
+  const paidOrders = metrics?.paidOrdersCount || 0;
+  const pendingOrders = Math.max(totalOrders - paidOrders, 0);
+
+  const statusSlices = useMemo<StatusSlice[]>(
+    () => [
+      { label: 'Paid', value: paidOrders, color: '#68411d' },
+      { label: 'Processing', value: pendingOrders, color: '#d39b35' },
+      { label: 'Failed / Other', value: 0, color: '#e9c170' },
+      { label: 'Pending', value: 0, color: '#f8dfad' },
+    ],
+    [paidOrders, pendingOrders]
+  );
+
+  const donutBackground = useMemo(() => {
+    const total = statusSlices.reduce((sum, status) => sum + status.value, 0);
+    if (!total) return 'conic-gradient(#eadfcb 0 100%)';
+    let previousPercent = 0;
+    const stops = statusSlices
+      .filter((status) => status.value > 0)
+      .map((status) => {
+        const nextPercent = previousPercent + (status.value / total) * 100;
+        const stop = `${status.color} ${previousPercent}% ${nextPercent}%`;
+        previousPercent = nextPercent;
+        return stop;
+      });
+    return `conic-gradient(${stops.join(', ')})`;
+  }, [statusSlices]);
+
+  const displayProducts = products.length ? products : fallbackProducts;
 
   return (
-    <div className="space-y-6">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-        <div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C9A45C] via-[#F6F0E6] to-[#C9A45C]">
-            Executive Overview
-          </h1>
-          <p className="text-xs text-[#A7A4C4] font-serif italic">
-            Real-time telemetry, verified revenue, and cosmic engine activity
-          </p>
-        </div>
+    <div className="space-y-5 pb-5">
+      {error && <div className="rounded-2xl border border-[#bd5c46]/35 bg-[#fbebe4] px-4 py-3 text-sm text-[#8a3228]">{error}</div>}
 
-        <button
-          onClick={fetchStats}
-          disabled={loading}
-          className="self-start sm:self-auto flex items-center gap-2 py-2 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-[#F6F0E6] font-semibold transition-all disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-[#C9A45C] ${loading ? 'animate-spin' : ''}`} />
-          <span>Sync Real Data</span>
-        </button>
-      </div>
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        <MetricCard label="Total Products" value={numberFormat.format(productTotal)} icon={<Box className="h-9 w-9" strokeWidth={1.7} />} />
+        <MetricCard label="Total Customers" value={numberFormat.format(metrics?.totalUsers || 0)} icon={<Users className="h-9 w-9" strokeWidth={1.7} />} />
+        <MetricCard label="Total Orders" value={numberFormat.format(totalOrders)} icon={<ShoppingCart className="h-9 w-9" strokeWidth={1.7} />} />
+        <MetricCard label="Total Revenue" value={`₹ ${moneyFormat.format(metrics?.totalRevenueRupees || 0)}`} valueClassName="text-[30px]" icon={<span className="font-serif text-[44px] font-bold leading-none">₹</span>} />
+        <MetricCard label="Pending Orders" value={numberFormat.format(pendingOrders)} icon={<Truck className="h-9 w-9" strokeWidth={1.7} />} />
+      </section>
 
-      {error && (
-        <div className="p-3.5 rounded-2xl bg-crimson/20 border border-crimson/40 text-rose-200 text-xs">
-          {error}
-        </div>
-      )}
-
-      {/* 4 Primary KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Seekers */}
-        <div className="bg-[#111033] border border-white/10 hover:border-[#C9A45C]/30 rounded-2xl p-5 space-y-3 shadow-lg transition-all group">
-          <div className="flex items-center justify-between text-[#A7A4C4]">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Seekers</span>
-            <div className="w-8 h-8 rounded-xl bg-[#C9A45C]/10 border border-[#C9A45C]/20 flex items-center justify-center text-[#C9A45C] group-hover:scale-110 transition-transform">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold font-serif text-[#F6F0E6]">
-            {metrics?.totalUsers ?? '0'}
-          </div>
-          <div className="text-[11px] text-[#A7A4C4] flex items-center gap-1 font-mono">
-            <span className="text-emerald-400 font-bold">●</span>
-            <span>Registered user accounts</span>
-          </div>
-        </div>
-
-        {/* 55-Card Decks */}
-        <div className="bg-[#111033] border border-white/10 hover:border-[#C9A45C]/30 rounded-2xl p-5 space-y-3 shadow-lg transition-all group">
-          <div className="flex items-center justify-between text-[#A7A4C4]">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Personalized Decks</span>
-            <div className="w-8 h-8 rounded-xl bg-[#C9A45C]/10 border border-[#C9A45C]/20 flex items-center justify-center text-[#C9A45C] group-hover:scale-110 transition-transform">
-              <Layers className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold font-serif text-[#C9A45C]">
-            {metrics?.totalDecks ?? '0'}
-          </div>
-          <div className="text-[11px] text-[#A7A4C4] font-mono">55-card personal skies drawn</div>
-        </div>
-
-        {/* Calculations */}
-        <div className="bg-[#111033] border border-white/10 hover:border-[#C9A45C]/30 rounded-2xl p-5 space-y-3 shadow-lg transition-all group">
-          <div className="flex items-center justify-between text-[#A7A4C4]">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Calculations</span>
-            <div className="w-8 h-8 rounded-xl bg-[#C9A45C]/10 border border-[#C9A45C]/20 flex items-center justify-center text-[#C9A45C] group-hover:scale-110 transition-transform">
-              <Sparkles className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold font-serif text-[#F6F0E6]">
-            {metrics?.totalCalculations ?? '0'}
-          </div>
-          <div className="text-[11px] text-[#A7A4C4] font-mono">Vedic birth skies computed</div>
-        </div>
-
-        {/* Verified Revenue */}
-        <div className="bg-[#111033] border border-white/10 hover:border-emerald-500/30 rounded-2xl p-5 space-y-3 shadow-lg transition-all group">
-          <div className="flex items-center justify-between text-[#A7A4C4]">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Verified Revenue</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-              <CreditCard className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold font-serif text-emerald-400">
-            ₹{metrics?.totalRevenueRupees ?? 0}
-          </div>
-          <div className="text-[11px] text-[#A7A4C4] font-mono">
-            From {metrics?.paidOrdersCount ?? 0} confirmed paid orders
-          </div>
-        </div>
-      </div>
-
-      {/* Secondary Operational Metrics Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#111033]/60 border border-white/10 rounded-2xl p-3.5 text-xs">
-        <div className="space-y-0.5">
-          <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Payment Success Rate</div>
-          <div className="text-sm font-mono font-bold text-[#F6F0E6]">{metrics?.paymentSuccessRate ?? 100}%</div>
-        </div>
-        <div className="space-y-0.5">
-          <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Active 30-Day Passes</div>
-          <div className="text-sm font-mono font-bold text-[#C9A45C]">{metrics?.activePassesCount ?? 0}</div>
-        </div>
-        <div className="space-y-0.5">
-          <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">AI Interpretations</div>
-          <div className="text-sm font-mono font-bold text-emerald-400">
-            {metrics?.aiInterpretationsCount ?? 0} ({metrics?.aiGenerationRate ?? 100}% AI)
-          </div>
-        </div>
-        <div className="space-y-0.5">
-          <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Fallback Synthesized</div>
-          <div className="text-sm font-mono font-bold text-[#A7A4C4]">{metrics?.fallbackInterpretationsCount ?? 0}</div>
-        </div>
-      </div>
-
-      {/* Visual Activity Charts (Real Trends) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Revenue Trend Chart */}
-        <div className="bg-[#111033] border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold text-[#A7A4C4] uppercase tracking-wider">
-                7-Day Revenue Trend
-              </div>
-              <div className="text-lg font-serif font-bold text-[#F6F0E6]">Verified Income (₹)</div>
-            </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-mono text-emerald-400">
-              Live Razorpay
-            </span>
-          </div>
-
-          {revenueTrend.length > 0 ? (
-            <div className="space-y-2 pt-2">
-              <div className="h-32 flex items-end gap-3 px-2 pt-4 border-b border-white/10">
-                {revenueTrend.map((d, idx) => {
-                  const maxRev = Math.max(...revenueTrend.map((r) => r.revenueRupees), 10);
-                  const barHeight = Math.max(12, Math.round((d.revenueRupees / maxRev) * 100));
-                  return (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                      <span className="text-[10px] font-mono text-[#A7A4C4] opacity-0 group-hover:opacity-100 transition-opacity">
-                        ₹{d.revenueRupees}
-                      </span>
-                      <div
-                        style={{ height: `${barHeight}%` }}
-                        className="w-full max-w-[36px] bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t-lg transition-all group-hover:brightness-125 shadow-md shadow-emerald-500/20"
-                      />
-                      <span className="text-[9px] font-mono text-[#A7A4C4] truncate w-full text-center">
-                        {d.date.slice(5)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="h-32 flex items-center justify-center text-xs text-[#A7A4C4] italic">
-              No payment transactions recorded in the last 7 days.
-            </div>
-          )}
-        </div>
-
-        {/* User Growth Trend Chart */}
-        <div className="bg-[#111033] border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold text-[#A7A4C4] uppercase tracking-wider">
-                7-Day Registrations
-              </div>
-              <div className="text-lg font-serif font-bold text-[#F6F0E6]">New Seekers</div>
-            </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#C9A45C]/10 border border-[#C9A45C]/30 text-[10px] font-mono text-[#C9A45C]">
-              Organic Flow
-            </span>
-          </div>
-
-          {userGrowthTrend.length > 0 ? (
-            <div className="space-y-2 pt-2">
-              <div className="h-32 flex items-end gap-3 px-2 pt-4 border-b border-white/10">
-                {userGrowthTrend.map((u, idx) => {
-                  const maxCount = Math.max(...userGrowthTrend.map((item) => item.count), 5);
-                  const barHeight = Math.max(12, Math.round((u.count / maxCount) * 100));
-                  return (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                      <span className="text-[10px] font-mono text-[#A7A4C4] opacity-0 group-hover:opacity-100 transition-opacity">
-                        {u.count}
-                      </span>
-                      <div
-                        style={{ height: `${barHeight}%` }}
-                        className="w-full max-w-[36px] bg-gradient-to-t from-amber-600 to-[#C9A45C] rounded-t-lg transition-all group-hover:brightness-125 shadow-md shadow-[#C9A45C]/20"
-                      />
-                      <span className="text-[9px] font-mono text-[#A7A4C4] truncate w-full text-center">
-                        {u.date.slice(5)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="h-32 flex items-center justify-center text-xs text-[#A7A4C4] italic">
-              No new accounts registered in the last 7 days.
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* System Service Health Summary Row */}
-      <div className="bg-[#111033] border border-white/10 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <Cpu className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Gemini AI Model</div>
-            <div className="font-mono text-[#F6F0E6] font-bold">
-              {systemStatus?.geminiModel || 'gemini-3.5-flash-lite'}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-[#C9A45C]/10 border border-[#C9A45C]/30 flex items-center justify-center text-[#C9A45C]">
-            <Compass className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Astronomy Engine</div>
-            <div className="font-mono text-[#F6F0E6] font-bold">{systemStatus?.astronomyProvider || 'jagannatha_hora'}</div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <Database className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Database Store</div>
-            <div className="font-mono text-[#F6F0E6] font-bold">
-              {systemStatus?.database?.isAtlas ? 'MongoDB Atlas (Cloud)' : 'Local MongoDB'}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Payment Gateway</div>
-            <div className="font-mono text-[#F6F0E6] font-bold">
-              {systemStatus?.razorpayConfigured ? 'Razorpay Verified' : 'Standard Webhooks'}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Recent Activity Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-          <div className="flex gap-2">
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
+        <article className="admin-paper-panel overflow-hidden p-4 sm:p-5">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <h2 className="font-serif text-[27px] font-bold leading-none text-[#2c180f]">Sales Overview</h2>
             <button
-              onClick={() => setActiveTab('decks')}
-              className={`py-2 px-3.5 font-semibold text-xs rounded-xl transition-all ${
-                activeTab === 'decks'
-                  ? 'bg-[#C9A45C] text-[#08071B] font-bold'
-                  : 'text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5'
-              }`}
+              onClick={fetchDashboard}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-full border border-[#bb8a4e]/40 bg-[#fffaf2] px-3.5 py-2 font-serif text-sm font-bold text-[#3d291c] shadow-sm transition hover:bg-[#f7ead7] disabled:opacity-60"
             >
-              Recent Decks ({data?.recentDecks?.length || 0})
+              <span className="hidden sm:inline">Last 30 Days</span>
+              <span className="sm:hidden">30 Days</span>
+              <ChevronDown className="h-4 w-4" />
+              <RefreshCw className={`h-3.5 w-3.5 text-[#a56815] ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`py-2 px-3.5 font-semibold text-xs rounded-xl transition-all ${
-                activeTab === 'orders'
-                  ? 'bg-[#C9A45C] text-[#08071B] font-bold'
-                  : 'text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5'
-              }`}
-            >
-              Recent Orders ({data?.recentOrders?.length || 0})
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`py-2 px-3.5 font-semibold text-xs rounded-xl transition-all ${
-                activeTab === 'users'
-                  ? 'bg-[#C9A45C] text-[#08071B] font-bold'
-                  : 'text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5'
-              }`}
-            >
-              Recent Users ({data?.recentUsers?.length || 0})
+          </div>
+          <SalesChart trend={data?.revenueTrend || []} />
+        </article>
+
+        <article className="admin-paper-panel p-4 sm:p-5">
+          <h2 className="font-serif text-[25px] font-bold leading-none text-[#2c180f]">Order Status <span className="text-[18px]">(Last 30 Days)</span></h2>
+          <div className="mt-4 flex flex-col items-center gap-5 min-[440px]:flex-row min-[440px]:items-center xl:gap-4">
+            <div className="relative flex h-[188px] w-[188px] shrink-0 items-center justify-center rounded-full" style={{ background: donutBackground }}>
+              <div className="flex h-[128px] w-[128px] flex-col items-center justify-center rounded-full bg-[#fffaf3] shadow-[inset_0_1px_6px_rgba(83,49,17,0.12)]">
+                <span className="font-serif text-[31px] font-bold leading-none text-[#2e180e]">{numberFormat.format(totalOrders)}</span>
+                <span className="mt-1 font-serif text-[16px] leading-none text-[#4c3020]">Total Orders</span>
+              </div>
+            </div>
+            <div className="w-full space-y-2">
+              {statusSlices.map((status) => (
+                <div key={status.label} className="flex items-center gap-3 border-b border-[#b9884a]/20 pb-2 last:border-0">
+                  <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: status.color }} />
+                  <span className="flex-1 font-serif text-[17px] font-semibold text-[#382116]">{status.label}</span>
+                  <span className="font-serif text-[18px] font-bold text-[#382116]">{numberFormat.format(status.value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(350px,0.95fr)]">
+        <article className="admin-paper-panel overflow-hidden p-4 sm:p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-serif text-[27px] font-bold leading-none text-[#2c180f]">Recent Orders</h2>
+            <button onClick={() => navigate('/admin/payments')} className="group flex items-center gap-2 font-serif text-[16px] font-bold text-[#5d360e] transition hover:text-[#9b5e0b]">
+              <span>View All Orders</span>
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </button>
           </div>
 
-          <button
-            onClick={() => {
-              if (activeTab === 'decks') navigate('/admin/decks');
-              if (activeTab === 'orders') navigate('/admin/payments');
-              if (activeTab === 'users') navigate('/admin/users');
-            }}
-            className="text-xs text-[#C9A45C] hover:text-amber-300 font-semibold flex items-center gap-1 transition-colors"
-          >
-            <span>View All</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Tab Content: Decks */}
-        {activeTab === 'decks' && (
-          <div className="bg-[#111033] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5 text-[#A7A4C4] font-semibold uppercase tracking-wider">
-                    <th className="py-3 px-4">Seeker</th>
-                    <th className="py-3 px-4">Soul Planet (AK)</th>
-                    <th className="py-3 px-4">Sovereign Avatar Moniker</th>
-                    <th className="py-3 px-4">AI Mode</th>
-                    <th className="py-3 px-4">Generated At</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {data?.recentDecks && data.recentDecks.length > 0 ? (
-                    data.recentDecks.map((deck) => (
-                      <tr key={deck.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-medium text-[#F6F0E6]">{deck.userName}</td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded-lg bg-[#C9A45C]/15 border border-[#C9A45C]/30 text-[#C9A45C] font-semibold font-mono">
-                            {deck.sovereignCardKey}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-[#A7A4C4] italic max-w-xs truncate" title={deck.avatarPhrase}>
-                          "{deck.avatarPhrase}"
-                        </td>
-                        <td className="py-3 px-4">
-                          {deck.isAvatarAiGenerated ? (
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold text-[10px]">
-                              ✦ Gemini AI
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[#A7A4C4] font-semibold text-[10px]">
-                              Deterministic Vedic
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-[#A7A4C4] text-[11px] font-mono">
-                          {new Date(deck.generatedAt).toLocaleString()}
-                        </td>
+          <div className="overflow-x-auto">
+            <table className="admin-orders-table w-full min-w-[650px] text-left">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Products</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data?.recentOrders?.length ? (
+                  data.recentOrders.slice(0, 5).map((order) => {
+                    const status = orderStatus(order.status);
+                    return (
+                      <tr key={order.id}>
+                        <td className="font-semibold">#{order.orderId}</td>
+                        <td>{order.userEmail}</td>
+                        <td>{formatItemType(order.itemType)}</td>
+                        <td className="font-semibold">₹ {moneyFormat.format(order.amountRupees)}</td>
+                        <td><span className={`admin-order-status ${status.className}`}>{status.label}</span></td>
+                        <td>{formatDate(order.createdAt)}</td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-[#A7A4C4] italic">
-                        No decks recorded.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Tab Content: Orders */}
-        {activeTab === 'orders' && (
-          <div className="bg-[#111033] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5 text-[#A7A4C4] font-semibold uppercase tracking-wider">
-                    <th className="py-3 px-4">Order ID</th>
-                    <th className="py-3 px-4">Customer</th>
-                    <th className="py-3 px-4">Item Type</th>
-                    <th className="py-3 px-4">Amount</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Date</th>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-9 text-center italic text-[#806a57]">New orders will appear here as your customers check out.</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {data?.recentOrders && data.recentOrders.length > 0 ? (
-                    data.recentOrders.map((order) => (
-                      <tr key={order.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-mono text-[#C9A45C] text-[11px]">{order.orderId}</td>
-                        <td className="py-3 px-4 text-[#F6F0E6]">{order.userEmail}</td>
-                        <td className="py-3 px-4 text-[#A7A4C4] font-medium">{order.itemType}</td>
-                        <td className="py-3 px-4 font-bold text-emerald-400">₹{order.amountRupees}</td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                              order.status === 'PAID'
-                                ? 'bg-emerald-500/20 text-emerald-300'
-                                : 'bg-amber-500/20 text-amber-300'
-                            }`}
-                          >
-                            {order.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-[#A7A4C4] text-[11px] font-mono">
-                          {new Date(order.createdAt).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-[#A7A4C4] italic">
-                        No orders recorded.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </article>
 
-        {/* Tab Content: Users */}
-        {activeTab === 'users' && (
-          <div className="bg-[#111033] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5 text-[#A7A4C4] font-semibold uppercase tracking-wider">
-                    <th className="py-3 px-4">Name</th>
-                    <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">Role</th>
-                    <th className="py-3 px-4">Joined Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {data?.recentUsers && data.recentUsers.length > 0 ? (
-                    data.recentUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-medium text-[#F6F0E6]">{u.name}</td>
-                        <td className="py-3 px-4 font-mono text-[#A7A4C4]">{u.email}</td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                              u.role === 'admin'
-                                ? 'bg-[#C9A45C]/20 text-[#C9A45C] border border-[#C9A45C]/40'
-                                : 'bg-white/10 text-[#F6F0E6]'
-                            }`}
-                          >
-                            {u.role.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-[#A7A4C4] text-[11px] font-mono">
-                          {new Date(u.createdAt).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-[#A7A4C4] italic">
-                        No users recorded.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+        <article className="admin-paper-panel p-4 sm:p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="font-serif text-[27px] font-bold leading-none text-[#2c180f]">Top Selling Products</h2>
+            <button onClick={() => navigate('/admin/store')} className="group flex items-center gap-1.5 whitespace-nowrap font-serif text-[15px] font-bold text-[#5d360e] transition hover:text-[#9b5e0b]">
+              <span>View All</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </button>
           </div>
-        )}
-      </div>
+          <div className="divide-y divide-[#b9884a]/20">
+            {displayProducts.slice(0, 3).map((product) => (
+              <div key={product.id} className="flex min-h-[77px] items-center gap-3 py-2 first:pt-0 last:pb-0">
+                <div className="h-[68px] w-[74px] shrink-0 overflow-hidden rounded-lg bg-[#f0e6d5]">
+                  <img
+                    src={product.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-serif text-[19px] font-bold leading-tight text-[#382116]">{product.name}</div>
+                  <div className="mt-0.5 truncate font-serif text-[15px] leading-tight text-[#5e4837]">{product.shortDescription || product.category}</div>
+                </div>
+                <div className="text-right font-serif">
+                  <div className="text-[18px] font-bold leading-tight text-[#3b2114]">
+                    {product.priceRupees ? `₹ ${moneyFormat.format(product.priceRupees)}` : product.category}
+                  </div>
+                  <div className="text-[13px] leading-tight text-[#654a33]">{products.length ? 'Listed' : 'Catalogue'}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {!products.length && <p className="mt-3 text-xs italic text-[#8c725b]">These are catalogue placeholders until products are added to your store.</p>}
+        </article>
+      </section>
     </div>
   );
 };

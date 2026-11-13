@@ -1,75 +1,172 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Users,
-  Search,
-  RefreshCw,
-  Shield,
-  Layers,
-  CreditCard,
-  X,
-  Calendar,
-  Compass,
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Download,
   Eye,
+  MoreHorizontal,
+  RefreshCw,
+  Search,
+  ShoppingCart,
   Trash2,
-  AlertTriangle,
-  AlertCircle,
-  CheckCircle2,
+  UserPlus,
+  Users,
+  X,
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import { useAuth } from '../../context/AuthContext';
 
+type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  deckCount: number;
+  hasActivePass: boolean;
+  unlockedCardsCount: number;
+  totalOrders: number;
+  totalSpentRupees: number;
+  createdAt: string;
+};
+
+type UserMetrics = {
+  totalCustomers: number;
+  newCustomersLast7Days: number;
+  customersWithOrders: number;
+  totalCustomerSpendingRupees: number;
+};
+
+const EMPTY_METRICS: UserMetrics = {
+  totalCustomers: 0,
+  newCustomersLast7Days: 0,
+  customersWithOrders: 0,
+  totalCustomerSpendingRupees: 0,
+};
+
+const numberFormat = new Intl.NumberFormat('en-IN');
+const moneyFormat = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+
+const formatDate = (date?: string) => {
+  if (!date) return '—';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const formatDateTime = (date?: string) => {
+  if (!date) return '—';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const initials = (name: string) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+
+const exportCsv = (users: AdminUser[]) => {
+  const rows = [
+    ['Customer', 'Email', 'Role', 'Registered On', 'Total Orders', 'Total Spent'],
+    ...users.map((user) => [
+      user.name,
+      user.email,
+      user.role,
+      formatDateTime(user.createdAt),
+      String(user.totalOrders),
+      String(user.totalSpentRupees),
+    ]),
+  ];
+  const csv = rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'parrot-cards-customers.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const CustomerMetric: React.FC<{
+  label: React.ReactNode;
+  value: React.ReactNode;
+  icon: React.ReactNode;
+  detail?: React.ReactNode;
+}> = ({ label, value, icon, detail }) => (
+  <article className="admin-customer-metric">
+    <div className="admin-customer-metric-icon">{icon}</div>
+    <div className="min-w-0">
+      <h2 className="font-serif text-[18px] font-bold leading-tight text-[#2c180f]">{label}</h2>
+      <div className="mt-1 flex items-end gap-2">
+        <span className="font-serif text-[36px] font-bold leading-none tracking-[-0.04em] text-[#30170e]">{value}</span>
+        {detail && <span className="mb-0.5 text-sm font-bold text-[#18812d]">{detail}</span>}
+      </div>
+    </div>
+  </article>
+);
+
 export const AdminUsersPage: React.FC = () => {
-  const { user: currentUser } = useAuth();
+  const { user: authUser } = useAuth();
   const currentAdmin = (() => {
     try {
       const saved = localStorage.getItem('pc_admin_user');
-      return saved ? JSON.parse(saved) : currentUser;
+      return saved ? JSON.parse(saved) : authUser;
     } catch {
-      return currentUser;
+      return authUser;
     }
   })();
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [search, setSearch] = useState<string>('');
-  const [roleFilter, setRoleFilter] = useState<string>('user');
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  
-  // Inspect user drawer state
+
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [metrics, setMetrics] = useState<UserMetrics>(EMPTY_METRICS);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('user');
+  const [orderFilter, setOrderFilter] = useState<'all' | 'with_orders' | 'no_orders'>('all');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState<any | null>(null);
-  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
-
-  // Delete user modal state
-  const [deletingUser, setDeletingUser] = useState<any | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    window.setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (requestedPage = page) => {
     setLoading(true);
     try {
       const data = await adminService.getUsers({
-        page,
-        limit: 10,
+        page: requestedPage,
+        limit: 8,
         search,
         role: roleFilter,
       });
-      setUsers(data.users);
-      setTotalPages(data.pagination.totalPages || 1);
-      setTotalCount(data.pagination.total || 0);
-    } catch (err: any) {
-      console.error('Failed to load users:', err);
+      setUsers(data.users || []);
+      setMetrics(data.metrics || EMPTY_METRICS);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalCount(data.pagination?.total || 0);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      showToast('Customer records could not be loaded. Please refresh and try again.');
     } finally {
       setLoading(false);
     }
@@ -79,20 +176,30 @@ export const AdminUsersPage: React.FC = () => {
     fetchUsers();
   }, [page, roleFilter]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const visibleUsers = useMemo(() => {
+    if (orderFilter === 'with_orders') return users.filter((user) => user.totalOrders > 0);
+    if (orderFilter === 'no_orders') return users.filter((user) => user.totalOrders === 0);
+    return users;
+  }, [users, orderFilter]);
+
+  const firstCustomerNumber = totalCount ? (page - 1) * 8 + 1 : 0;
+  const lastCustomerNumber = totalCount ? Math.min((page - 1) * 8 + users.length, totalCount) : 0;
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     setPage(1);
-    fetchUsers();
+    fetchUsers(1);
   };
 
   const handleInspectUser = async (id: string) => {
     setSelectedUserId(id);
+    setUserDetails(null);
     setLoadingDetails(true);
     try {
-      const details = await adminService.getUserDetails(id);
-      setUserDetails(details);
-    } catch (err) {
-      console.error('Failed to fetch user details:', err);
+      setUserDetails(await adminService.getUserDetails(id));
+    } catch (error) {
+      console.error('Failed to fetch user details:', error);
+      showToast('Customer details could not be loaded.');
     } finally {
       setLoadingDetails(false);
     }
@@ -102,199 +209,149 @@ export const AdminUsersPage: React.FC = () => {
     if (!deletingUser) return;
     setDeleteLoading(true);
     setDeleteError(null);
-
     try {
       await adminService.deleteUser(deletingUser.id);
-      showToast(`User account for "${deletingUser.name}" (${deletingUser.email}) deleted successfully.`);
+      showToast(`Customer account for ${deletingUser.name} was deleted.`);
       setDeletingUser(null);
       if (selectedUserId === deletingUser.id) {
         setSelectedUserId(null);
         setUserDetails(null);
       }
-      await fetchUsers();
-    } catch (err: any) {
-      setDeleteError(err.response?.data?.message || err.message || 'Failed to delete user account');
+      fetchUsers();
+    } catch (error: any) {
+      setDeleteError(error.response?.data?.message || error.message || 'Failed to delete customer account.');
     } finally {
       setDeleteLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Toast Notification */}
+    <div className="space-y-5 pb-5">
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-emerald-500/90 text-white font-medium text-xs shadow-2xl border border-emerald-400/30 backdrop-blur-md animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 text-emerald-200 flex-shrink-0" />
+        <div className="fixed right-5 top-5 z-[70] flex max-w-sm items-center gap-2.5 rounded-2xl border border-[#9fcf93] bg-[#eff9ea] px-4 py-3 text-sm font-semibold text-[#286d29] shadow-xl">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-        <div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C9A45C] via-[#F6F0E6] to-[#C9A45C]">
-            Seeker & User Directory
-          </h1>
-          <p className="text-xs text-[#A7A4C4] font-serif italic">
-            Manage authenticated seekers, entitlements, and personalized account sky histories
-          </p>
-        </div>
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <CustomerMetric label="Total Customers" value={numberFormat.format(metrics.totalCustomers)} icon={<Users className="h-10 w-10" strokeWidth={1.65} />} />
+        <CustomerMetric label={<><span>New Customers</span><span className="block text-[15px] font-semibold">(Last 7 Days)</span></>} value={numberFormat.format(metrics.newCustomersLast7Days)} icon={<UserPlus className="h-10 w-10" strokeWidth={1.65} />} />
+        <CustomerMetric label="Customers with Orders" value={numberFormat.format(metrics.customersWithOrders)} icon={<ShoppingCart className="h-10 w-10" strokeWidth={1.65} />} />
+        <CustomerMetric label="Total Customer Spending" value={`₹ ${moneyFormat.format(metrics.totalCustomerSpendingRupees)}`} icon={<span className="font-serif text-[44px] font-bold leading-none">₹</span>} />
+      </section>
 
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-xs text-[#A7A4C4] font-mono">
-            Total Users: <strong className="text-[#C9A45C]">{totalCount}</strong>
-          </span>
-          <button
-            onClick={fetchUsers}
-            disabled={loading}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#A7A4C4] hover:text-[#F6F0E6] transition-colors"
-            title="Refresh Users"
-          >
-            <RefreshCw className={`w-4 h-4 text-[#C9A45C] ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="bg-[#111033] border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
-        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-96">
-          <Search className="w-4 h-4 text-[#A7A4C4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <section className="admin-customer-filters flex flex-col gap-3 p-3 sm:p-4 xl:flex-row xl:items-center">
+        <form onSubmit={handleSearchSubmit} className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#2f2118]" strokeWidth={2.25} />
           <input
-            type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by seeker name or email..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C]/50 text-xs text-[#F6F0E6] outline-none placeholder:text-[#A7A4C4]/50"
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by name or email..."
+            aria-label="Search customers"
+            className="h-[52px] w-full rounded-xl border border-[#b78a4f]/35 bg-[#fffdf9] py-2 pl-14 pr-4 text-[16px] text-[#332117] outline-none transition placeholder:text-[#766c63] focus:border-[#98641c] focus:ring-2 focus:ring-[#d6b374]/25"
           />
         </form>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-          <select
-            value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-[#F6F0E6] outline-none focus:border-[#C9A45C]/50"
-          >
-            <option value="ALL">All Roles</option>
-            <option value="user">Seeker (User)</option>
-            <option value="admin">Administrator</option>
-            <option value="superadmin">Super Admin</option>
-            <option value="analytics_manager">Analytics Manager</option>
-            <option value="content_manager">Content Manager</option>
-            <option value="support_admin">Support Admin</option>
-          </select>
-
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:w-[770px]">
+          <label className="relative">
+            <span className="sr-only">Filter by order count</span>
+            <select
+              value={orderFilter}
+              onChange={(event) => setOrderFilter(event.target.value as typeof orderFilter)}
+              className="h-[52px] w-full appearance-none rounded-xl border border-[#b78a4f]/35 bg-[#fffdf9] px-4 pr-10 font-serif text-[17px] font-bold text-[#342117] outline-none focus:border-[#98641c]"
+            >
+              <option value="all">Order Count: All</option>
+              <option value="with_orders">With Orders</option>
+              <option value="no_orders">No Orders Yet</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2" />
+          </label>
+          <label className="relative">
+            <span className="sr-only">Filter by account type</span>
+            <select
+              value={roleFilter}
+              onChange={(event) => {
+                setRoleFilter(event.target.value);
+                setPage(1);
+              }}
+              className="h-[52px] w-full appearance-none rounded-xl border border-[#b78a4f]/35 bg-[#fffdf9] px-4 pr-10 font-serif text-[17px] font-bold text-[#342117] outline-none focus:border-[#98641c]"
+            >
+              <option value="user">Customer Status: Active</option>
+              <option value="ALL">Customer Status: All</option>
+              <option value="admin">Administrators</option>
+              <option value="superadmin">Super Admins</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2" />
+          </label>
           <button
-            onClick={() => {
-              setPage(1);
-              fetchUsers();
-            }}
-            className="py-2 px-4 rounded-xl bg-[#C9A45C] hover:bg-[#d6b068] text-[#08071B] font-bold text-xs shadow-md transition-all"
+            onClick={() => exportCsv(visibleUsers)}
+            type="button"
+            className="flex h-[52px] items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[#6a3507] to-[#572906] px-5 font-serif text-[18px] font-bold text-[#fff9ed] shadow-[0_3px_8px_rgba(77,38,3,0.2)] transition hover:brightness-110"
           >
-            Filter
+            <Download className="h-5 w-5" />
+            Export
           </button>
         </div>
-      </div>
+      </section>
 
-      {/* Users Table */}
-      <div className="bg-[#111033] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+      <section className="admin-paper-panel overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="admin-users-table w-full min-w-[1110px] text-left">
             <thead>
-              <tr className="border-b border-white/10 bg-white/5 text-[#A7A4C4] font-semibold uppercase tracking-wider text-[10px]">
-                <th className="py-3 px-4">Seeker Name</th>
-                <th className="py-3 px-4">Email Address</th>
-                <th className="py-3 px-4">Role</th>
-                <th className="py-3 px-4">Decks Drawn</th>
-                <th className="py-3 px-4">Pass Status</th>
-                <th className="py-3 px-4">Unlocked Cards</th>
-                <th className="py-3 px-4">Joined Date</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr>
+                <th>#</th>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Account Type</th>
+                <th>Registered On</th>
+                <th className="text-center">Total Orders</th>
+                <th className="text-right">Total Spent</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#A7A4C4]">
-                    <div className="w-6 h-6 border-2 border-[#C9A45C] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <span>Loading registered seekers...</span>
+                  <td colSpan={9} className="py-14 text-center text-[#735e49]">
+                    <span className="mx-auto mb-3 block h-7 w-7 rounded-full border-2 border-[#b67619] border-t-transparent animate-spin" />
+                    Loading customer records…
                   </td>
                 </tr>
-              ) : users.length > 0 ? (
-                users.map((u) => {
-                  const isSelf = (currentAdmin?.email && currentAdmin.email.toLowerCase() === u.email.toLowerCase()) || currentAdmin?.id === u.id;
+              ) : visibleUsers.length ? (
+                visibleUsers.map((customer, index) => {
+                  const isSelf =
+                    (currentAdmin?.email && currentAdmin.email.toLowerCase() === customer.email.toLowerCase()) ||
+                    currentAdmin?.id === customer.id;
                   return (
-                    <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-[#F6F0E6]">
-                        {u.name}
-                        {isSelf && (
-                          <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] bg-[#C9A45C]/20 text-[#C9A45C] font-mono font-normal">
-                            You
-                          </span>
-                        )}
+                    <tr key={customer.id}>
+                      <td className="font-semibold">{firstCustomerNumber + index}</td>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <span className="admin-user-avatar">{initials(customer.name)}</span>
+                          <span className="font-serif text-[18px] font-bold">{customer.name}</span>
+                        </div>
                       </td>
-                      <td className="py-3.5 px-4 text-[#A7A4C4] font-mono text-[11px]">{u.email}</td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold uppercase ${
-                            u.role === 'admin' || u.role === 'superadmin'
-                              ? 'bg-[#C9A45C]/20 text-[#C9A45C] border border-[#C9A45C]/30'
-                              : 'bg-white/5 text-[#A7A4C4]'
-                          }`}
-                        >
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-[#F6F0E6]">
-                        <span className="flex items-center gap-1.5">
-                          <Layers className="w-3.5 h-3.5 text-[#C9A45C]" />
-                          <span>{u.deckCount} decks</span>
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {u.hasActivePass ? (
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-semibold text-[10px]">
-                            ✓ 30-Day Pass Active
-                          </span>
-                        ) : (
-                          <span className="text-[#A7A4C4] text-[11px]">Free Tier</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-[#F6F0E6]">
-                        {u.unlockedCardsCount > 0 ? (
-                          <span className="text-emerald-400 font-bold">{u.unlockedCardsCount} unlocked</span>
-                        ) : (
-                          <span className="text-[#A7A4C4]">3 free default</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 text-[#A7A4C4] font-mono text-[11px]">
-                        {new Date(u.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleInspectUser(u.id)}
-                            className="py-1 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-[#C9A45C] hover:text-amber-300 text-[11px] font-semibold transition-all inline-flex items-center gap-1"
-                            title="Inspect User Details"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>Inspect</span>
+                      <td className="text-[15px]">{customer.email}</td>
+                      <td className="capitalize text-[15px]">{customer.role.replace(/_/g, ' ')}</td>
+                      <td className="text-[15px]">{formatDateTime(customer.createdAt)}</td>
+                      <td className="text-center font-semibold">{numberFormat.format(customer.totalOrders)}</td>
+                      <td className="text-right font-semibold">₹ {moneyFormat.format(customer.totalSpentRupees)}</td>
+                      <td className="text-center"><span className="admin-user-active"><i /> Active</span></td>
+                      <td>
+                        <div className="flex items-center justify-center gap-2">
+                          <button onClick={() => handleInspectUser(customer.id)} className="admin-row-action" title="View customer details" aria-label={`View ${customer.name}`}>
+                            <Eye className="h-5 w-5" />
                           </button>
-                          
                           <button
-                            onClick={() => setDeletingUser(u)}
+                            onClick={() => setDeletingUser(customer)}
                             disabled={isSelf}
-                            className={`py-1 px-2.5 rounded-lg text-[11px] font-semibold transition-all inline-flex items-center gap-1 ${
-                              isSelf
-                                ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed opacity-40'
-                                : 'bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/20 hover:border-rose-500/40 text-rose-300'
-                            }`}
-                            title={isSelf ? 'Cannot delete active session account' : 'Delete User Account'}
+                            className="admin-row-action disabled:cursor-not-allowed disabled:opacity-30"
+                            title={isSelf ? 'You cannot delete your own active account' : 'Delete customer'}
+                            aria-label={`Delete ${customer.name}`}
                           >
-                            <Trash2 className="w-3 h-3" />
-                            <span>Delete</span>
+                            <MoreHorizontal className="h-5 w-5" />
                           </button>
                         </div>
                       </td>
@@ -303,268 +360,104 @@ export const AdminUsersPage: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#A7A4C4] italic">
-                    No users matching the query found.
-                  </td>
+                  <td colSpan={9} className="py-14 text-center italic text-[#806a57]">No customers match the selected filters.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination Bar */}
-        <div className="p-4 border-t border-white/10 flex items-center justify-between text-xs text-[#A7A4C4]">
-          <div>
-            Showing Page <strong className="text-[#F6F0E6]">{page}</strong> of <strong className="text-[#F6F0E6]">{totalPages}</strong>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page <= 1 || loading}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 text-[#F6F0E6] transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
+        <div className="flex flex-col gap-4 border-t border-[#b9884a]/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p className="font-serif text-[17px] text-[#492e1c]">
+            Showing {firstCustomerNumber || 0} – {lastCustomerNumber || 0} of {numberFormat.format(totalCount)} customers
+          </p>
+          <div className="flex items-center justify-end gap-1.5">
+            <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1 || loading} className="admin-page-control" aria-label="Previous page">
+              <ChevronLeft className="h-5 w-5" />
             </button>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page >= totalPages || loading}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 text-[#F6F0E6] transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
+            {[page - 1, page, page + 1]
+              .filter((candidate) => candidate >= 1 && candidate <= totalPages)
+              .map((candidate) => (
+                <button key={candidate} onClick={() => setPage(candidate)} className={`admin-page-control ${candidate === page ? 'admin-page-control-active' : ''}`}>
+                  {candidate}
+                </button>
+              ))}
+            {totalPages > page + 2 && <span className="px-1.5 font-serif text-lg">…</span>}
+            {totalPages > page + 1 && <button onClick={() => setPage(totalPages)} className="admin-page-control">{totalPages}</button>}
+            <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages || loading} className="admin-page-control" aria-label="Next page">
+              <ChevronRight className="h-5 w-5" />
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Inspect User Drawer / Modal */}
       {selectedUserId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-2xl bg-[#111033] border border-white/15 rounded-3xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#C9A45C]/15 border border-[#C9A45C]/30 text-[#C9A45C] flex items-center justify-center font-bold">
-                  <Users className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a170b]/45 p-4 backdrop-blur-sm">
+          <section className="admin-user-modal max-h-[90vh] w-full max-w-2xl overflow-y-auto p-5 sm:p-7">
+            <header className="flex items-start justify-between gap-4 border-b border-[#b9884a]/22 pb-4">
+              <div>
+                <h2 className="font-serif text-[28px] font-bold">Customer Profile</h2>
+                <p className="mt-1 text-sm text-[#795f49]">Purchase and account history</p>
+              </div>
+              <button onClick={() => { setSelectedUserId(null); setUserDetails(null); }} className="admin-row-action" aria-label="Close customer profile"><X className="h-5 w-5" /></button>
+            </header>
+            {loadingDetails ? (
+              <div className="py-16 text-center text-[#735e49]"><span className="mx-auto mb-3 block h-7 w-7 rounded-full border-2 border-[#b67619] border-t-transparent animate-spin" />Loading profile…</div>
+            ) : userDetails ? (
+              <div className="space-y-5 pt-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {[
+                    ['Role', userDetails.user?.role?.replace(/_/g, ' ') || 'Customer'],
+                    ['Joined', formatDate(userDetails.user?.createdAt)],
+                    ['Decks', userDetails.decks?.length || 0],
+                    ['Orders', userDetails.orders?.length || 0],
+                  ].map(([label, value]) => (
+                    <div key={label as string} className="rounded-xl border border-[#b9884a]/25 bg-[#fffaf3] p-3">
+                      <span className="block text-[11px] font-bold uppercase tracking-wide text-[#816650]">{label}</span>
+                      <span className="mt-1 block font-serif text-[17px] font-bold capitalize text-[#3b2114]">{value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-2xl border border-[#b9884a]/25 bg-[#fffaf3] p-4">
+                  <div className="font-serif text-[20px] font-bold">{userDetails.user?.name}</div>
+                  <div className="mt-0.5 text-sm text-[#745b45]">{userDetails.user?.email}</div>
                 </div>
                 <div>
-                  <h3 className="font-serif text-lg font-bold text-[#F6F0E6]">Seeker Dossier</h3>
-                  <p className="text-xs text-[#A7A4C4] font-mono">{userDetails?.user?.email}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedUserId(null);
-                  setUserDetails(null);
-                }}
-                className="p-1.5 rounded-xl text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {loadingDetails ? (
-              <div className="py-16 text-center text-xs text-[#A7A4C4]">
-                <div className="w-8 h-8 border-2 border-[#C9A45C] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <span>Auditing seeker sky records...</span>
-              </div>
-            ) : userDetails ? (
-              <div className="space-y-6 text-xs">
-                {/* Summary Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                    <span className="text-[10px] text-[#A7A4C4] uppercase block">Role</span>
-                    <span className="font-bold text-[#C9A45C]">{userDetails.user.role}</span>
+                  <h3 className="font-serif text-[21px] font-bold">Recent Purchases</h3>
+                  <div className="mt-2 space-y-2">
+                    {userDetails.orders?.length ? userDetails.orders.slice(0, 5).map((order: any) => (
+                      <div key={order.id} className="flex items-center justify-between rounded-xl border border-[#b9884a]/22 bg-[#fffaf3] px-4 py-3 text-sm">
+                        <div><div className="font-semibold">{order.orderId}</div><div className="capitalize text-[#775f4a]">{String(order.itemType).replace(/_/g, ' ').toLowerCase()}</div></div>
+                        <div className="text-right"><div className="font-serif text-lg font-bold">₹ {moneyFormat.format(order.amountRupees)}</div><div className="text-xs text-[#775f4a]">{order.status}</div></div>
+                      </div>
+                    )) : <p className="rounded-xl border border-dashed border-[#b9884a]/30 px-4 py-6 text-center text-sm italic text-[#806a57]">No purchases have been recorded yet.</p>}
                   </div>
-                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                    <span className="text-[10px] text-[#A7A4C4] uppercase block">Joined</span>
-                    <span className="font-bold text-[#F6F0E6]">{new Date(userDetails.user.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                    <span className="text-[10px] text-[#A7A4C4] uppercase block">Decks</span>
-                    <span className="font-bold text-[#F6F0E6]">{userDetails.decks.length}</span>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                    <span className="text-[10px] text-[#A7A4C4] uppercase block">Orders</span>
-                    <span className="font-bold text-emerald-400">{userDetails.orders.length}</span>
-                  </div>
-                </div>
-
-                {/* Birth Profiles */}
-                <div className="space-y-2">
-                  <h4 className="font-serif font-bold text-sm text-[#C9A45C] flex items-center gap-1.5">
-                    <Compass className="w-4 h-4" />
-                    <span>Birth Sky Profiles ({userDetails.profiles.length})</span>
-                  </h4>
-                  {userDetails.profiles.length > 0 ? (
-                    <div className="space-y-2 max-h-36 overflow-y-auto">
-                      {userDetails.profiles.map((p: any) => (
-                        <div key={p.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                          <div>
-                            <div className="font-semibold text-[#F6F0E6]">{p.name}</div>
-                            <div className="text-[11px] text-[#A7A4C4]">{p.place} • {p.dateOfBirth}</div>
-                          </div>
-                          <span className="text-[10px] text-[#A7A4C4] font-mono">{new Date(p.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[#A7A4C4] italic">No birth sky profile recorded.</p>
-                  )}
-                </div>
-
-                {/* Personalized Decks */}
-                <div className="space-y-2">
-                  <h4 className="font-serif font-bold text-sm text-[#C9A45C] flex items-center gap-1.5">
-                    <Layers className="w-4 h-4" />
-                    <span>Generated Decks ({userDetails.decks.length})</span>
-                  </h4>
-                  {userDetails.decks.length > 0 ? (
-                    <div className="space-y-2 max-h-36 overflow-y-auto">
-                      {userDetails.decks.map((deck: any) => (
-                        <div key={deck.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                          <div>
-                            <div className="font-bold text-[#F6F0E6] font-serif">{deck.sovereignCardKey}</div>
-                            <div className="text-[11px] text-[#A7A4C4] line-clamp-1 italic">{deck.avatarPhrase}</div>
-                          </div>
-                          <div className="text-right font-mono text-[10px]">
-                            <span className="text-[#C9A45C]">{deck.totalCards} cards</span>
-                            <div className="text-[#A7A4C4]">{new Date(deck.createdAt).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[#A7A4C4] italic">No personalized decks drawn.</p>
-                  )}
-                </div>
-
-                {/* Orders / Payments */}
-                <div className="space-y-2">
-                  <h4 className="font-serif font-bold text-sm text-[#C9A45C] flex items-center gap-1.5">
-                    <CreditCard className="w-4 h-4" />
-                    <span>Payment Orders ({userDetails.orders.length})</span>
-                  </h4>
-                  {userDetails.orders.length > 0 ? (
-                    <div className="space-y-2 max-h-36 overflow-y-auto">
-                      {userDetails.orders.map((order: any) => (
-                        <div key={order.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                          <div>
-                            <div className="font-mono text-[11px] text-[#C9A45C]">{order.orderId}</div>
-                            <div className="text-[11px] text-[#A7A4C4]">{order.itemType}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-bold text-emerald-400">₹{order.amountRupees}</div>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-[#F6F0E6]">
-                              {order.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[#A7A4C4] italic">No purchases recorded.</p>
-                  )}
-                </div>
-
-                {/* Dossier Footer Actions */}
-                <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                  <button
-                    onClick={() => {
-                      const target = {
-                        id: userDetails.user.id,
-                        name: userDetails.user.name,
-                        email: userDetails.user.email,
-                        role: userDetails.user.role,
-                      };
-                      setSelectedUserId(null);
-                      setUserDetails(null);
-                      setDeletingUser(target);
-                    }}
-                    disabled={
-                      (currentAdmin?.email && currentAdmin.email.toLowerCase() === userDetails.user.email.toLowerCase()) ||
-                      currentAdmin?.id === userDetails.user.id
-                    }
-                    className="py-2 px-3.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 disabled:opacity-30 disabled:pointer-events-none font-semibold text-xs flex items-center gap-1.5 transition-all"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete User Account</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setSelectedUserId(null);
-                      setUserDetails(null);
-                    }}
-                    className="py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#A7A4C4] hover:text-[#F6F0E6] text-xs font-medium transition-colors"
-                  >
-                    Close Dossier
-                  </button>
                 </div>
               </div>
             ) : null}
-          </div>
+          </section>
         </div>
       )}
 
-      {/* Delete User Confirmation Modal */}
       {deletingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md bg-[#111033] border border-rose-500/30 rounded-3xl p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-bold text-[#F6F0E6]">Delete Seeker Account</h3>
-                <p className="text-xs text-rose-300 font-mono">Irreversible Account Deletion</p>
-              </div>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#2a170b]/50 p-4 backdrop-blur-sm">
+          <section className="admin-user-modal w-full max-w-md p-6">
+            <div className="flex gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f9ddd7] text-[#9c3026]"><Trash2 className="h-5 w-5" /></span>
+              <div><h2 className="font-serif text-[25px] font-bold">Delete Customer</h2><p className="text-sm text-[#795f49]">This action cannot be undone.</p></div>
             </div>
-
-            {deleteError && (
-              <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                <span>{deleteError}</span>
-              </div>
-            )}
-
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 text-xs">
-              <p className="text-[#F6F0E6] leading-relaxed">
-                Are you sure you want to permanently delete the account for <span className="font-bold text-[#C9A45C]">"{deletingUser.name}"</span> (<span className="text-[#A7A4C4] font-mono">{deletingUser.email}</span>)?
-              </p>
-              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] space-y-1">
-                <p className="font-semibold flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-rose-400" />
-                  <span>Cascade Deletion Warning:</span>
-                </p>
-                <p className="text-[10px] text-rose-200/80 leading-normal">
-                  All associated birth sky profiles, personalized decks, unlocked cards, and passes will be permanently erased. This operation is recorded in the administrative audit log.
-                </p>
-              </div>
+            {deleteError && <div className="mt-5 flex gap-2 rounded-xl border border-[#dd9c91] bg-[#fce9e5] p-3 text-sm text-[#8d2d25]"><AlertCircle className="h-4 w-4 shrink-0" />{deleteError}</div>}
+            <div className="mt-5 rounded-xl border border-[#d8a79c] bg-[#fff6f2] p-4 text-sm leading-relaxed text-[#5e342b]">
+              <p>Delete <strong>{deletingUser.name}</strong> and all associated personal profiles, decks, cards and passes?</p>
+              <p className="mt-2 flex gap-1.5 text-xs text-[#95362d]"><AlertTriangle className="h-4 w-4 shrink-0" />The deletion is recorded in the admin audit log.</p>
             </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setDeletingUser(null)}
-                disabled={deleteLoading}
-                className="py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#A7A4C4] hover:text-[#F6F0E6] text-xs font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteUserConfirm}
-                disabled={deleteLoading}
-                className="py-2.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg flex items-center gap-2 transition-all disabled:opacity-50"
-              >
-                {deleteLoading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
-                ) : (
-                  <Trash2 className="w-3.5 h-3.5 text-white" />
-                )}
-                <span>{deleteLoading ? 'Deleting Account...' : 'Yes, Delete Account'}</span>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setDeletingUser(null)} disabled={deleteLoading} className="rounded-xl border border-[#bd8b4d]/35 px-4 py-2.5 text-sm font-bold text-[#66421d] hover:bg-[#f7ead8]">Cancel</button>
+              <button onClick={handleDeleteUserConfirm} disabled={deleteLoading} className="flex items-center gap-2 rounded-xl bg-[#a53329] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#bc4034] disabled:opacity-60">
+                {deleteLoading && <RefreshCw className="h-4 w-4 animate-spin" />} Delete Account
               </button>
             </div>
-          </div>
+          </section>
         </div>
       )}
     </div>

@@ -1,24 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Sparkles,
-  Search,
-  CheckCircle2,
-  AlertTriangle,
-  RefreshCw,
-  Eye,
-  X,
-  Compass,
-  Edit2,
-  Trash2,
-  Save,
   AlertCircle,
-  HelpCircle,
-  Check,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  Edit3,
+  Layers,
   Lock,
+  MoreHorizontal,
+  Plus,
+  RefreshCw,
+  Save,
+  Search,
+  Sparkles,
+  Star,
+  Trash2,
   Unlock,
-  Tag,
+  X,
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+
+type CardSuit = 'Dharma' | 'Artha' | 'Kama' | 'Moksha' | 'MasterKey';
+type CardTab = 'ALL' | CardSuit;
 
 interface CardItem {
   id: string;
@@ -26,7 +32,7 @@ interface CardItem {
   cardId: string;
   key: string;
   title: string;
-  suit: string;
+  suit: CardSuit;
   suitSymbol: string;
   suitTheme: string;
   rank: string;
@@ -37,27 +43,264 @@ interface CardItem {
   reflectionQuestion?: string;
   isFreeByDefault: boolean;
   category: string;
+  price?: number;
 }
+
+const SUIT_META: Record<CardSuit, { label: string; symbol: string; icon: string }> = {
+  Dharma: { label: 'Dharma', symbol: '♠', icon: '♠' },
+  Artha: { label: 'Artha', symbol: '♦', icon: '♦' },
+  Kama: { label: 'Kama', symbol: '♥', icon: '♥' },
+  Moksha: { label: 'Moksha', symbol: '♣', icon: '♣' },
+  MasterKey: { label: 'Master Keys', symbol: '☆', icon: '☆' },
+};
+
+const CARD_PAGE_SIZE = 10;
+
+/**
+ * Maps suit + rank to clean card identifier shown in screenshot (e.g. DH-A, DH-2, DH-3, DH-J)
+ */
+const getCardIdentifier = (card: CardItem): string => {
+  const suitPrefix: Record<string, string> = {
+    Dharma: 'DH',
+    Artha: 'AR',
+    Kama: 'KM',
+    Moksha: 'MK',
+    MasterKey: 'MK',
+  };
+  const prefix = suitPrefix[card.suit] || 'CD';
+  const cleanRank = (card.rank || '').toUpperCase().trim();
+  return `${prefix}-${cleanRank || card.position}`;
+};
+
+/**
+ * Returns formatted Card Type label and styled badge classes
+ */
+const getCardTypeBadge = (card: CardItem) => {
+  const r = (card.rank || '').toUpperCase().trim();
+  if (r === 'A' || /ace/i.test(r)) {
+    return {
+      label: 'Ace / Portal',
+      classes: 'bg-[#FEF3E6] text-[#B25E1A] border-[#FADCC0]',
+    };
+  }
+  if (['2', '3', '4', '5', '6', '7', '8', '9', '10'].includes(r) || /^\d+$/.test(r)) {
+    return {
+      label: 'Pip (2–10)',
+      classes: 'bg-[#F2EDF8] text-[#6E4E98] border-[#E0D4EC]',
+    };
+  }
+  if (r === 'J' || /jack/i.test(r)) {
+    return {
+      label: 'Jack (J)',
+      classes: 'bg-[#FDF0F5] text-[#A63F72] border-[#F6D2E2]',
+    };
+  }
+  if (r === 'Q' || /queen/i.test(r)) {
+    return {
+      label: 'Queen (Q)',
+      classes: 'bg-[#EEF5FC] text-[#29689C] border-[#CCE2F7]',
+    };
+  }
+  if (r === 'K' || /king/i.test(r)) {
+    return {
+      label: 'King (K)',
+      classes: 'bg-[#FEF7E6] text-[#A66E16] border-[#F9E5B8]',
+    };
+  }
+  if (card.suit === 'MasterKey' || /master/i.test(card.category || '')) {
+    return {
+      label: 'Master Key',
+      classes: 'bg-[#FFF9E6] text-[#9A640F] border-[#F6DC98]',
+    };
+  }
+  return {
+    label: card.label || r || 'Standard',
+    classes: 'bg-[#F4ECE2] text-[#634833] border-[#E6D8C7]',
+  };
+};
+
+/**
+ * Rich golden mystic SVG thumbnail representing the card archetype
+ */
+const CardArtThumbnail: React.FC<{ card: CardItem }> = ({ card }) => {
+  const key = (card.key || '').toLowerCase();
+  const title = (card.title || '').toLowerCase();
+  const label = (card.label || '').toLowerCase();
+
+  // 1. Janma Lagna / Horizon / Mountain
+  if (key.includes('lagna') && (label.includes('janma') || title.includes('inception'))) {
+    return (
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#8C5E24] via-[#5A3810] to-[#2E1805] relative">
+        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
+          <circle cx="24" cy="18" r="10" fill="#FCE7A6" fillOpacity="0.4" />
+          <path d="M24 6L25 10M32 10L29 13M16 10L19 13M36 18L32 18M12 18L16 18" stroke="#FEE8A2" strokeWidth="1.2" strokeLinecap="round" />
+          {/* Mountain Pyramid */}
+          <path d="M24 16L39 42H9L24 16Z" fill="url(#mtnGrad1)" />
+          <path d="M24 16L9 42H24V16Z" fill="#FAD175" fillOpacity="0.25" />
+          <path d="M24 16L24 42" stroke="#FFF0BA" strokeWidth="1" strokeOpacity="0.8" />
+          <path d="M16 30L32 30" stroke="#FFF0BA" strokeWidth="0.8" strokeOpacity="0.5" />
+          <path d="M12 36L36 36" stroke="#FFF0BA" strokeWidth="0.8" strokeOpacity="0.5" />
+          <defs>
+            <linearGradient id="mtnGrad1" x1="24" y1="16" x2="24" y2="42" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#FCE49E" />
+              <stop offset="0.6" stopColor="#D4993B" />
+              <stop offset="1" stopColor="#5F360C" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    );
+  }
+
+  // 2. Varnada Lagna 1 / Padmasana Lotus
+  if (key === 'v1' || label.includes('varnada lagna 1') || title.includes('posture')) {
+    return (
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#7A4E1B] via-[#4F2E0C] to-[#251203] relative">
+        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
+          <circle cx="24" cy="24" r="14" fill="#FCE5A2" fillOpacity="0.15" />
+          {/* Lotus Petals */}
+          <path d="M24 13C24 13 18 22 18 28C18 31.5 20.5 33 24 33C27.5 33 30 31.5 30 28C30 22 24 13 24 13Z" fill="#FDE7A9" />
+          <path d="M24 20C17 21 10 25 10 29.5C10 32.5 13 34 16.5 33C20.5 32 23 27 24 24" fill="#E6AE4C" />
+          <path d="M24 20C31 21 38 25 38 29.5C38 32.5 35 34 31.5 33C27.5 32 25 27 24 24" fill="#E6AE4C" />
+          <path d="M24 24C20 25 15 28 15 31.5C15 33.5 17 34.5 19.5 34C22.5 33.5 24 30 24 28" fill="#FBE29B" />
+          <path d="M24 24C28 25 33 28 33 31.5C33 33.5 31 34.5 28.5 34C25.5 33.5 24 30 24 28" fill="#FBE29B" />
+          {/* Water ripples */}
+          <path d="M6 37C12 36 18 37.5 24 37.5C30 37.5 36 36 42 37" stroke="#FDE5A2" strokeWidth="1" strokeLinecap="round" strokeOpacity="0.7" />
+          <path d="M12 40C16 39.5 20 40.5 24 40.5C28 40.5 32 39.5 36 40" stroke="#FDE5A2" strokeWidth="0.8" strokeLinecap="round" strokeOpacity="0.4" />
+        </svg>
+      </div>
+    );
+  }
+
+  // 3. Varnada Lagna 9 / Tree of Life
+  if (key === 'v9' || label.includes('varnada lagna 9') || title.includes('lineage')) {
+    return (
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#6D491A] via-[#482B0D] to-[#241303] relative">
+        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
+          <circle cx="24" cy="20" r="13" fill="#FDE6A6" fillOpacity="0.25" />
+          {/* Tree Canopy */}
+          <circle cx="24" cy="17" r="7" fill="#FDE397" />
+          <circle cx="18" cy="19" r="6" fill="#F5C768" />
+          <circle cx="30" cy="19" r="6" fill="#F5C768" />
+          <circle cx="15" cy="24" r="5" fill="#E5AC44" />
+          <circle cx="33" cy="24" r="5" fill="#E5AC44" />
+          <circle cx="24" cy="22" r="6" fill="#FCE5A2" />
+          {/* Trunk and Roots */}
+          <path d="M22 24V36M26 24V36M22 28L17 23M26 28L31 23M22 36L16 41M26 36L32 41M24 36V42" stroke="#FFE9B4" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      </div>
+    );
+  }
+
+  // 4. Varnada Lagna 10 / Celestial Gateway
+  if (key === 'v10' || label.includes('varnada lagna 10') || title.includes('pillar') || title.includes('public')) {
+    return (
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#7C521E] via-[#523310] to-[#281605] relative">
+        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
+          <circle cx="24" cy="24" r="14" fill="#FDE9AF" fillOpacity="0.2" />
+          {/* Columns */}
+          <rect x="13" y="16" width="4.5" height="23" rx="1.5" fill="#FCE5A2" />
+          <rect x="30.5" y="16" width="4.5" height="23" rx="1.5" fill="#FCE5A2" />
+          {/* Capitals & Bases */}
+          <rect x="11.5" y="14" width="7.5" height="3" rx="1" fill="#FFEBB9" />
+          <rect x="29" y="14" width="7.5" height="3" rx="1" fill="#FFEBB9" />
+          <rect x="11" y="38" width="8.5" height="3" rx="1" fill="#FFEBB9" />
+          <rect x="28.5" y="38" width="8.5" height="3" rx="1" fill="#FFEBB9" />
+          {/* Archway */}
+          <path d="M15 14C15 9 20 7 24 7C28 7 33 9 33 14" stroke="#FFF0BE" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+          {/* Radiance center */}
+          <circle cx="24" cy="22" r="3.5" fill="#FFF2C6" />
+          <path d="M24 13V15M24 29V31M17 22H19M29 22H31" stroke="#FFF2C6" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      </div>
+    );
+  }
+
+  // 5. Mangala / Surya / Sun
+  if (key.includes('sun') || label.includes('mangala') || title.includes('energetic') || label.includes('surya')) {
+    return (
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#8C5E24] via-[#5F380E] to-[#2F1703] relative">
+        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
+          {/* Radiant Solar Rays */}
+          <circle cx="24" cy="24" r="15" fill="#FDEBAF" fillOpacity="0.25" />
+          <path d="M24 4L24 10M24 38L24 44M4 24L10 24M38 24L44 24M10 10L14.5 14.5M33.5 33.5L38 38M10 38L14.5 33.5M33.5 14.5L38 10" stroke="#FDE59C" strokeWidth="2" strokeLinecap="round" />
+          {/* Sun Disc */}
+          <circle cx="24" cy="24" r="9.5" fill="url(#sunFaceGrad)" />
+          {/* Facial Archetype */}
+          <circle cx="21" cy="22.5" r="1.2" fill="#5F3608" />
+          <circle cx="27" cy="22.5" r="1.2" fill="#5F3608" />
+          <path d="M21.5 26.5C22.5 28 25.5 28 26.5 26.5" stroke="#5F3608" strokeWidth="1" strokeLinecap="round" fill="none" />
+          <path d="M24 21V24.5" stroke="#5F3608" strokeWidth="0.8" strokeLinecap="round" />
+          <defs>
+            <linearGradient id="sunFaceGrad" x1="24" y1="14" x2="24" y2="34" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#FFF2C6" />
+              <stop offset="0.7" stopColor="#F5B738" />
+              <stop offset="1" stopColor="#D48618" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    );
+  }
+
+  // 6. Chandra / Moon
+  if (key.includes('moon') || label.includes('chandra')) {
+    return (
+      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#7A5B35] via-[#48341D] to-[#1E1409] relative">
+        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
+          <circle cx="24" cy="24" r="14" fill="#FCEECB" fillOpacity="0.15" />
+          <path d="M28 11C20.5 11 14.5 17 14.5 24.5C14.5 32 20.5 38 28 38C22.5 36 19.5 30.5 19.5 24.5C19.5 18.5 22.5 13 28 11Z" fill="#FFF3CD" />
+          <circle cx="32" cy="18" r="1.5" fill="#FFECA8" />
+          <circle cx="34" cy="27" r="1.2" fill="#FFECA8" />
+          <circle cx="29" cy="32" r="1" fill="#FFECA8" />
+        </svg>
+      </div>
+    );
+  }
+
+  // Fallback: Suit-specific Golden Archetype
+  const suitGradients: Record<string, string> = {
+    Dharma: 'from-[#825621] via-[#563410] to-[#2B1705]',
+    Artha: 'from-[#825920] via-[#583710] to-[#2B1804]',
+    Kama: 'from-[#8A3B22] via-[#5B2211] to-[#2E0F07]',
+    Moksha: 'from-[#765424] via-[#4E3411] to-[#261706]',
+    MasterKey: 'from-[#8C6228] via-[#5D3F15] to-[#2E1D08]',
+  };
+  const grad = suitGradients[card.suit] || suitGradients.Dharma;
+
+  return (
+    <div className={`w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b ${grad} relative`}>
+      <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
+        <circle cx="24" cy="24" r="14" stroke="#FDE8A8" strokeWidth="0.8" strokeDasharray="2 2" strokeOpacity="0.5" />
+        <circle cx="24" cy="24" r="9" fill="#FCE59F" fillOpacity="0.2" />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center font-serif text-2xl font-bold text-[#FFF2C6] drop-shadow-sm select-none">
+        {SUIT_META[card.suit]?.symbol || '♠'}
+      </span>
+    </div>
+  );
+};
 
 export const AdminCardsPage: React.FC = () => {
   const [catalog, setCatalog] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [search, setSearch] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'ALL' | 'Dharma' | 'Artha' | 'Kama' | 'Moksha' | 'MasterKey'>('ALL');
-  
-  // Modals state
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<CardTab>('ALL');
+  const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'paid'>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
+
+  // Modals
   const [selectedCard, setSelectedCard] = useState<CardItem | null>(null);
   const [editingCard, setEditingCard] = useState<CardItem | null>(null);
   const [deletingCard, setDeletingCard] = useState<CardItem | null>(null);
   const [accessModalCard, setAccessModalCard] = useState<CardItem | null>(null);
   const [targetAccessState, setTargetAccessState] = useState<boolean | null>(null);
-  
-  // Action state
-  const [actionLoading, setActionLoading] = useState<boolean>(false);
+
+  const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Edit form state
   const [editForm, setEditForm] = useState({
     title: '',
     rank: '',
@@ -71,69 +314,18 @@ export const AdminCardsPage: React.FC = () => {
     position: 1,
   });
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
-  };
-
-  const openAccessModal = (card: CardItem, targetState: boolean, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setAccessModalCard(card);
-    setTargetAccessState(targetState);
-    setActionError(null);
-  };
-
-  const handleToggleAccessConfirm = async () => {
-    if (!accessModalCard || targetAccessState === null) return;
-    setActionLoading(true);
-    setActionError(null);
-
-    try {
-      await adminService.toggleCardAccess(accessModalCard.id, targetAccessState);
-      showToast(
-        `Card "${accessModalCard.title}" access tier changed to ${targetAccessState ? 'FREE' : 'PAID'} successfully!`
-      );
-
-      // Instantly reflect state in local catalog state
-      setCatalog((prev: any) => {
-        if (!prev) return prev;
-        const updateCardInList = (c: CardItem) =>
-          c.id === accessModalCard.id ? { ...c, isFreeByDefault: targetAccessState } : c;
-        return {
-          ...prev,
-          allCards: prev.allCards?.map(updateCardInList),
-          suits: Object.fromEntries(
-            Object.entries(prev.suits || {}).map(([suitKey, list]: [string, any]) => [
-              suitKey,
-              list.map(updateCardInList),
-            ])
-          ),
-        };
-      });
-
-      if (selectedCard && selectedCard.id === accessModalCard.id) {
-        setSelectedCard({ ...selectedCard, isFreeByDefault: targetAccessState });
-      }
-
-      setAccessModalCard(null);
-      setTargetAccessState(null);
-      await fetchCatalog();
-    } catch (err: any) {
-      setActionError(err.response?.data?.message || err.message || 'Failed to update card access tier');
-    } finally {
-      setActionLoading(false);
-    }
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    window.setTimeout(() => setToastMessage(null), 4000);
   };
 
   const fetchCatalog = async () => {
     setLoading(true);
     try {
-      const data = await adminService.getCardsCatalog();
-      setCatalog(data);
-    } catch (err) {
-      console.error('Failed to load cards catalog:', err);
+      setCatalog(await adminService.getCardsCatalog());
+    } catch (error) {
+      console.error('Failed to load card catalog:', error);
+      showToast('Card catalog could not be loaded. Please refresh and try again.');
     } finally {
       setLoading(false);
     }
@@ -143,45 +335,37 @@ export const AdminCardsPage: React.FC = () => {
     fetchCatalog();
   }, []);
 
-  const suitIcons: Record<string, string> = {
-    Dharma: '♠',
-    Artha: '♦',
-    Kama: '♥',
-    Moksha: '♣',
-    MasterKey: '✦',
-  };
+  const allCards = useMemo<CardItem[]>(() => {
+    if (!catalog?.suits) return [];
+    return (Object.keys(SUIT_META) as CardSuit[]).flatMap((suit) => catalog.suits[suit] || []);
+  }, [catalog]);
 
-  const getFilteredCards = (): CardItem[] => {
-    if (!catalog) return [];
-    let list: CardItem[] = [];
-    if (activeTab === 'ALL') {
-      list = [
-        ...(catalog.suits?.Dharma || []),
-        ...(catalog.suits?.Artha || []),
-        ...(catalog.suits?.Kama || []),
-        ...(catalog.suits?.Moksha || []),
-        ...(catalog.suits?.MasterKey || []),
-      ];
-    } else {
-      list = catalog.suits?.[activeTab] || [];
-    }
+  const filteredCards = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return allCards.filter((card) => {
+      const matchesSuit = activeTab === 'ALL' || card.suit === activeTab;
+      const matchesAccess =
+        accessFilter === 'all' || (accessFilter === 'free' ? card.isFreeByDefault : !card.isFreeByDefault);
+      const matchesSearch =
+        !query ||
+        [card.title, card.key, card.cardId, card.rank, card.label, card.shortSummary].some((value) =>
+          String(value || '').toLowerCase().includes(query)
+        );
+      return matchesSuit && matchesAccess && matchesSearch;
+    });
+  }, [activeTab, accessFilter, allCards, search]);
 
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter(
-      (c) =>
-        c.title.toLowerCase().includes(q) ||
-        c.key.toLowerCase().includes(q) ||
-        c.rank.toLowerCase().includes(q) ||
-        c.shortSummary.toLowerCase().includes(q)
-    );
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredCards.length / CARD_PAGE_SIZE));
+  const displayedCards = filteredCards.slice((page - 1) * CARD_PAGE_SIZE, page * CARD_PAGE_SIZE);
+  const firstCardNumber = filteredCards.length ? (page - 1) * CARD_PAGE_SIZE + 1 : 0;
+  const lastCardNumber = filteredCards.length ? Math.min(page * CARD_PAGE_SIZE, filteredCards.length) : 0;
 
-  const displayedCards = getFilteredCards();
+  const resetToFirstPage = () => setPage(1);
 
-  const openEditModal = (card: CardItem, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  const openEditModal = (card: CardItem) => {
+    setSelectedCard(null);
     setEditingCard(card);
+    setActionError(null);
     setEditForm({
       title: card.title || '',
       rank: card.rank || '',
@@ -191,34 +375,47 @@ export const AdminCardsPage: React.FC = () => {
       shortSummary: card.shortSummary || '',
       detailedInterpretation: card.detailedInterpretation || '',
       reflectionQuestion: card.reflectionQuestion || '',
-      isFreeByDefault: !!card.isFreeByDefault,
+      isFreeByDefault: Boolean(card.isFreeByDefault),
       position: card.position || 1,
     });
+  };
+
+  const openAccessModal = (card: CardItem, targetState: boolean) => {
+    setSelectedCard(null);
+    setAccessModalCard(card);
+    setTargetAccessState(targetState);
     setActionError(null);
   };
 
-  const openDeleteModal = (card: CardItem, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setDeletingCard(card);
-    setActionError(null);
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveEdit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!editingCard) return;
     setActionLoading(true);
     setActionError(null);
-
     try {
       await adminService.updateCard(editingCard.id, editForm);
-      showToast(`Card "${editForm.title}" updated successfully!`);
+      showToast(`${editForm.title} was updated successfully.`);
       setEditingCard(null);
-      if (selectedCard && selectedCard.id === editingCard.id) {
-        setSelectedCard({ ...selectedCard, ...editForm });
-      }
       await fetchCatalog();
-    } catch (err: any) {
-      setActionError(err.response?.data?.message || err.message || 'Failed to update card definition');
+    } catch (error: any) {
+      setActionError(error.response?.data?.message || error.message || 'Failed to update card definition.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleAccessConfirm = async () => {
+    if (!accessModalCard || targetAccessState === null) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      await adminService.toggleCardAccess(accessModalCard.id, targetAccessState);
+      showToast(`${accessModalCard.title} is now ${targetAccessState ? 'free' : 'paid'}.`);
+      setAccessModalCard(null);
+      setTargetAccessState(null);
+      await fetchCatalog();
+    } catch (error: any) {
+      setActionError(error.response?.data?.message || error.message || 'Failed to update the access setting.');
     } finally {
       setActionLoading(false);
     }
@@ -228,744 +425,769 @@ export const AdminCardsPage: React.FC = () => {
     if (!deletingCard) return;
     setActionLoading(true);
     setActionError(null);
-
     try {
       await adminService.deleteCard(deletingCard.id);
-      showToast(`Card "${deletingCard.title}" (#${deletingCard.position}) deleted from catalog.`);
+      showToast(`${deletingCard.title} was removed from the catalog.`);
       setDeletingCard(null);
-      if (selectedCard && selectedCard.id === deletingCard.id) {
-        setSelectedCard(null);
-      }
       await fetchCatalog();
-    } catch (err: any) {
-      setActionError(err.response?.data?.message || err.message || 'Failed to delete card');
+    } catch (error: any) {
+      setActionError(error.response?.data?.message || error.message || 'Failed to delete card.');
     } finally {
       setActionLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-emerald-500/90 text-white font-medium text-xs shadow-2xl border border-emerald-400/30 backdrop-blur-md animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 text-emerald-200 flex-shrink-0" />
-          <span>{toastMessage}</span>
+        <div className="fixed right-6 top-6 z-[70] flex max-w-sm items-center gap-2.5 rounded-2xl border border-emerald-500/30 bg-[#EAF7EE] px-4 py-3 text-sm font-semibold text-emerald-800 shadow-xl">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+          {toastMessage}
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-        <div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#C9A45C] via-[#F6F0E6] to-[#C9A45C]">
-            55-Card Canonical Catalog
-          </h1>
-          <p className="text-xs text-[#A7A4C4] font-serif italic">
-            Manage, edit, and audit authoritative Vedic Purushartha card definitions & Master Keys
-          </p>
+      {/* 1. Metric Stat Cards Strip Matching Reference Image */}
+      <section className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3.5">
+        {/* Total Cards */}
+        <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
+            <Layers className="w-5 h-5" strokeWidth={1.75} />
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#7A6A58]">Total Cards</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {catalog?.totalCards || 55}
+            </div>
+          </div>
         </div>
 
-        <button
-          onClick={fetchCatalog}
-          disabled={loading}
-          className="self-start sm:self-auto p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#A7A4C4] hover:text-[#F6F0E6] transition-colors flex items-center gap-2 text-xs"
-          title="Refresh Catalog"
-        >
-          <RefreshCw className={`w-4 h-4 text-[#C9A45C] ${loading ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">Refresh Catalog</span>
-        </button>
-      </div>
+        {/* Dharma ♠ */}
+        <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B] font-serif text-xl font-bold">
+            ♠
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#7A6A58]">Dharma ♠</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {catalog?.suitCounts?.Dharma || 13}
+            </div>
+          </div>
+        </div>
 
-      {/* Catalog Integrity Audit Banner */}
-      {catalog && (
-        <div
-          className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${
-            catalog.isCatalogValid
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
-              : 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+        {/* Artha ♦ */}
+        <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B] font-serif text-xl font-bold">
+            ♦
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#7A6A58]">Artha ♦</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {catalog?.suitCounts?.Artha || 13}
+            </div>
+          </div>
+        </div>
+
+        {/* Kama ♥ */}
+        <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#C2291E] font-serif text-xl font-bold">
+            ♥
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#7A6A58]">Kama ♥</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {catalog?.suitCounts?.Kama || 13}
+            </div>
+          </div>
+        </div>
+
+        {/* Moksha ♣ */}
+        <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B] font-serif text-xl font-bold">
+            ♣
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#7A6A58]">Moksha ♣</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {catalog?.suitCounts?.Moksha || 13}
+            </div>
+          </div>
+        </div>
+
+        {/* Master Keys */}
+        <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
+          <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
+            <Star className="w-5 h-5" strokeWidth={1.75} />
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#7A6A58]">Master Keys</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {catalog?.suitCounts?.MasterKey || 3}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Filter Tabs (Suit Navigation Pills) */}
+      <section className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => {
+            setActiveTab('ALL');
+            resetToFirstPage();
+          }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-serif text-sm font-semibold transition-all ${
+            activeTab === 'ALL'
+              ? 'bg-[#382618] text-[#FFFDF9] shadow-sm'
+              : 'bg-[#FDFBF7] hover:bg-[#F5EDE1] border border-[#E8DACB] text-[#4A3828]'
           }`}
         >
-          <div className="flex items-center gap-3">
-            {catalog.isCatalogValid ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-            ) : (
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
-            )}
-            <div>
-              <div className="font-semibold text-xs">
-                {catalog.isCatalogValid
-                  ? 'Canonical 55-Card Catalog Verified'
-                  : 'Catalog Integrity Notice: Custom Deck Count'}
-              </div>
-              <p className="text-[11px] text-[#A7A4C4] font-mono">
-                {catalog.totalCards} / 55 Cards Total • {catalog.integrityCheck?.missingPositions?.length || 0} Missing Positions • {catalog.integrityCheck?.duplicateKeys?.length || 0} Collisions
-              </p>
-            </div>
-          </div>
+          <Layers className="w-4 h-4" />
+          <span>All Cards ({catalog?.totalCards || 55})</span>
+        </button>
 
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
-            <span className="px-2.5 py-1 rounded-lg bg-black/30 border border-white/10 text-[#C9A45C]">
-              ♠ Dharma: {catalog.suitCounts?.Dharma ?? 0}
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-black/30 border border-white/10 text-emerald-300">
-              ♦ Artha: {catalog.suitCounts?.Artha ?? 0}
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-black/30 border border-white/10 text-rose-300">
-              ♥ Kama: {catalog.suitCounts?.Kama ?? 0}
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-black/30 border border-white/10 text-blue-300">
-              ♣ Moksha: {catalog.suitCounts?.Moksha ?? 0}
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-black/30 border border-white/10 text-amber-300">
-              ✦ Master: {catalog.suitCounts?.MasterKey ?? 0}
-            </span>
-          </div>
-        </div>
-      )}
+        {(Object.keys(SUIT_META) as CardSuit[]).map((suit) => {
+          const meta = SUIT_META[suit];
+          const count = catalog?.suitCounts?.[suit] ?? (suit === 'MasterKey' ? 3 : 13);
+          const isActive = activeTab === suit;
+          const isKama = suit === 'Kama';
 
-      {/* Suit Tabs & Search */}
-      <div className="bg-[#111033] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-        <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
-          {(['ALL', 'Dharma', 'Artha', 'Kama', 'Moksha', 'MasterKey'] as const).map((suit) => (
+          return (
             <button
               key={suit}
-              onClick={() => setActiveTab(suit)}
-              className={`py-1.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                activeTab === suit
-                  ? 'bg-[#C9A45C] text-[#08071B] font-bold shadow-md'
-                  : 'text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5'
+              onClick={() => {
+                setActiveTab(suit);
+                resetToFirstPage();
+              }}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-serif text-sm font-semibold transition-all ${
+                isActive
+                  ? 'bg-[#382618] text-[#FFFDF9] shadow-sm'
+                  : 'bg-[#FDFBF7] hover:bg-[#F5EDE1] border border-[#E8DACB] text-[#4A3828]'
               }`}
             >
-              <span>{suit === 'ALL' ? '✦ All Cards' : `${suitIcons[suit]} ${suit}`}</span>
-              {catalog && suit !== 'ALL' && (
-                <span className="text-[10px] opacity-75 font-mono">
-                  ({catalog.suitCounts?.[suit] || 0})
-                </span>
-              )}
+              <span className={`text-base leading-none ${isKama ? 'text-[#C2291E]' : ''}`}>
+                {meta.symbol}
+              </span>
+              <span>
+                {meta.label} ({count})
+              </span>
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </section>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-[#A7A4C4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title, key, or rank..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C]/50 text-xs text-[#F6F0E6] outline-none placeholder:text-[#A7A4C4]/50"
-          />
-        </div>
-      </div>
-
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {loading ? (
-          <div className="col-span-full py-16 text-center text-xs text-[#A7A4C4]">
-            <div className="w-8 h-8 border-2 border-[#C9A45C] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <span>Auditing approved 55-card definitions...</span>
+      {/* 3. Search and Action Controls Bar */}
+      <section className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                resetToFirstPage();
+              }}
+              placeholder="Search card by name or identifier..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] placeholder:text-[#8C7A68] focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] outline-none transition-all shadow-2xs"
+            />
           </div>
-        ) : displayedCards.length > 0 ? (
-          displayedCards.map((card) => (
-            <div
-              key={card.id || card.key}
-              onClick={() => setSelectedCard(card)}
-              className="bg-[#111033] border border-white/10 hover:border-[#C9A45C]/50 rounded-2xl p-4 space-y-2.5 cursor-pointer transition-all hover:scale-[1.01] shadow-xl group relative flex flex-col justify-between"
+
+          {/* Access Filter Dropdown */}
+          <div className="relative min-w-[140px]">
+            <select
+              value={accessFilter}
+              onChange={(e) => {
+                setAccessFilter(e.target.value as any);
+                resetToFirstPage();
+              }}
+              className="w-full appearance-none pl-3.5 pr-8 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-medium text-[#2C2016] focus:border-[#8C6D3B] outline-none cursor-pointer shadow-2xs"
             >
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 rounded-lg bg-[#C9A45C]/15 border border-[#C9A45C]/30 text-[#C9A45C] font-mono text-xs font-bold">
-                    {card.suitSymbol} {card.rank}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-mono text-[#A7A4C4]">#{card.position}</span>
-                    {card.isFreeByDefault ? (
-                      <button
-                        type="button"
-                        onClick={(e) => openAccessModal(card, false, e)}
-                        className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 font-bold uppercase tracking-wider flex items-center gap-1 transition-all"
-                        title="Click to toggle to ₹2 PAID"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        FREE
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => openAccessModal(card, true, e)}
-                        className="px-2 py-0.5 rounded-full text-[10px] bg-[#C9A45C]/20 text-[#C9A45C] border border-[#C9A45C]/40 hover:bg-[#C9A45C]/30 font-bold uppercase tracking-wider flex items-center gap-1 transition-all"
-                        title="Click to toggle to FREE"
-                      >
-                        ₹2 PAID
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-serif font-bold text-sm text-[#F6F0E6] group-hover:text-[#C9A45C] transition-colors truncate">
-                    {card.title}
-                  </h3>
-                  <p className="text-[11px] text-[#A7A4C4] font-mono">Key: {card.key}</p>
-                </div>
-
-                <p className="text-xs text-[#A7A4C4] line-clamp-2 leading-relaxed">
-                  {card.shortSummary}
-                </p>
-              </div>
-
-              {/* Action Buttons Row */}
-              <div className="flex items-center justify-between pt-2.5 border-t border-white/5 text-[11px]">
-                <span className="text-[10px] text-[#A7A4C4] uppercase font-semibold">{card.suit} Suit</span>
-
-                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                  {/* Dynamic Free / Paid Access Toggle Button */}
-                  <button
-                    type="button"
-                    onClick={(e) => openAccessModal(card, !card.isFreeByDefault, e)}
-                    className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all flex items-center gap-1 shadow-sm ${
-                      card.isFreeByDefault
-                        ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300'
-                        : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
-                    }`}
-                    title={card.isFreeByDefault ? 'Switch to Paid (₹2)' : 'Switch to Free (₹0)'}
-                  >
-                    {card.isFreeByDefault ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                    <span>{card.isFreeByDefault ? 'Make Paid' : 'Make Free'}</span>
-                  </button>
-
-                  <button
-                    onClick={(e) => openEditModal(card, e)}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-[#C9A45C]/20 border border-white/10 hover:border-[#C9A45C]/40 text-[#A7A4C4] hover:text-[#C9A45C] transition-all"
-                    title="Edit Card"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={(e) => openDeleteModal(card, e)}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/40 text-[#A7A4C4] hover:text-rose-400 transition-all"
-                    title="Delete Card"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="col-span-full py-16 text-center text-xs text-[#A7A4C4] italic">
-            No cards found matching the criteria.
+              <option value="all">Access: All</option>
+              <option value="free">Access: Free</option>
+              <option value="paid">Access: Paid</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
           </div>
-        )}
-      </div>
 
-      {/* Card Detail Modal */}
-      {selectedCard && !editingCard && !deletingCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-xl bg-[#111033] border border-white/15 rounded-3xl p-6 space-y-5 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl text-[#C9A45C]">{selectedCard.suitSymbol}</span>
+          {/* Status Filter Dropdown */}
+          <div className="relative min-w-[140px]">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                resetToFirstPage();
+              }}
+              className="w-full appearance-none pl-3.5 pr-8 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-medium text-[#2C2016] focus:border-[#8C6D3B] outline-none cursor-pointer shadow-2xs"
+            >
+              <option value="all">Status: All</option>
+              <option value="active">Status: Active</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
+          </div>
+        </div>
+
+        {/* Add Card Button */}
+        <button
+          onClick={() =>
+            showToast('New card creation is not available in the current catalog API. You can edit any existing card.')
+          }
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-[#FFFDF9] font-serif font-bold text-sm tracking-wide shadow-sm hover:shadow transition-all shrink-0 cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Card</span>
+        </button>
+      </section>
+
+      {/* 4. Table Matching the Exact UI Screenshot */}
+      <section className="bg-[#FFFDF9] border border-[#E8DCCF] rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(44,32,22,0.04)]">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[#EADCCE] bg-[#FAF6F0]/80">
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider w-12 text-center">
+                  #
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
+                  Card
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
+                  Identifier
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
+                  Suit
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
+                  Card Type
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
+                  Access
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
+                  Price (₹)
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
+                  Status
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#F0E5D8]">
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="py-20 text-center text-[#735e49]">
+                    <span className="mx-auto mb-3 block h-8 w-8 rounded-full border-2 border-[#8C6D3B] border-t-transparent animate-spin" />
+                    <span className="font-serif text-sm">Loading 55-card catalog…</span>
+                  </td>
+                </tr>
+              ) : displayedCards.length ? (
+                displayedCards.map((card, index) => {
+                  const meta = SUIT_META[card.suit] || SUIT_META.Dharma;
+                  const typeBadge = getCardTypeBadge(card);
+                  const identifier = getCardIdentifier(card);
+                  const isKama = card.suit === 'Kama';
+
+                  return (
+                    <tr
+                      key={card.id || card.cardId}
+                      className="hover:bg-[#FAF6F0]/60 transition-colors group"
+                    >
+                      {/* Row Index */}
+                      <td className="py-3.5 px-4 text-sm font-semibold text-[#5A4838] text-center">
+                        {firstCardNumber + index}
+                      </td>
+
+                      {/* Card Thumbnail + Titles */}
+                      <td className="py-3.5 px-4">
+                        <button
+                          onClick={() => setSelectedCard(card)}
+                          className="flex items-center gap-3.5 text-left group-hover:opacity-95 transition-opacity"
+                        >
+                          <CardArtThumbnail card={card} />
+                          <div className="space-y-0.5">
+                            <strong className="block font-serif text-[15px] font-bold text-[#2C2016] group-hover:text-[#8C6D3B] transition-colors leading-tight">
+                              {card.title}
+                            </strong>
+                            <span className="block text-xs text-[#7A6A58] max-w-[220px] truncate">
+                              {card.line || card.shortSummary}
+                            </span>
+                          </div>
+                        </button>
+                      </td>
+
+                      {/* Identifier Badge */}
+                      <td className="py-3.5 px-4">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#F5ECE0] border border-[#E3D4C2] text-[#4A3828] text-xs font-mono font-bold tracking-wide">
+                          {identifier}
+                        </span>
+                      </td>
+
+                      {/* Suit */}
+                      <td className="py-3.5 px-4">
+                        <span className="font-serif text-sm font-bold text-[#2C2016] flex items-center gap-1">
+                          <span>{meta.label}</span>
+                          <span className={isKama ? 'text-[#C2291E]' : ''}>{meta.symbol}</span>
+                        </span>
+                      </td>
+
+                      {/* Card Type Pill */}
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${typeBadge.classes}`}
+                        >
+                          {typeBadge.label}
+                        </span>
+                      </td>
+
+                      {/* Access Setting */}
+                      <td className="py-3.5 px-4">
+                        <button
+                          onClick={() => openAccessModal(card, !card.isFreeByDefault)}
+                          title="Click to toggle Free / Paid access"
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                            card.isFreeByDefault
+                              ? 'bg-[#EAF7EE] text-[#1D7E33] border-[#C6EED0]'
+                              : 'bg-[#FEF6E6] text-[#B77A1F] border-[#FCE1B6]'
+                          }`}
+                        >
+                          {card.isFreeByDefault ? (
+                            <>
+                              <Crown className="w-3.5 h-3.5 text-[#1D7E33]" />
+                              <span>Free</span>
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="w-3.5 h-3.5 text-[#B77A1F]" />
+                              <span>Paid</span>
+                            </>
+                          )}
+                        </button>
+                      </td>
+
+                      {/* Price (₹) */}
+                      <td className="py-3.5 px-4 text-center font-semibold text-sm text-[#2C2016]">
+                        {card.isFreeByDefault ? '—' : card.price || 299}
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#EAF7EE] text-[#1D7E33] border border-[#C6EED0]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#1D7E33]" />
+                          <span>Active</span>
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="inline-flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => openEditModal(card)}
+                            className="p-1.5 rounded-lg text-[#6B5A4B] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
+                            title="Edit Card"
+                            aria-label={`Edit ${card.title}`}
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setSelectedCard(card)}
+                            className="p-1.5 rounded-lg text-[#6B5A4B] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
+                            title="Card Options & Details"
+                            aria-label={`Options for ${card.title}`}
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={9} className="py-16 text-center italic text-[#806A57]">
+                    No cards match the selected filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 5. Pagination Bar Matching Reference Image */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-[#EADCCE] bg-[#FAF6F0]/40">
+          <p className="font-serif text-sm text-[#665444]">
+            Showing {firstCardNumber} – {lastCardNumber} of {filteredCards.length} cards
+          </p>
+
+          <div className="flex items-center gap-1">
+            {/* Prev Button */}
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Page Numbers */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+              // Show first, last, and window around current
+              if (
+                p === 1 ||
+                p === totalPages ||
+                (p >= page - 1 && p <= page + 1)
+              ) {
+                const isActive = p === page;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                      isActive
+                        ? 'bg-[#382618] text-[#FFFDF9] shadow-xs'
+                        : 'text-[#524032] hover:bg-[#F2ECE1]'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              }
+              if (p === page - 2 || p === page + 2) {
+                return (
+                  <span key={p} className="px-1 text-xs text-[#8C7A68]">
+                    …
+                  </span>
+                );
+              }
+              return null;
+            })}
+
+            {/* Next Button */}
+            <button
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Modal: Card Details Preview */}
+      {selectedCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a170b]/45 p-4 backdrop-blur-xs">
+          <section className="bg-[#FFFDF9] border border-[#B9884A]/30 rounded-3xl max-h-[90vh] w-full max-w-xl overflow-y-auto p-6 shadow-2xl space-y-4">
+            <header className="flex items-start justify-between gap-4 border-b border-[#B9884A]/20 pb-4">
+              <div className="flex items-center gap-3">
+                <CardArtThumbnail card={selectedCard} />
                 <div>
-                  <h3 className="font-serif text-lg font-bold text-[#F6F0E6]">{selectedCard.title}</h3>
-                  <p className="text-xs text-[#A7A4C4] font-mono">Position #{selectedCard.position} • Key: {selectedCard.key}</p>
+                  <span className="font-serif text-xs font-semibold text-[#8C6D3B] uppercase tracking-wider">
+                    {selectedCard.suitSymbol} {selectedCard.suit} · Position #{selectedCard.position}
+                  </span>
+                  <h2 className="font-serif text-2xl font-bold text-[#2C2016] mt-0.5">
+                    {selectedCard.title}
+                  </h2>
+                  <p className="text-xs text-[#7A6A58]">{selectedCard.key}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedCard(null)}
-                className="p-1.5 rounded-xl text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5"
+                className="p-1.5 rounded-lg text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
+            </header>
 
-            <div className="space-y-4 text-xs">
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
-                <span className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Suit Theme & Meaning</span>
-                <p className="text-[#F6F0E6] leading-relaxed">{selectedCard.suitTheme || 'Vedic Archetype realization'}</p>
+            <div className="space-y-3.5 text-sm text-[#4D3524] leading-relaxed">
+              <div className="p-3.5 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/60">
+                <span className="block text-[11px] uppercase tracking-wider font-bold text-[#8C6D3B]">
+                  Suit Theme
+                </span>
+                <span className="text-sm font-medium">{selectedCard.suitTheme || 'Vedic Archetype'}</span>
               </div>
 
               {selectedCard.line && (
-                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1 italic text-[#C9A45C]">
-                  "{selectedCard.line}"
+                <div className="p-4 rounded-2xl bg-[#FFF9EE] border border-[#EBDCCB] font-serif text-base italic text-[#2C2016]">
+                  “{selectedCard.line}”
                 </div>
               )}
 
-              <div className="space-y-1">
-                <span className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Short Summary</span>
-                <p className="text-[#F6F0E6] leading-relaxed">{selectedCard.shortSummary}</p>
+              <div>
+                <span className="block text-[11px] uppercase tracking-wider font-bold text-[#8C6D3B]">
+                  Short Summary
+                </span>
+                <p className="mt-1 text-sm">{selectedCard.shortSummary}</p>
               </div>
 
               {selectedCard.detailedInterpretation && (
-                <div className="space-y-1">
-                  <span className="text-[10px] text-[#A7A4C4] uppercase font-semibold">Detailed Interpretation</span>
-                  <p className="text-[#F6F0E6] leading-relaxed whitespace-pre-line">{selectedCard.detailedInterpretation}</p>
+                <div>
+                  <span className="block text-[11px] uppercase tracking-wider font-bold text-[#8C6D3B]">
+                    Detailed Interpretation
+                  </span>
+                  <p className="mt-1 text-sm">{selectedCard.detailedInterpretation}</p>
                 </div>
               )}
 
               {selectedCard.reflectionQuestion && (
-                <div className="p-3 rounded-2xl bg-[#C9A45C]/10 border border-[#C9A45C]/20 space-y-1">
-                  <span className="text-[10px] text-[#C9A45C] uppercase font-semibold">Reflection Question</span>
-                  <p className="text-[#F6F0E6] italic">{selectedCard.reflectionQuestion}</p>
+                <div className="p-3.5 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/60">
+                  <span className="block text-[11px] uppercase tracking-wider font-bold text-[#8C6D3B]">
+                    Reflection Question
+                  </span>
+                  <span className="text-sm font-medium">{selectedCard.reflectionQuestion}</span>
                 </div>
               )}
-
-              <div className="grid grid-cols-3 gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 font-mono text-[11px]">
-                <div>
-                  <span className="text-[10px] text-[#A7A4C4] block uppercase">Suit</span>
-                  <span className="text-[#C9A45C] font-bold">{selectedCard.suit}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-[#A7A4C4] block uppercase">Rank</span>
-                  <span className="text-[#F6F0E6] font-bold">{selectedCard.rank}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-[#A7A4C4] block uppercase">Access Policy</span>
-                  <button
-                    type="button"
-                    onClick={() => openAccessModal(selectedCard, !selectedCard.isFreeByDefault)}
-                    className="hover:underline text-left flex items-center gap-1 mt-0.5"
-                    title="Click to toggle access policy"
-                  >
-                    <span className={selectedCard.isFreeByDefault ? 'text-emerald-400 font-bold' : 'text-[#C9A45C] font-bold'}>
-                      {selectedCard.isFreeByDefault ? 'FREE (₹0)' : 'PAID (₹2)'} ✎
-                    </span>
-                  </button>
-                </div>
-              </div>
             </div>
 
-            {/* Modal Actions */}
-            <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/10">
+            <footer className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 border-t border-[#B9884A]/20 pt-4">
               <button
-                type="button"
                 onClick={() => openAccessModal(selectedCard, !selectedCard.isFreeByDefault)}
-                className={`py-2 px-3.5 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm ${
-                  selectedCard.isFreeByDefault
-                    ? 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/30 text-amber-300'
-                    : 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-300'
-                }`}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#B88A4F]/40 bg-[#FAF5EE] hover:bg-[#F3EBE0] text-sm font-bold text-[#5A3810] transition-colors"
               >
-                {selectedCard.isFreeByDefault ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                <span>{selectedCard.isFreeByDefault ? 'Switch to Paid (₹2)' : 'Switch to Free (₹0)'}</span>
+                {selectedCard.isFreeByDefault ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                <span>{selectedCard.isFreeByDefault ? 'Make Paid' : 'Make Free'}</span>
               </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => openDeleteModal(selectedCard, e)}
-                  className="py-2 px-4 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-medium text-xs flex items-center gap-1.5 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete Card</span>
-                </button>
-                <button
-                  onClick={(e) => openEditModal(selectedCard, e)}
-                  className="py-2 px-4 rounded-xl bg-[#C9A45C] hover:bg-[#d6b068] text-[#08071B] font-bold text-xs flex items-center gap-1.5 transition-all shadow-lg"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  <span>Edit Card</span>
-                </button>
-              </div>
-            </div>
-          </div>
+              <button
+                onClick={() => openEditModal(selectedCard)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-sm font-bold text-[#FFFDF9] transition-colors shadow-xs"
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Edit Card</span>
+              </button>
+            </footer>
+          </section>
         </div>
       )}
 
-      {/* Edit Card Definition Modal */}
+      {/* Modal: Edit Card */}
       {editingCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-2xl bg-[#111033] border border-white/20 rounded-3xl p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#C9A45C]/15 border border-[#C9A45C]/30 text-[#C9A45C]">
-                  <Edit2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-serif text-lg font-bold text-[#F6F0E6]">Edit Card Definition</h3>
-                  <p className="text-xs text-[#A7A4C4] font-mono">
-                    {editingCard.suit} Suit • Key: {editingCard.key} (Position #{editForm.position})
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a170b]/45 p-4 backdrop-blur-xs">
+          <section className="bg-[#FFFDF9] border border-[#B9884A]/30 rounded-3xl max-h-[92vh] w-full max-w-2xl overflow-y-auto p-6 sm:p-7 shadow-2xl">
+            <header className="flex items-start justify-between gap-4 border-b border-[#B9884A]/20 pb-4">
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-[#2C2016]">Edit Card</h2>
+                <p className="text-xs text-[#7A6A58] mt-0.5">
+                  {editingCard.suit} · {editingCard.key} · Position #{editingCard.position}
+                </p>
               </div>
               <button
                 onClick={() => setEditingCard(null)}
-                className="p-1.5 rounded-xl text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5"
+                className="p-1.5 rounded-lg text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
+            </header>
 
             {actionError && (
-              <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs flex items-center gap-2.5">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <div className="mt-4 flex gap-2 rounded-xl border border-[#dd9c91] bg-[#fce9e5] p-3 text-sm text-[#8d2d25]">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{actionError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSaveEdit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                    Card Title *
-                  </label>
+            <form onSubmit={handleSaveEdit} className="mt-5 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Card Title
                   <input
-                    type="text"
                     required
                     value={editForm.title}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors"
+                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                    Label *
-                  </label>
+                </label>
+                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Label
                   <input
-                    type="text"
                     required
                     value={editForm.label}
                     onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors"
+                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
                   />
-                </div>
+                </label>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                    Rank (e.g. K, Q, 1, 10) *
-                  </label>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Rank
                   <input
-                    type="text"
                     required
                     value={editForm.rank}
                     onChange={(e) => setEditForm({ ...editForm, rank: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors"
+                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                    Position (1 - 55) *
-                  </label>
+                </label>
+                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Position
                   <input
-                    type="number"
                     required
-                    min={1}
-                    max={55}
+                    min="1"
+                    max="55"
+                    type="number"
                     value={editForm.position}
-                    onChange={(e) => setEditForm({ ...editForm, position: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors"
+                    onChange={(e) => setEditForm({ ...editForm, position: Number(e.target.value) || 1 })}
+                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
                   />
-                </div>
-
-                <div className="flex flex-col justify-end">
-                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={editForm.isFreeByDefault}
-                      onChange={(e) => setEditForm({ ...editForm, isFreeByDefault: e.target.checked })}
-                      className="w-4 h-4 rounded text-[#C9A45C] accent-[#C9A45C]"
-                    />
-                    <span className="text-xs font-semibold text-[#F6F0E6]">Free by Default</span>
-                  </label>
-                </div>
+                </label>
+                <label className="flex cursor-pointer items-center gap-2.5 self-end rounded-xl border border-[#E5D7C6] bg-[#FAF5EE] px-3.5 py-2.5 text-xs font-bold text-[#2C2016]">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isFreeByDefault}
+                    onChange={(e) => setEditForm({ ...editForm, isFreeByDefault: e.target.checked })}
+                    className="accent-[#8C6D3B] w-4 h-4"
+                  />
+                  <span>Free by default</span>
+                </label>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                  Suit Theme & Vedic Archetype
-                </label>
+              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                Suit Theme
                 <input
-                  type="text"
                   value={editForm.suitTheme}
                   onChange={(e) => setEditForm({ ...editForm, suitTheme: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors"
+                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
                 />
-              </div>
+              </label>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                  Card Line (Poetic / Archetypal Phrase)
-                </label>
+              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                Card Line (Archetypal Quote)
                 <input
-                  type="text"
                   value={editForm.line}
                   onChange={(e) => setEditForm({ ...editForm, line: e.target.value })}
-                  placeholder="e.g. The sovereign horizon of Dharma..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors"
+                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
                 />
-              </div>
+              </label>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                  Short Summary *
-                </label>
+              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                Short Summary
                 <textarea
                   required
                   rows={2}
                   value={editForm.shortSummary}
                   onChange={(e) => setEditForm({ ...editForm, shortSummary: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors resize-none leading-relaxed"
+                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B] resize-y"
                 />
-              </div>
+              </label>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                  Detailed Interpretation
-                </label>
+              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                Detailed Interpretation
                 <textarea
                   rows={4}
                   value={editForm.detailedInterpretation}
                   onChange={(e) => setEditForm({ ...editForm, detailedInterpretation: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors resize-y leading-relaxed"
+                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B] resize-y"
                 />
-              </div>
+              </label>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-[#A7A4C4] uppercase mb-1">
-                  Reflection Question
-                </label>
+              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                Reflection Question
                 <input
-                  type="text"
                   value={editForm.reflectionQuestion}
                   onChange={(e) => setEditForm({ ...editForm, reflectionQuestion: e.target.value })}
-                  placeholder="e.g. How do you honor your sovereign duty today?"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#C9A45C] text-[#F6F0E6] outline-none transition-colors"
+                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
                 />
-              </div>
+              </label>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+              <footer className="flex justify-end gap-3 border-t border-[#B9884A]/20 pt-4">
                 <button
                   type="button"
                   onClick={() => setEditingCard(null)}
-                  disabled={actionLoading}
-                  className="py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#A7A4C4] hover:text-[#F6F0E6] font-medium transition-colors"
+                  className="px-4 py-2.5 rounded-xl border border-[#B88A4F]/40 bg-[#FAF5EE] text-sm font-bold text-[#5A3810] hover:bg-[#F3EBE0] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
                   disabled={actionLoading}
-                  className="py-2.5 px-5 rounded-xl bg-[#C9A45C] hover:bg-[#d6b068] text-[#08071B] font-bold shadow-lg flex items-center gap-2 transition-all disabled:opacity-50"
+                  type="submit"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-sm font-bold text-[#FFFDF9] transition-all shadow-xs disabled:opacity-60 cursor-pointer"
                 >
-                  {actionLoading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin text-[#08071B]" />
-                  ) : (
-                    <Save className="w-4 h-4 text-[#08071B]" />
-                  )}
-                  <span>{actionLoading ? 'Saving Changes...' : 'Save Card Changes'}</span>
+                  {actionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Save Changes</span>
                 </button>
-              </div>
+              </footer>
             </form>
-          </div>
+          </section>
         </div>
       )}
 
-      {/* Delete Card Confirmation Modal */}
-      {deletingCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md bg-[#111033] border border-rose-500/30 rounded-3xl p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-bold text-[#F6F0E6]">Delete Card Definition</h3>
-                <p className="text-xs text-rose-300 font-mono">Irreversible Catalog Mutation</p>
-              </div>
-            </div>
-
-            {actionError && (
-              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs">
-                {actionError}
-              </div>
-            )}
-
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 text-xs">
-              <p className="text-[#F6F0E6] leading-relaxed">
-                Are you sure you want to delete <span className="font-bold text-[#C9A45C]">"{deletingCard.title}"</span> (#{deletingCard.position}) from the <span className="font-bold text-[#F6F0E6]">{deletingCard.suit}</span> suit?
-              </p>
-              <p className="text-[#A7A4C4] text-[11px] italic">
-                This will remove the definition from the canonical 55-card catalog. The action will be logged in the administrative audit trail.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setDeletingCard(null)}
-                disabled={actionLoading}
-                className="py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#A7A4C4] hover:text-[#F6F0E6] text-xs font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                disabled={actionLoading}
-                className="py-2.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg flex items-center gap-2 transition-all disabled:opacity-50"
-              >
-                {actionLoading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
-                ) : (
-                  <Trash2 className="w-3.5 h-3.5 text-white" />
-                )}
-                <span>{actionLoading ? 'Deleting Card...' : 'Yes, Delete Card'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Free / Paid Access Tier Toggle Confirmation Modal */}
+      {/* Modal: Toggle Free / Paid Access */}
       {accessModalCard && targetAccessState !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-lg bg-[#111033] border border-white/20 rounded-3xl p-6 sm:p-7 space-y-5 shadow-2xl relative overflow-hidden">
-            {/* Top Atmospheric Glow */}
-            <div className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-20 ${
-              targetAccessState ? 'bg-emerald-400' : 'bg-[#C9A45C]'
-            }`} />
-
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-2xl border ${
-                  targetAccessState
-                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
-                    : 'bg-[#C9A45C]/15 border-[#C9A45C]/30 text-[#C9A45C]'
-                }`}>
-                  {targetAccessState ? <Unlock className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
-                </div>
-                <div>
-                  <h3 className="font-serif text-lg font-bold text-[#F6F0E6]">
-                    Confirm Access Tier Change
-                  </h3>
-                  <p className="text-xs text-[#A7A4C4] font-mono">
-                    Super Admin Purushartha Catalog Policy
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#2a170b]/50 p-4 backdrop-blur-xs">
+          <section className="bg-[#FFFDF9] border border-[#B9884A]/30 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-4">
+            <header className="flex items-start justify-between gap-3 border-b border-[#B9884A]/20 pb-4">
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-[#2C2016]">Change Card Access</h2>
+                <p className="text-xs text-[#7A6A58] mt-0.5">
+                  {accessModalCard.title} · {accessModalCard.key}
+                </p>
               </div>
               <button
                 onClick={() => {
-                  if (!actionLoading) {
-                    setAccessModalCard(null);
-                    setTargetAccessState(null);
-                  }
+                  setAccessModalCard(null);
+                  setTargetAccessState(null);
                 }}
-                disabled={actionLoading}
-                className="p-1.5 rounded-xl text-[#A7A4C4] hover:text-[#F6F0E6] hover:bg-white/5 transition-colors disabled:opacity-50"
+                className="p-1.5 rounded-lg text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
+            </header>
 
             {actionError && (
-              <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs flex items-start gap-2.5 relative z-10">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="flex gap-2 rounded-xl border border-[#dd9c91] bg-[#fce9e5] p-3 text-sm text-[#8d2d25]">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{actionError}</span>
               </div>
             )}
 
-            <div className="space-y-4 text-xs relative z-10">
-              {/* Card Meta Box */}
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl text-[#C9A45C] font-mono">{accessModalCard.suitSymbol}</span>
-                  <div>
-                    <h4 className="font-serif text-base font-bold text-[#F6F0E6]">{accessModalCard.title}</h4>
-                    <p className="text-[11px] text-[#A7A4C4] font-mono">
-                      #{accessModalCard.position} • {accessModalCard.suit} Suit ({accessModalCard.rank}) • Key: {accessModalCard.key}
-                    </p>
-                  </div>
-                </div>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border border-[#B9884A]/20 bg-[#FAF5EE] p-4 text-center">
+              <div>
+                <span className="block text-[11px] uppercase tracking-wider font-bold text-[#8C6D3B]">Current</span>
+                <b className="font-serif text-lg text-[#2C2016]">
+                  {accessModalCard.isFreeByDefault ? 'Free' : 'Paid'}
+                </b>
               </div>
-
-              {/* State Transition Visual Banner */}
-              <div className="p-4 rounded-2xl bg-[#08071B]/90 border border-white/10 flex items-center justify-around gap-4 text-center">
-                <div>
-                  <span className="text-[10px] text-[#A7A4C4] uppercase block mb-1">Current Tier</span>
-                  {accessModalCard.isFreeByDefault ? (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider inline-block">
-                      FREE (₹0)
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#C9A45C]/20 text-[#C9A45C] border border-[#C9A45C]/40 uppercase tracking-wider inline-block">
-                      PAID (₹2)
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-xl text-[#A7A4C4]">➔</div>
-
-                <div>
-                  <span className="text-[10px] text-[#A7A4C4] uppercase block mb-1">New Policy Tier</span>
-                  {targetAccessState ? (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/25 text-emerald-300 border border-emerald-400 uppercase tracking-wider inline-block shadow-lg shadow-emerald-500/20">
-                      FREE (₹0)
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#C9A45C]/25 text-[#E6C687] border border-[#C9A45C] uppercase tracking-wider inline-block shadow-lg shadow-[#C9A45C]/20">
-                      PAID (₹2)
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Policy Explanation */}
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 text-[#A7A4C4] leading-relaxed">
-                {targetAccessState ? (
-                  <p>
-                    <strong className="text-emerald-300">Granting Free Access:</strong> This card will immediately be available to all registered users and guests for free. Seeker natal chart coordinates will be unmasked without requiring a ₹2 unlock or Premium Pass.
-                  </p>
-                ) : (
-                  <p>
-                    <strong className="text-[#C9A45C]">Enforcing ₹2 Paid Tier:</strong> Seekers will be required to unlock this card for ₹2 or hold an active 30-day Premium Pass. Users who previously accessed it for free but did not purchase it will now find it locked.
-                  </p>
-                )}
-                <p className="text-[11px] text-[#A7A4C4]/80 italic pt-1 border-t border-white/5">
-                  ✦ This change is securely saved to MongoDB, enforced server-side on all unlock/payment APIs, and immutably recorded in the Audit Log.
-                </p>
+              <span className="text-xl text-[#8C6D3B]">→</span>
+              <div>
+                <span className="block text-[11px] uppercase tracking-wider font-bold text-[#8C6D3B]">New Access</span>
+                <b className="font-serif text-lg text-[#2C2016]">
+                  {targetAccessState ? 'Free' : 'Paid'}
+                </b>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10 relative z-10">
+            <p className="text-sm text-[#5E4634] leading-relaxed">
+              {targetAccessState
+                ? 'All seekers will be able to unlock and view this card without requiring payment or passes.'
+                : 'Seekers will need to purchase this individual card or unlock the full 55-card deck pass.'}
+            </p>
+
+            <div className="flex justify-end gap-3 border-t border-[#B9884A]/20 pt-4">
               <button
-                type="button"
                 onClick={() => {
                   setAccessModalCard(null);
                   setTargetAccessState(null);
                 }}
                 disabled={actionLoading}
-                className="py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#A7A4C4] hover:text-[#F6F0E6] text-xs font-medium transition-colors disabled:opacity-50"
+                className="px-4 py-2.5 rounded-xl border border-[#B88A4F]/40 bg-[#FAF5EE] text-sm font-bold text-[#5A3810] hover:bg-[#F3EBE0] transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={handleToggleAccessConfirm}
                 disabled={actionLoading}
-                className={`py-2.5 px-6 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2 transition-all disabled:opacity-50 ${
-                  targetAccessState
-                    ? 'bg-emerald-500 hover:bg-emerald-400 text-[#08071B] shadow-emerald-500/25'
-                    : 'bg-[#C9A45C] hover:bg-[#d6b068] text-[#08071B] shadow-[#C9A45C]/25'
-                }`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-sm font-bold text-[#FFFDF9] transition-all shadow-xs disabled:opacity-60 cursor-pointer"
               >
-                {actionLoading ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Updating Access Tier...</span>
-                  </>
-                ) : (
-                  <>
-                    {targetAccessState ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                    <span>Confirm Change to {targetAccessState ? 'FREE' : 'PAID'}</span>
-                  </>
-                )}
+                {actionLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+                <span>Confirm Change</span>
               </button>
             </div>
-          </div>
+          </section>
         </div>
       )}
     </div>
