@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, KeyRound, ExternalLink } from 'lucide-react';
+import { ShieldAlert, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, KeyRound } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export const AdminLoginPage: React.FC = () => {
@@ -19,7 +19,6 @@ export const AdminLoginPage: React.FC = () => {
   const [forgotLoading, setForgotLoading] = useState<boolean>(false);
   const [forgotSuccess, setForgotSuccess] = useState<boolean>(false);
   const [forgotMessage, setForgotMessage] = useState<string | null>(null);
-  const [devLink, setDevLink] = useState<string | null>(null);
 
   // If already logged in as admin via admin token, redirect to dashboard
   useEffect(() => {
@@ -80,7 +79,6 @@ export const AdminLoginPage: React.FC = () => {
     setError(null);
     setForgotSuccess(false);
     setForgotMessage(null);
-    setDevLink(null);
 
     if (!forgotEmail.trim()) {
       setError('Please enter your administrator email address.');
@@ -92,9 +90,6 @@ export const AdminLoginPage: React.FC = () => {
       const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase());
       setForgotSuccess(true);
       setForgotMessage(res.message || 'Password reset link has been dispatched to your email.');
-      if (res.devLink) {
-        setDevLink(res.devLink);
-      }
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to dispatch reset email.');
     } finally {
@@ -157,21 +152,6 @@ export const AdminLoginPage: React.FC = () => {
                       <p className="text-[11px] text-emerald-800/80 mt-1">Please check your inbox (and spam/junk folder) for the reset link.</p>
                     </div>
                   </div>
-
-                  {devLink && (
-                    <div className="p-3.5 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-semibold text-[#8C6D3B]">
-                        <span>Development Quick Link:</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </div>
-                      <a
-                        href={devLink}
-                        className="text-xs text-[#7A1C1C] hover:underline font-mono break-all block"
-                      >
-                        {devLink}
-                      </a>
-                    </div>
-                  )}
 
                   <button
                     type="button"

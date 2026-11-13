@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle2, ExternalLink, KeyRound } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle2, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
 
@@ -29,7 +29,6 @@ export const AuthPage: React.FC = () => {
   const [forgotLoading, setForgotLoading] = useState<boolean>(false);
   const [forgotSuccess, setForgotSuccess] = useState<boolean>(false);
   const [forgotMessage, setForgotMessage] = useState<string | null>(null);
-  const [devLink, setDevLink] = useState<string | null>(null);
 
   const {
     register,
@@ -49,7 +48,6 @@ export const AuthPage: React.FC = () => {
     setError(null);
     setForgotSuccess(false);
     setForgotMessage(null);
-    setDevLink(null);
 
     if (!forgotEmail.trim()) {
       setError('Please enter your email address');
@@ -61,7 +59,6 @@ export const AuthPage: React.FC = () => {
       const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase());
       setForgotSuccess(true);
       setForgotMessage(res.message);
-      if (res.devLink) setDevLink(res.devLink);
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to dispatch reset email.');
     } finally {
@@ -150,18 +147,6 @@ export const AuthPage: React.FC = () => {
                       <p className="text-[11px] text-emerald-800/80 mt-1">Check your inbox and spam folder for the link.</p>
                     </div>
                   </div>
-
-                  {devLink && (
-                    <div className="p-3.5 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-semibold text-[#8C6D3B]">
-                        <span>Dev Mode Quick Link:</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </div>
-                      <a href={devLink} className="text-xs text-[#7A1C1C] hover:underline font-mono break-all block">
-                        {devLink}
-                      </a>
-                    </div>
-                  )}
 
                   <button
                     type="button"
