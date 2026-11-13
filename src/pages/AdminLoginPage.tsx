@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShieldAlert, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, KeyRound, ExternalLink } from 'lucide-react';
 import { authService } from '../services/authService';
 
 export const AdminLoginPage: React.FC = () => {
@@ -12,6 +12,14 @@ export const AdminLoginPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+
+  // Forgot password states
+  const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false);
+  const [forgotEmail, setForgotEmail] = useState<string>('');
+  const [forgotLoading, setForgotLoading] = useState<boolean>(false);
+  const [forgotSuccess, setForgotSuccess] = useState<boolean>(false);
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null);
+  const [devLink, setDevLink] = useState<string | null>(null);
 
   // If already logged in as admin via admin token, redirect to dashboard
   useEffect(() => {
@@ -67,6 +75,33 @@ export const AdminLoginPage: React.FC = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setForgotSuccess(false);
+    setForgotMessage(null);
+    setDevLink(null);
+
+    if (!forgotEmail.trim()) {
+      setError('Please enter your administrator email address.');
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase());
+      setForgotSuccess(true);
+      setForgotMessage(res.message || 'Password reset link has been dispatched to your email.');
+      if (res.devLink) {
+        setDevLink(res.devLink);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Failed to dispatch reset email.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-8 relative">
       {/* Background Ambient Glow */}
@@ -76,18 +111,20 @@ export const AdminLoginPage: React.FC = () => {
         {/* Header Branding */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F2ECE1] border border-[#8C6D3B]/40 text-[#8C6D3B] text-xs font-semibold uppercase tracking-wider mb-2 shadow-sm">
-            <ShieldAlert className="w-3.5 h-3.5 text-[#8C6D3B]" />
-            Parrot Cards Admin
+            {isForgotPassword ? <KeyRound className="w-3.5 h-3.5 text-[#8C6D3B]" /> : <ShieldAlert className="w-3.5 h-3.5 text-[#8C6D3B]" />}
+            {isForgotPassword ? 'Password Recovery' : 'Parrot Cards Admin'}
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1A1817]">
-            Admin Portal
+            {isForgotPassword ? 'Reset Password' : 'Admin Portal'}
           </h1>
           <p className="font-serif italic text-sm text-[#8C6D3B]">
-            Sign in with your administrator account.
+            {isForgotPassword
+              ? 'Enter your administrator email to receive a password reset link.'
+              : 'Sign in with your administrator account.'}
           </p>
         </div>
 
-        {/* Login Card */}
+        {/* Card */}
         <div className="bg-[#FFFDF9] border border-[#8C6D3B]/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
           {/* Subtle top accent bar */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#8C6D3B] via-[#7A1C1C] to-[#8C6D3B]" />
@@ -107,74 +144,184 @@ export const AdminLoginPage: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Field */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-[#8C6D3B] tracking-wide uppercase">
-                Admin Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B] pointer-events-none" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  autoComplete="email"
-                  required
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F2ECE1]/50 border border-[#8C6D3B]/30 focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-[#1A1817] text-sm outline-none transition-all placeholder:text-[#8C6D3B]/40"
-                />
-              </div>
-            </div>
+          {isForgotPassword ? (
+            /* Forgot Password Form */
+            <div className="space-y-4">
+              {forgotSuccess ? (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 text-xs font-medium">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <p className="font-bold text-sm text-emerald-950">Email Dispatched!</p>
+                      <p className="leading-relaxed">{forgotMessage}</p>
+                      <p className="text-[11px] text-emerald-800/80 mt-1">Please check your inbox (and spam/junk folder) for the reset link.</p>
+                    </div>
+                  </div>
 
-            {/* Password Field */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-[#8C6D3B] tracking-wide uppercase">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B] pointer-events-none" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  autoComplete="current-password"
-                  required
-                  className="w-full pl-10 pr-11 py-3 rounded-2xl bg-[#F2ECE1]/50 border border-[#8C6D3B]/30 focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-[#1A1817] text-sm outline-none transition-all placeholder:text-[#8C6D3B]/40 font-mono"
-                />
+                  {devLink && (
+                    <div className="p-3.5 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-semibold text-[#8C6D3B]">
+                        <span>Development Quick Link:</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </div>
+                      <a
+                        href={devLink}
+                        className="text-xs text-[#7A1C1C] hover:underline font-mono break-all block"
+                      >
+                        {devLink}
+                      </a>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(false);
+                      setForgotSuccess(false);
+                      setError(null);
+                    }}
+                    className="w-full py-3 px-4 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 hover:bg-[#EAE2D5] text-[#1A1817] font-semibold text-xs tracking-wide transition-all"
+                  >
+                    ← Return to Admin Sign In
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-[#8C6D3B] tracking-wide uppercase">
+                      Admin Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B] pointer-events-none" />
+                      <input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="dparrotcards@gmail.com"
+                        autoComplete="email"
+                        required
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F2ECE1]/50 border border-[#8C6D3B]/30 focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-[#1A1817] text-sm outline-none transition-all placeholder:text-[#8C6D3B]/40"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 space-y-2.5">
+                    <button
+                      type="submit"
+                      disabled={forgotLoading}
+                      className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] hover:brightness-105 active:scale-[0.98] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
+                    >
+                      {forgotLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-[#FFFDF9] border-t-transparent rounded-full animate-spin" />
+                          <span>Dispatching Reset Email...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Send Password Reset Link</span>
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsForgotPassword(false);
+                        setError(null);
+                      }}
+                      className="w-full py-2.5 text-xs text-[#8C6D3B] hover:text-[#1A1817] font-serif font-medium transition-colors"
+                    >
+                      ← Back to Admin Login
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
+            /* Normal Login Form */
+            <form onSubmit={handleLogin} className="space-y-4">
+              {/* Email Field */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#8C6D3B] tracking-wide uppercase">
+                  Admin Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B] pointer-events-none" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@example.com"
+                    autoComplete="email"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F2ECE1]/50 border border-[#8C6D3B]/30 focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-[#1A1817] text-sm outline-none transition-all placeholder:text-[#8C6D3B]/40"
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-[#8C6D3B] tracking-wide uppercase">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setIsForgotPassword(true);
+                      setError(null);
+                    }}
+                    className="text-xs text-[#8C6D3B] hover:text-[#1A1817] font-serif font-medium transition-colors hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B] pointer-events-none" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    autoComplete="current-password"
+                    required
+                    className="w-full pl-10 pr-11 py-3 rounded-2xl bg-[#F2ECE1]/50 border border-[#8C6D3B]/30 focus:border-[#8C6D3B] focus:bg-[#FFFDF9] text-[#1A1817] text-sm outline-none transition-all placeholder:text-[#8C6D3B]/40 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B] hover:text-[#1A1817] transition-colors"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Login Action Button */}
+              <div className="pt-2">
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B] hover:text-[#1A1817] transition-colors"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] hover:brightness-105 active:scale-[0.98] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-[#FFFDF9] border-t-transparent rounded-full animate-spin" />
+                      <span>Signing in...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Sign In To Admin Panel</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
                 </button>
               </div>
-            </div>
-
-            {/* Login Action Button */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] hover:brightness-105 active:scale-[0.98] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-[#FFFDF9] border-t-transparent rounded-full animate-spin" />
-                    <span>Signing in...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In To Admin Panel</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+            </form>
+          )}
 
         </div>
 

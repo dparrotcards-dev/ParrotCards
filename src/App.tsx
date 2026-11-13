@@ -20,6 +20,7 @@ import { TermsPage } from './pages/TermsPage';
 import { SupportPage } from './pages/SupportPage';
 import { AuthPage } from './pages/AuthPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
 // Super Admin Suite
 import { AdminShell } from './pages/admin/AdminShell';
@@ -84,6 +85,7 @@ export const App: React.FC = () => {
               <Route path="login" element={<AuthPage />} />
               <Route path="register" element={<AuthPage />} />
               <Route path="admin/login" element={<AdminLoginPage />} />
+              <Route path="reset-password" element={<ResetPasswordPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
