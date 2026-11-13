@@ -17,6 +17,7 @@ import {
   Search,
   Sparkles,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
@@ -50,14 +51,12 @@ const CATEGORY_CONFIG: Record<
     label: string;
     badgeClasses: string;
     icon: (props: { className?: string }) => React.JSX.Element;
-    defaultCount: number;
   }
 > = {
   Gemstones: {
     label: 'Gemstones',
     badgeClasses: 'bg-[#F3EEF9] text-[#71449B] border-[#E3D5F0]',
     icon: (props) => <Diamond {...props} strokeWidth={1.8} />,
-    defaultCount: 72,
   },
   Rudraksha: {
     label: 'Rudraksha',
@@ -69,7 +68,6 @@ const CATEGORY_CONFIG: Record<
         <circle cx="12" cy="12" r="2" fill="currentColor" fillOpacity="0.4" />
       </svg>
     ),
-    defaultCount: 58,
   },
   Yantra: {
     label: 'Yantra',
@@ -82,153 +80,26 @@ const CATEGORY_CONFIG: Record<
         <circle cx="12" cy="12" r="1.5" fill="currentColor" />
       </svg>
     ),
-    defaultCount: 36,
   },
   'Astrology Books': {
     label: 'Astrology Books',
     badgeClasses: 'bg-[#EEF5FC] text-[#29689C] border-[#CCE2F7]',
     icon: (props) => <BookOpen {...props} strokeWidth={1.8} />,
-    defaultCount: 28,
   },
   'Spiritual Accessories': {
     label: 'Spiritual Accessories',
     badgeClasses: 'bg-[#EAF7EE] text-[#1D7E33] border-[#C6EED0]',
     icon: (props) => <Flower2 {...props} strokeWidth={1.8} />,
-    defaultCount: 54,
   },
 };
 
-// Seed / Showcase products matching the user's reference screenshot
-const INITIAL_PRODUCTS: ProductItem[] = [
-  {
-    id: 'prod-rud-001',
-    name: 'Rudraksha Mala',
-    shortDescription: '5 Mukhi Original Rudraksha',
-    sku: 'RUD-001',
-    category: 'Rudraksha',
-    priceRupees: 800,
-    mrpRupees: 1200,
-    stock: 48,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-gem-014',
-    name: 'Amethyst Gemstone',
-    shortDescription: 'Natural & Certified',
-    sku: 'GEM-014',
-    category: 'Gemstones',
-    priceRupees: 4200,
-    mrpRupees: 5500,
-    stock: 12,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-ynt-009',
-    name: 'Shree Yantra',
-    shortDescription: 'For Wealth & Prosperity',
-    sku: 'YNT-009',
-    category: 'Yantra',
-    priceRupees: 1499,
-    mrpRupees: 2200,
-    stock: 25,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-bk-003',
-    name: 'Vedic Astrology Guide',
-    shortDescription: "A Complete Beginner's Book",
-    sku: 'BK-003',
-    category: 'Astrology Books',
-    priceRupees: 599,
-    mrpRupees: 899,
-    stock: 36,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-acc-027',
-    name: 'Brass Dhoop Dani',
-    shortDescription: 'For Daily पूजा & Rituals',
-    sku: 'ACC-027',
-    category: 'Spiritual Accessories',
-    priceRupees: 1200,
-    mrpRupees: 1800,
-    stock: 8,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-gem-022',
-    name: 'Yellow Sapphire (Pukhraj)',
-    shortDescription: 'Jupiter Cosmic Stone · Lab Certified',
-    sku: 'GEM-022',
-    category: 'Gemstones',
-    priceRupees: 11500,
-    mrpRupees: 14000,
-    stock: 5,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-rud-007',
-    name: 'Ek Mukhi Rudraksha',
-    shortDescription: 'Nepal Origin · Rare Shiva Bead',
-    sku: 'RUD-007',
-    category: 'Rudraksha',
-    priceRupees: 8500,
-    mrpRupees: 10500,
-    stock: 3,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-ynt-015',
-    name: 'Kuber Yantra Plate',
-    shortDescription: 'Pure Copper Gold-Plated Embossed',
-    sku: 'YNT-015',
-    category: 'Yantra',
-    priceRupees: 1250,
-    mrpRupees: 1800,
-    stock: 19,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-bk-010',
-    name: 'Brihat Parashara Hora Sastra',
-    shortDescription: 'Classic Vedic Text · Complete Set',
-    sku: 'BK-010',
-    category: 'Astrology Books',
-    priceRupees: 1850,
-    mrpRupees: 2400,
-    stock: 14,
-    inStock: true,
-    isActive: true,
-  },
-  {
-    id: 'prod-acc-033',
-    name: 'Panchmukhi Brass Diya',
-    shortDescription: 'Handcrafted Temple Oil Lamp',
-    sku: 'ACC-033',
-    category: 'Spiritual Accessories',
-    priceRupees: 950,
-    mrpRupees: 1400,
-    stock: 22,
-    inStock: true,
-    isActive: true,
-  },
-];
-
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 /**
  * Rich artistic SVG product thumbnail matching the reference screenshot
  */
 const ProductArtThumbnail: React.FC<{ product: ProductItem }> = ({ product }) => {
-  if (product.imageUrl && product.imageUrl.startsWith('http')) {
+  if (product.imageUrl && (product.imageUrl.startsWith('http') || product.imageUrl.startsWith('data:image'))) {
     return (
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 bg-[#FFFDF9] flex items-center justify-center">
         <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
@@ -337,8 +208,8 @@ const ProductArtThumbnail: React.FC<{ product: ProductItem }> = ({ product }) =>
 };
 
 export const AdminProductsPage: React.FC = () => {
-  const [products, setProducts] = useState<ProductItem[]>(INITIAL_PRODUCTS);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [selectedCategoryTab, setSelectedCategoryTab] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -373,34 +244,33 @@ export const AdminProductsPage: React.FC = () => {
   const [deletingProduct, setDeletingProduct] = useState<ProductItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
-  // Load products from backend API if available, fallback gracefully to INITIAL_PRODUCTS
+  // Load products strictly from backend API
   const loadBackendProducts = async () => {
     setLoading(true);
     try {
       const data = await adminService.getProducts({ page: 1, limit: 100 });
-      if (data?.products && data.products.length > 0) {
+      if (data?.products && Array.isArray(data.products)) {
         const mapped: ProductItem[] = data.products.map((p: any, idx: number) => ({
           id: p.id || p._id,
           name: p.name,
           shortDescription: p.shortDescription || '',
           sku: p.sku || `PRD-${String(idx + 1).padStart(3, '0')}`,
           category: (p.category as ProductCategory) || 'Gemstones',
-          priceRupees: p.priceRupees || Math.round((p.pricePaise || 0) / 100),
-          mrpRupees: p.mrpRupees || Math.round((p.mrpPaise || 0) / 100),
+          priceRupees: p.priceRupees ?? Math.round((p.pricePaise || 0) / 100),
+          mrpRupees: p.mrpRupees ?? Math.round((p.mrpPaise || 0) / 100),
           stock: p.stock ?? (p.inStock ? 25 : 0),
           inStock: p.inStock ?? true,
           isActive: p.isActive ?? true,
           imageUrl: p.imageUrl,
           createdAt: p.createdAt,
         }));
-
-        // Merge with initial showcase products if backend has few products
-        const existingIds = new Set(mapped.map((m) => m.id));
-        const combined = [...mapped, ...INITIAL_PRODUCTS.filter((ip) => !existingIds.has(ip.id))];
-        setProducts(combined);
+        setProducts(mapped);
+      } else {
+        setProducts([]);
       }
-    } catch {
-      // Backend not yet populated; preserve INITIAL_PRODUCTS showcase
+    } catch (err) {
+      console.error('Failed to load products from API:', err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -409,6 +279,25 @@ export const AdminProductsPage: React.FC = () => {
   useEffect(() => {
     loadBackendProducts();
   }, []);
+
+  // Dynamic category counts from real database products
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      Gemstones: 0,
+      Rudraksha: 0,
+      Yantra: 0,
+      'Astrology Books': 0,
+      'Spiritual Accessories': 0,
+    };
+    for (const p of products) {
+      if (counts[p.category] !== undefined) {
+        counts[p.category] += 1;
+      } else {
+        counts[p.category] = 1;
+      }
+    }
+    return counts;
+  }, [products]);
 
   // Filtered Products
   const filteredProducts = useMemo(() => {
@@ -476,7 +365,22 @@ export const AdminProductsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Save Product (Create or Update)
+  // Handle Image File Upload (Base64)
+  const handleImageFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setModalError('Image file must be less than 5 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Save Product (Create or Update in Backend)
   const handleSaveProduct = async (e: FormEvent) => {
     e.preventDefault();
     setModalError(null);
@@ -501,73 +405,34 @@ export const AdminProductsPage: React.FC = () => {
     setModalSaving(true);
     try {
       if (editingProduct) {
-        // Update in-memory
-        const updated: ProductItem = {
-          ...editingProduct,
+        await adminService.updateProduct(editingProduct.id, {
           name: formName.trim(),
           shortDescription: formDescription.trim(),
-          sku: formSku.trim() || editingProduct.sku,
-          priceRupees: priceNum,
-          mrpRupees: mrpNum,
-          stock: stockNum,
-          inStock: stockNum > 0,
+          price: priceNum,
+          mrp: mrpNum,
           category: formCategory,
+          inStock: stockNum > 0,
           isActive: formIsActive,
-          imageUrl: formImage || undefined,
-        };
+          image: formImage || '',
+        });
 
-        setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? updated : p)));
-
-        // Try backend sync
-        try {
-          await adminService.updateProduct(editingProduct.id, {
-            name: updated.name,
-            shortDescription: updated.shortDescription,
-            price: updated.priceRupees,
-            mrp: updated.mrpRupees,
-            category: updated.category,
-            inStock: updated.inStock,
-            isActive: updated.isActive,
-            image: updated.imageUrl || '',
-          });
-        } catch {}
-
-        showToast(`Product "${updated.name}" updated successfully.`);
+        showToast(`Product "${formName.trim()}" updated successfully.`);
       } else {
-        // Create new item
-        const newProd: ProductItem = {
-          id: `prod-${Date.now()}`,
+        await adminService.createProduct({
           name: formName.trim(),
-          shortDescription: formDescription.trim() || 'Curated sacred store item',
-          sku: formSku.trim() || `PRD-${Math.floor(100 + Math.random() * 900)}`,
-          priceRupees: priceNum,
-          mrpRupees: mrpNum,
-          stock: stockNum,
-          inStock: stockNum > 0,
+          shortDescription: formDescription.trim() || formName.trim(),
+          price: priceNum,
+          mrp: mrpNum,
           category: formCategory,
-          isActive: formIsActive,
-          imageUrl: formImage || undefined,
-        };
+          badge: 'None',
+          image: formImage || '',
+        });
 
-        setProducts((prev) => [newProd, ...prev]);
-
-        // Try backend sync
-        try {
-          await adminService.createProduct({
-            name: newProd.name,
-            shortDescription: newProd.shortDescription,
-            price: newProd.priceRupees,
-            mrp: newProd.mrpRupees,
-            category: newProd.category,
-            badge: 'None',
-            image: newProd.imageUrl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400',
-          });
-        } catch {}
-
-        showToast(`Product "${newProd.name}" created successfully.`);
+        showToast(`Product "${formName.trim()}" created successfully.`);
       }
 
       setIsModalOpen(false);
+      await loadBackendProducts();
     } catch (err: any) {
       setModalError(err.message || 'Failed to save product.');
     } finally {
@@ -584,9 +449,13 @@ export const AdminProductsPage: React.FC = () => {
 
     try {
       await adminService.toggleProductStatus(product.id, nextStatus);
-    } catch {}
-
-    showToast(`"${product.name}" marked as ${nextStatus ? 'Active' : 'Inactive'}.`);
+      showToast(`"${product.name}" marked as ${nextStatus ? 'Active' : 'Inactive'}.`);
+    } catch (err: any) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, isActive: !nextStatus } : p))
+      );
+      showToast(err.message || 'Failed to update status.');
+    }
   };
 
   // Delete Product
@@ -594,12 +463,12 @@ export const AdminProductsPage: React.FC = () => {
     if (!deletingProduct) return;
     setDeleteLoading(true);
     try {
-      setProducts((prev) => prev.filter((p) => p.id !== deletingProduct.id));
-      try {
-        await adminService.deleteProduct(deletingProduct.id);
-      } catch {}
+      await adminService.deleteProduct(deletingProduct.id);
       showToast(`Product "${deletingProduct.name}" removed.`);
       setDeletingProduct(null);
+      await loadBackendProducts();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete product.');
     } finally {
       setDeleteLoading(false);
     }
@@ -615,71 +484,83 @@ export const AdminProductsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Metric Stat Cards Strip Matching Reference Image */}
+      {/* 1. Metric Stat Cards Strip with Dynamic Database Counts */}
       <section className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3.5">
-        {/* Total Products (248) */}
+        {/* Total Products */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <Package className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Total Products</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">248</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {products.length}
+            </div>
           </div>
         </div>
 
-        {/* Gemstones (72) */}
+        {/* Gemstones */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <Diamond className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Gemstones</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">72</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {categoryCounts.Gemstones || 0}
+            </div>
           </div>
         </div>
 
-        {/* Rudraksha (58) */}
+        {/* Rudraksha */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             {CATEGORY_CONFIG.Rudraksha.icon({ className: 'w-5 h-5' })}
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Rudraksha</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">58</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {categoryCounts.Rudraksha || 0}
+            </div>
           </div>
         </div>
 
-        {/* Yantra (36) */}
+        {/* Yantra */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             {CATEGORY_CONFIG.Yantra.icon({ className: 'w-5 h-5' })}
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Yantra</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">36</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {categoryCounts.Yantra || 0}
+            </div>
           </div>
         </div>
 
-        {/* Astrology Books (28) */}
+        {/* Astrology Books */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <BookOpen className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Astrology Books</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">28</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {categoryCounts['Astrology Books'] || 0}
+            </div>
           </div>
         </div>
 
-        {/* Spiritual Accessories (54) */}
+        {/* Spiritual Accessories */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
             <Flower2 className="w-5 h-5" strokeWidth={1.75} />
           </div>
           <div>
             <div className="text-xs font-medium text-[#7A6A58]">Spiritual Accessories</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">54</div>
+            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
+              {categoryCounts['Spiritual Accessories'] || 0}
+            </div>
           </div>
         </div>
       </section>
@@ -691,20 +572,21 @@ export const AdminProductsPage: React.FC = () => {
             setSelectedCategoryTab('ALL');
             resetToFirstPage();
           }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-serif text-sm font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-serif text-sm font-semibold transition-all cursor-pointer ${
             selectedCategoryTab === 'ALL'
               ? 'bg-[#382618] text-[#FFFDF9] shadow-sm'
               : 'bg-[#FDFBF7] hover:bg-[#F5EDE1] border border-[#E8DACB] text-[#4A3828]'
           }`}
         >
           <Package className="w-4 h-4" />
-          <span>All Products (248)</span>
+          <span>All Products ({products.length})</span>
         </button>
 
         {(Object.keys(CATEGORY_CONFIG) as ProductCategory[]).map((cat) => {
           const cfg = CATEGORY_CONFIG[cat];
           const isActive = selectedCategoryTab === cat;
           const Icon = cfg.icon;
+          const count = categoryCounts[cat] || 0;
 
           return (
             <button
@@ -713,7 +595,7 @@ export const AdminProductsPage: React.FC = () => {
                 setSelectedCategoryTab(cat);
                 resetToFirstPage();
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-serif text-sm font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-serif text-sm font-semibold transition-all cursor-pointer ${
                 isActive
                   ? 'bg-[#382618] text-[#FFFDF9] shadow-sm'
                   : 'bg-[#FDFBF7] hover:bg-[#F5EDE1] border border-[#E8DACB] text-[#4A3828]'
@@ -721,7 +603,7 @@ export const AdminProductsPage: React.FC = () => {
             >
               <Icon className="w-4 h-4 shrink-0" />
               <span>
-                {cfg.label} ({cfg.defaultCount})
+                {cfg.label} ({count})
               </span>
             </button>
           );
@@ -959,8 +841,29 @@ export const AdminProductsPage: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-16 text-center italic text-[#806A57]">
-                    No store products match the selected filters.
+                  <td colSpan={9} className="py-16 text-center text-[#806A57]">
+                    {products.length === 0 ? (
+                      <div className="mx-auto flex max-w-sm flex-col items-center justify-center">
+                        <div className="w-14 h-14 rounded-2xl bg-[#F5EDE1] border border-[#E8DCCF] flex items-center justify-center text-[#8C6D3B] mb-3 shadow-inner">
+                          <Package className="w-7 h-7" />
+                        </div>
+                        <h4 className="font-serif text-base font-bold text-[#2C2016] mb-1">
+                          No Products in Store
+                        </h4>
+                        <p className="text-xs text-[#7A6A58] mb-4">
+                          No products found in store. Click below to add your first authentic item.
+                        </p>
+                        <button
+                          onClick={handleOpenCreate}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#382618] text-[#FFFDF9] font-serif text-xs font-bold hover:bg-[#4E3725] transition-colors cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add First Product</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="italic">No store products match the selected filters.</span>
+                    )}
                   </td>
                 </tr>
               )}
@@ -968,86 +871,48 @@ export const AdminProductsPage: React.FC = () => {
           </table>
         </div>
 
-        {/* 5. Pagination Bar Matching Reference Screenshot */}
+        {/* 5. Pagination Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-[#EADCCE] bg-[#FAF6F0]/40">
           <p className="font-serif text-sm text-[#665444]">
-            Showing {firstIndex} – {lastIndex} of 248 products
+            Showing {firstIndex} – {lastIndex} of {filteredProducts.length} products
           </p>
 
-          <div className="flex items-center gap-1">
-            {/* Prev Button */}
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              {/* Prev Button */}
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-            {/* Page Numbers */}
-            <button
-              onClick={() => setPage(1)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 1 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              1
-            </button>
-            <button
-              onClick={() => setPage(2)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 2 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              2
-            </button>
-            <button
-              onClick={() => setPage(3)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 3 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              3
-            </button>
-            <button
-              onClick={() => setPage(4)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 4 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              4
-            </button>
-            <button
-              onClick={() => setPage(5)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 5 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              5
-            </button>
+              {/* Dynamic Page Numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+                <button
+                  key={pNum}
+                  onClick={() => setPage(pNum)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    page === pNum ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
+                  }`}
+                >
+                  {pNum}
+                </button>
+              ))}
 
-            <span className="px-1 text-xs text-[#8C7A68]">…</span>
-
-            <button
-              onClick={() => setPage(50)}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                page === 50 ? 'bg-[#382618] text-[#FFFDF9] shadow-xs' : 'text-[#524032] hover:bg-[#F2ECE1]'
-              }`}
-            >
-              50
-            </button>
-
-            {/* Next Button */}
-            <button
-              onClick={() => setPage(Math.min(50, page + 1))}
-              disabled={page === 50}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Next page"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+              {/* Next Button */}
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#524032] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Next page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1180,16 +1045,53 @@ export const AdminProductsPage: React.FC = () => {
                 />
               </label>
 
-              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                Product Image URL (Optional)
-                <input
-                  type="url"
-                  value={formImage || ''}
-                  onChange={(e) => setFormImage(e.target.value || null)}
-                  placeholder="https://images.example.com/product.jpg"
-                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                />
-              </label>
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Product Image (File or URL)
+                </label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  {formImage ? (
+                    <div className="relative w-16 h-16 rounded-xl border border-[#D9C4AB] overflow-hidden bg-[#FAF6F0] shrink-0">
+                      <img src={formImage} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setFormImage(null)}
+                        className="absolute top-1 right-1 bg-black/60 hover:bg-black text-white p-0.5 rounded-full cursor-pointer"
+                        title="Remove image"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl border border-dashed border-[#D9C4AB] bg-[#FAF6F0] flex items-center justify-center text-[#8C6D3B] shrink-0">
+                      <Package className="w-6 h-6 opacity-40" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 w-full space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 px-3.5 py-2 rounded-xl border border-[#D9C4AB] bg-[#FAF5EE] hover:bg-[#F3EBE0] text-xs font-bold text-[#5A3810] transition-colors">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload File (Max 5MB)</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={handleImageFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-xs text-[#8C7A68]">or enter URL below</span>
+                    </div>
+                    <input
+                      type="url"
+                      value={formImage && formImage.startsWith('http') ? formImage : ''}
+                      onChange={(e) => setFormImage(e.target.value || null)}
+                      placeholder="https://images.example.com/product.jpg"
+                      className="w-full px-3.5 py-2 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-xs text-[#2C2016] outline-none focus:border-[#8C6D3B]"
+                    />
+                  </div>
+                </div>
+              </div>
 
               <footer className="flex justify-end gap-3 border-t border-[#B9884A]/20 pt-4">
                 <button
