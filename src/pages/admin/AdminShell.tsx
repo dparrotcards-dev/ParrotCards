@@ -7,7 +7,6 @@ import {
   Sparkles,
   CreditCard,
   Cpu,
-  TrendingUp,
   Activity,
   KeyRound,
   Menu,
@@ -30,7 +29,6 @@ const NAV_ITEMS = [
   { label: '55-Card Catalog', to: '/admin/cards', icon: Sparkles },
   { label: 'Cosmic Store', to: '/admin/store', icon: Store },
   { label: 'Payments & Revenue', to: '/admin/payments', icon: CreditCard },
-  { label: 'Analytics & Trends', to: '/admin/analytics', icon: TrendingUp },
   { label: 'System Health', to: '/admin/system', icon: Activity },
   { label: 'Change Password', to: '/admin/change-password', icon: KeyRound },
 ];
