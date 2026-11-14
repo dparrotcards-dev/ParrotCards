@@ -178,6 +178,7 @@ export const AdminCardsPage: React.FC = () => {
     reflectionQuestion: '',
     isFreeByDefault: false,
     position: 1,
+    price: 2,
   });
 
   const showToast = (message: string) => {
@@ -243,6 +244,7 @@ export const AdminCardsPage: React.FC = () => {
       reflectionQuestion: card.reflectionQuestion || '',
       isFreeByDefault: Boolean(card.isFreeByDefault),
       position: card.position || 1,
+      price: card.price ?? 2,
     });
   };
 
@@ -602,7 +604,7 @@ export const AdminCardsPage: React.FC = () => {
 
                       {/* Price */}
                       <td className="py-3.5 px-4 text-center font-semibold text-sm text-[#2C2016]">
-                        {card.isFreeByDefault ? '—' : card.price || 299}
+                        {card.isFreeByDefault ? '—' : `₹${card.price ?? 2}`}
                       </td>
 
                       {/* Action */}
@@ -838,7 +840,7 @@ export const AdminCardsPage: React.FC = () => {
                 </label>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-4">
                 <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
                   Rank
                   <input
@@ -858,6 +860,17 @@ export const AdminCardsPage: React.FC = () => {
                     value={editForm.position}
                     onChange={(e) => setEditForm({ ...editForm, position: Number(e.target.value) || 1 })}
                     className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
+                  />
+                </label>
+                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Price (₹)
+                  <input
+                    type="number"
+                    min="0"
+                    disabled={editForm.isFreeByDefault}
+                    value={editForm.isFreeByDefault ? 0 : editForm.price}
+                    onChange={(e) => setEditForm({ ...editForm, price: Math.max(0, Number(e.target.value) || 0) })}
+                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B] disabled:opacity-50"
                   />
                 </label>
                 <label className="flex cursor-pointer items-center gap-2.5 self-end rounded-xl border border-[#E5D7C6] bg-[#FAF5EE] px-3.5 py-2.5 text-xs font-bold text-[#2C2016]">
