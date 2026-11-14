@@ -120,145 +120,10 @@ const getCardTypeBadge = (card: CardItem) => {
 };
 
 /**
- * Rich golden mystic SVG thumbnail representing the card archetype
+ * Canonical mystic SVG thumbnail representing the card suit archetype
+ * Dharma uses the canonical spade archetype thumbnail across all Dharma cards.
  */
 const CardArtThumbnail: React.FC<{ card: CardItem }> = ({ card }) => {
-  const key = (card.key || '').toLowerCase();
-  const title = (card.title || '').toLowerCase();
-  const label = (card.label || '').toLowerCase();
-
-  // 1. Janma Lagna / Horizon / Mountain
-  if (key.includes('lagna') && (label.includes('janma') || title.includes('inception'))) {
-    return (
-      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#8C5E24] via-[#5A3810] to-[#2E1805] relative">
-        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
-          <circle cx="24" cy="18" r="10" fill="#FCE7A6" fillOpacity="0.4" />
-          <path d="M24 6L25 10M32 10L29 13M16 10L19 13M36 18L32 18M12 18L16 18" stroke="#FEE8A2" strokeWidth="1.2" strokeLinecap="round" />
-          {/* Mountain Pyramid */}
-          <path d="M24 16L39 42H9L24 16Z" fill="url(#mtnGrad1)" />
-          <path d="M24 16L9 42H24V16Z" fill="#FAD175" fillOpacity="0.25" />
-          <path d="M24 16L24 42" stroke="#FFF0BA" strokeWidth="1" strokeOpacity="0.8" />
-          <path d="M16 30L32 30" stroke="#FFF0BA" strokeWidth="0.8" strokeOpacity="0.5" />
-          <path d="M12 36L36 36" stroke="#FFF0BA" strokeWidth="0.8" strokeOpacity="0.5" />
-          <defs>
-            <linearGradient id="mtnGrad1" x1="24" y1="16" x2="24" y2="42" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FCE49E" />
-              <stop offset="0.6" stopColor="#D4993B" />
-              <stop offset="1" stopColor="#5F360C" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-    );
-  }
-
-  // 2. Varnada Lagna 1 / Padmasana Lotus
-  if (key === 'v1' || label.includes('varnada lagna 1') || title.includes('posture')) {
-    return (
-      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#7A4E1B] via-[#4F2E0C] to-[#251203] relative">
-        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
-          <circle cx="24" cy="24" r="14" fill="#FCE5A2" fillOpacity="0.15" />
-          {/* Lotus Petals */}
-          <path d="M24 13C24 13 18 22 18 28C18 31.5 20.5 33 24 33C27.5 33 30 31.5 30 28C30 22 24 13 24 13Z" fill="#FDE7A9" />
-          <path d="M24 20C17 21 10 25 10 29.5C10 32.5 13 34 16.5 33C20.5 32 23 27 24 24" fill="#E6AE4C" />
-          <path d="M24 20C31 21 38 25 38 29.5C38 32.5 35 34 31.5 33C27.5 32 25 27 24 24" fill="#E6AE4C" />
-          <path d="M24 24C20 25 15 28 15 31.5C15 33.5 17 34.5 19.5 34C22.5 33.5 24 30 24 28" fill="#FBE29B" />
-          <path d="M24 24C28 25 33 28 33 31.5C33 33.5 31 34.5 28.5 34C25.5 33.5 24 30 24 28" fill="#FBE29B" />
-          {/* Water ripples */}
-          <path d="M6 37C12 36 18 37.5 24 37.5C30 37.5 36 36 42 37" stroke="#FDE5A2" strokeWidth="1" strokeLinecap="round" strokeOpacity="0.7" />
-          <path d="M12 40C16 39.5 20 40.5 24 40.5C28 40.5 32 39.5 36 40" stroke="#FDE5A2" strokeWidth="0.8" strokeLinecap="round" strokeOpacity="0.4" />
-        </svg>
-      </div>
-    );
-  }
-
-  // 3. Varnada Lagna 9 / Tree of Life
-  if (key === 'v9' || label.includes('varnada lagna 9') || title.includes('lineage')) {
-    return (
-      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#6D491A] via-[#482B0D] to-[#241303] relative">
-        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
-          <circle cx="24" cy="20" r="13" fill="#FDE6A6" fillOpacity="0.25" />
-          {/* Tree Canopy */}
-          <circle cx="24" cy="17" r="7" fill="#FDE397" />
-          <circle cx="18" cy="19" r="6" fill="#F5C768" />
-          <circle cx="30" cy="19" r="6" fill="#F5C768" />
-          <circle cx="15" cy="24" r="5" fill="#E5AC44" />
-          <circle cx="33" cy="24" r="5" fill="#E5AC44" />
-          <circle cx="24" cy="22" r="6" fill="#FCE5A2" />
-          {/* Trunk and Roots */}
-          <path d="M22 24V36M26 24V36M22 28L17 23M26 28L31 23M22 36L16 41M26 36L32 41M24 36V42" stroke="#FFE9B4" strokeWidth="1.6" strokeLinecap="round" />
-        </svg>
-      </div>
-    );
-  }
-
-  // 4. Varnada Lagna 10 / Celestial Gateway
-  if (key === 'v10' || label.includes('varnada lagna 10') || title.includes('pillar') || title.includes('public')) {
-    return (
-      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#7C521E] via-[#523310] to-[#281605] relative">
-        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
-          <circle cx="24" cy="24" r="14" fill="#FDE9AF" fillOpacity="0.2" />
-          {/* Columns */}
-          <rect x="13" y="16" width="4.5" height="23" rx="1.5" fill="#FCE5A2" />
-          <rect x="30.5" y="16" width="4.5" height="23" rx="1.5" fill="#FCE5A2" />
-          {/* Capitals & Bases */}
-          <rect x="11.5" y="14" width="7.5" height="3" rx="1" fill="#FFEBB9" />
-          <rect x="29" y="14" width="7.5" height="3" rx="1" fill="#FFEBB9" />
-          <rect x="11" y="38" width="8.5" height="3" rx="1" fill="#FFEBB9" />
-          <rect x="28.5" y="38" width="8.5" height="3" rx="1" fill="#FFEBB9" />
-          {/* Archway */}
-          <path d="M15 14C15 9 20 7 24 7C28 7 33 9 33 14" stroke="#FFF0BE" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-          {/* Radiance center */}
-          <circle cx="24" cy="22" r="3.5" fill="#FFF2C6" />
-          <path d="M24 13V15M24 29V31M17 22H19M29 22H31" stroke="#FFF2C6" strokeWidth="1" strokeLinecap="round" />
-        </svg>
-      </div>
-    );
-  }
-
-  // 5. Mangala / Surya / Sun
-  if (key.includes('sun') || label.includes('mangala') || title.includes('energetic') || label.includes('surya')) {
-    return (
-      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#8C5E24] via-[#5F380E] to-[#2F1703] relative">
-        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
-          {/* Radiant Solar Rays */}
-          <circle cx="24" cy="24" r="15" fill="#FDEBAF" fillOpacity="0.25" />
-          <path d="M24 4L24 10M24 38L24 44M4 24L10 24M38 24L44 24M10 10L14.5 14.5M33.5 33.5L38 38M10 38L14.5 33.5M33.5 14.5L38 10" stroke="#FDE59C" strokeWidth="2" strokeLinecap="round" />
-          {/* Sun Disc */}
-          <circle cx="24" cy="24" r="9.5" fill="url(#sunFaceGrad)" />
-          {/* Facial Archetype */}
-          <circle cx="21" cy="22.5" r="1.2" fill="#5F3608" />
-          <circle cx="27" cy="22.5" r="1.2" fill="#5F3608" />
-          <path d="M21.5 26.5C22.5 28 25.5 28 26.5 26.5" stroke="#5F3608" strokeWidth="1" strokeLinecap="round" fill="none" />
-          <path d="M24 21V24.5" stroke="#5F3608" strokeWidth="0.8" strokeLinecap="round" />
-          <defs>
-            <linearGradient id="sunFaceGrad" x1="24" y1="14" x2="24" y2="34" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FFF2C6" />
-              <stop offset="0.7" stopColor="#F5B738" />
-              <stop offset="1" stopColor="#D48618" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-    );
-  }
-
-  // 6. Chandra / Moon
-  if (key.includes('moon') || label.includes('chandra')) {
-    return (
-      <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#7A5B35] via-[#48341D] to-[#1E1409] relative">
-        <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
-          <circle cx="24" cy="24" r="14" fill="#FCEECB" fillOpacity="0.15" />
-          <path d="M28 11C20.5 11 14.5 17 14.5 24.5C14.5 32 20.5 38 28 38C22.5 36 19.5 30.5 19.5 24.5C19.5 18.5 22.5 13 28 11Z" fill="#FFF3CD" />
-          <circle cx="32" cy="18" r="1.5" fill="#FFECA8" />
-          <circle cx="34" cy="27" r="1.2" fill="#FFECA8" />
-          <circle cx="29" cy="32" r="1" fill="#FFECA8" />
-        </svg>
-      </div>
-    );
-  }
-
-  // Fallback: Suit-specific Golden Archetype
   const suitGradients: Record<string, string> = {
     Dharma: 'from-[#825621] via-[#563410] to-[#2B1705]',
     Artha: 'from-[#825920] via-[#583710] to-[#2B1804]',
@@ -266,7 +131,9 @@ const CardArtThumbnail: React.FC<{ card: CardItem }> = ({ card }) => {
     Moksha: 'from-[#765424] via-[#4E3411] to-[#261706]',
     MasterKey: 'from-[#8C6228] via-[#5D3F15] to-[#2E1D08]',
   };
-  const grad = suitGradients[card.suit] || suitGradients.Dharma;
+  const suit = card.suit || 'Dharma';
+  const grad = suitGradients[suit] || suitGradients.Dharma;
+  const symbol = SUIT_META[suit]?.symbol || '♠';
 
   return (
     <div className={`w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b ${grad} relative`}>
@@ -275,7 +142,7 @@ const CardArtThumbnail: React.FC<{ card: CardItem }> = ({ card }) => {
         <circle cx="24" cy="24" r="9" fill="#FCE59F" fillOpacity="0.2" />
       </svg>
       <span className="absolute inset-0 flex items-center justify-center font-serif text-2xl font-bold text-[#FFF2C6] drop-shadow-sm select-none">
-        {SUIT_META[card.suit]?.symbol || '♠'}
+        {symbol}
       </span>
     </div>
   );
