@@ -146,9 +146,8 @@ export const AdminPaymentsPage: React.FC = () => {
           const rawName = p.userName || p.customer?.name || (p.userEmail ? p.userEmail.split('@')[0] : 'User');
           const customerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
           const isSuccess = p.status === 'PAID' || p.status === 'paid' || p.status === 'SUCCESS' || p.status === 'completed';
-          const isFailed = p.status === 'FAILED' || p.status === 'failed';
           const isRefund = p.status === 'REFUNDED' || p.status === 'refunded';
-          const resolvedStatus: PaymentStatus = isRefund ? 'Refunded' : isFailed ? 'Failed' : 'Success';
+          const resolvedStatus: PaymentStatus = isSuccess ? 'Success' : isRefund ? 'Refunded' : 'Failed';
 
           let resolvedMethod: PaymentMethod = 'UPI';
           const rawMethod = (p.paymentMethod || '').trim().toLowerCase();
@@ -185,7 +184,7 @@ export const AdminPaymentsPage: React.FC = () => {
               minute: '2-digit',
               hour12: true,
             }),
-            gatewayStatus: isSuccess ? 'Captured · Verified' : isFailed ? 'Gateway Error' : 'Refund Issued',
+            gatewayStatus: isSuccess ? 'Captured · Verified' : isRefund ? 'Refund Issued' : 'Payment Incomplete / Failed',
           };
         });
 
