@@ -143,7 +143,7 @@ export const AdminPaymentsPage: React.FC = () => {
       const rawList = data?.payments || data?.orders;
       if (rawList && Array.isArray(rawList)) {
         const liveMapped: TransactionRecord[] = rawList.map((p: any, idx: number) => {
-          const rawName = p.userName || p.customer?.name || (p.userEmail ? p.userEmail.split('@')[0] : `Customer ${idx + 1}`);
+          const rawName = p.userName || p.customer?.name || (p.userEmail ? p.userEmail.split('@')[0] : 'User');
           const customerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
           const isSuccess = p.status === 'PAID' || p.status === 'paid' || p.status === 'SUCCESS' || p.status === 'completed';
           const isFailed = p.status === 'FAILED' || p.status === 'failed';
@@ -155,27 +155,25 @@ export const AdminPaymentsPage: React.FC = () => {
           if (rawMethod.includes('card')) resolvedMethod = 'Credit Card';
           else if (rawMethod.includes('bank')) resolvedMethod = 'Net Banking';
           else if (rawMethod.includes('wallet')) resolvedMethod = 'Wallet';
-          else if (rawMethod.includes('upi')) resolvedMethod = 'UPI';
           else {
-            const methods: PaymentMethod[] = ['UPI', 'Credit Card', 'Net Banking', 'Wallet'];
-            resolvedMethod = methods[idx % methods.length];
+            resolvedMethod = 'UPI';
           }
 
           const rawAmount = p.amountRupees ?? (p.amountPaise ? Math.round(p.amountPaise / 100) : 0);
 
           return {
             id: p.id || `live-${idx}`,
-            transactionId: p.razorpayPaymentId || (p.orderId?.startsWith('#') ? `TXN-${p.orderId.replace('#', '')}` : `TXN${String(idx + 1).padStart(5, '0')}`),
-            orderId: p.orderId?.startsWith('#') ? p.orderId : `#${p.orderId || `PC${String(idx + 1).padStart(5, '0')}`}`,
+            transactionId: p.razorpayPaymentId || p.paymentId || (p.orderId ? (p.orderId.startsWith('#') ? p.orderId : `#${p.orderId}`) : '—'),
+            orderId: p.orderId ? (p.orderId.startsWith('#') ? p.orderId : `#${p.orderId}`) : '—',
             customerName,
-            customerInitial: customerName.charAt(0).toUpperCase() || 'C',
-            customerEmail: p.userEmail || p.customer?.email || 'customer@example.com',
+            customerInitial: customerName.charAt(0).toUpperCase() || 'U',
+            customerEmail: p.userEmail || p.customer?.email || '—',
             customerPhone: p.customerPhone || p.phone || p.customer?.phone || '—',
             amountRupees: rawAmount,
             paymentMethod: resolvedMethod,
-            paymentId: p.razorpayPaymentId || p.paymentId || (p.orderId ? `PAY-${p.orderId.replace('#', '')}` : '—'),
+            paymentId: p.razorpayPaymentId || p.paymentId || '—',
             status: resolvedStatus,
-            itemName: p.itemName || (p.itemType === 'DECK_PASS' ? '55-Card Deck Pass' : p.itemType === 'CARD_UNLOCK' ? 'Card Unlock' : 'Cosmic Store Product'),
+            itemName: p.itemName || (p.itemType === 'DECK_PASS' ? '55-Card Deck Pass' : p.itemType === 'CARD_UNLOCK' ? 'Card Unlock' : 'Store Product'),
             itemType: p.itemType || 'PAYMENT',
             dateFormatted: new Date(p.createdAt || Date.now()).toLocaleDateString('en-IN', {
               day: '2-digit',
