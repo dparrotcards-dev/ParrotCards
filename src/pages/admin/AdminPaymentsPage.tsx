@@ -41,6 +41,8 @@ export interface TransactionRecord {
   dateFormatted: string;
   timeFormatted: string;
   gatewayStatus?: string;
+  itemName?: string;
+  itemType?: string;
 }
 
 const PAGE_SIZE = 10;
@@ -119,6 +121,7 @@ export const AdminPaymentsPage: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [methodFilter, setMethodFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [page, setPage] = useState<number>(1);
 
@@ -132,13 +135,14 @@ export const AdminPaymentsPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Load real transactions strictly from backend
+  // Load real transactions strictly from backend (Unified: Digital Unlocks, Deck Passes & Physical Store Orders)
   const loadTransactions = async () => {
     setLoading(true);
     try {
       const data = await adminService.getPayments({ page: 1, limit: 100 });
-      if (data?.payments && Array.isArray(data.payments)) {
-        const liveMapped: TransactionRecord[] = data.payments.map((p: any, idx: number) => {
+      const rawList = data?.payments || data?.orders;
+      if (rawList && Array.isArray(rawList)) {
+        const liveMapped: TransactionRecord[] = rawList.map((p: any, idx: number) => {
           const rawName = p.userName || p.customer?.name || (p.userEmail ? p.userEmail.split('@')[0] : `Customer ${idx + 1}`);
           const customerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
           const isSuccess = p.status === 'PAID' || p.status === 'paid' || p.status === 'SUCCESS' || p.status === 'completed';
@@ -146,22 +150,33 @@ export const AdminPaymentsPage: React.FC = () => {
           const isRefund = p.status === 'REFUNDED' || p.status === 'refunded';
           const resolvedStatus: PaymentStatus = isRefund ? 'Refunded' : isFailed ? 'Failed' : 'Success';
 
-          const methods: PaymentMethod[] = ['UPI', 'Credit Card', 'Net Banking', 'Wallet'];
-          const resolvedMethod = (p.paymentMethod as PaymentMethod) || methods[idx % methods.length];
+          let resolvedMethod: PaymentMethod = 'UPI';
+          const rawMethod = (p.paymentMethod || '').trim().toLowerCase();
+          if (rawMethod.includes('card')) resolvedMethod = 'Credit Card';
+          else if (rawMethod.includes('bank')) resolvedMethod = 'Net Banking';
+          else if (rawMethod.includes('wallet')) resolvedMethod = 'Wallet';
+          else if (rawMethod.includes('upi')) resolvedMethod = 'UPI';
+          else {
+            const methods: PaymentMethod[] = ['UPI', 'Credit Card', 'Net Banking', 'Wallet'];
+            resolvedMethod = methods[idx % methods.length];
+          }
+
           const rawAmount = p.amountRupees ?? (p.amountPaise ? Math.round(p.amountPaise / 100) : 0);
 
           return {
             id: p.id || `live-${idx}`,
-            transactionId: p.razorpayPaymentId || `TXN${String(idx + 1).padStart(5, '0')}`,
+            transactionId: p.razorpayPaymentId || (p.orderId?.startsWith('#') ? `TXN-${p.orderId.replace('#', '')}` : `TXN${String(idx + 1).padStart(5, '0')}`),
             orderId: p.orderId?.startsWith('#') ? p.orderId : `#${p.orderId || `PC${String(idx + 1).padStart(5, '0')}`}`,
             customerName,
             customerInitial: customerName.charAt(0).toUpperCase() || 'C',
             customerEmail: p.userEmail || p.customer?.email || 'customer@example.com',
-            customerPhone: p.phone || p.customer?.phone || '—',
+            customerPhone: p.customerPhone || p.phone || p.customer?.phone || '—',
             amountRupees: rawAmount,
             paymentMethod: resolvedMethod,
-            paymentId: p.razorpayPaymentId || p.paymentId || '—',
+            paymentId: p.razorpayPaymentId || p.paymentId || (p.orderId ? `PAY-${p.orderId.replace('#', '')}` : '—'),
             status: resolvedStatus,
+            itemName: p.itemName || (p.itemType === 'DECK_PASS' ? '55-Card Deck Pass' : p.itemType === 'CARD_UNLOCK' ? 'Card Unlock' : 'Cosmic Store Product'),
+            itemType: p.itemType || 'PAYMENT',
             dateFormatted: new Date(p.createdAt || Date.now()).toLocaleDateString('en-IN', {
               day: '2-digit',
               month: 'short',
@@ -227,16 +242,22 @@ export const AdminPaymentsPage: React.FC = () => {
         statusFilter === 'all' || t.status.toLowerCase() === statusFilter.toLowerCase();
       const matchesMethod =
         methodFilter === 'all' || t.paymentMethod.toLowerCase() === methodFilter.toLowerCase();
+      const matchesType =
+        typeFilter === 'all' ||
+        (typeFilter === 'cards' && t.itemType === 'CARD_UNLOCK') ||
+        (typeFilter === 'deck' && t.itemType === 'DECK_PASS') ||
+        (typeFilter === 'store' && t.itemType === 'STORE_PRODUCT');
       const matchesQuery =
         !q ||
         t.transactionId.toLowerCase().includes(q) ||
         t.orderId.toLowerCase().includes(q) ||
         t.customerName.toLowerCase().includes(q) ||
-        t.paymentId.toLowerCase().includes(q);
+        t.paymentId.toLowerCase().includes(q) ||
+        (t.itemName && t.itemName.toLowerCase().includes(q));
 
-      return matchesStatus && matchesMethod && matchesQuery;
+      return matchesStatus && matchesMethod && matchesType && matchesQuery;
     });
-  }, [transactions, search, statusFilter, methodFilter]);
+  }, [transactions, search, statusFilter, methodFilter, typeFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / PAGE_SIZE));
   const displayedTransactions = filteredTransactions.slice(
@@ -253,6 +274,8 @@ export const AdminPaymentsPage: React.FC = () => {
     const headers = [
       'Transaction ID',
       'Order ID',
+      'Purchased Item',
+      'Item Type',
       'Customer Name',
       'Email',
       'Phone',
@@ -265,6 +288,8 @@ export const AdminPaymentsPage: React.FC = () => {
     const rows = filteredTransactions.map((t) => [
       t.transactionId,
       t.orderId,
+      `"${t.itemName || '—'}"`,
+      `"${t.itemType || '—'}"`,
       `"${t.customerName}"`,
       `"${t.customerEmail}"`,
       `"${t.customerPhone}"`,
@@ -422,6 +447,24 @@ export const AdminPaymentsPage: React.FC = () => {
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
           </div>
 
+          {/* Offering Type Dropdown */}
+          <div className="relative min-w-[170px]">
+            <select
+              value={typeFilter}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              className="w-full appearance-none pl-3.5 pr-8 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-medium text-[#2C2016] focus:border-[#8C6D3B] outline-none cursor-pointer shadow-2xs"
+            >
+              <option value="all">Offering: All Types</option>
+              <option value="store">Store Products</option>
+              <option value="cards">Card Unlocks</option>
+              <option value="deck">Deck Passes</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
+          </div>
+
           {/* Select Date Range Dropdown */}
           <div className="relative min-w-[150px]">
             <div className="flex items-center">
@@ -517,9 +560,14 @@ export const AdminPaymentsPage: React.FC = () => {
                         {txn.transactionId}
                       </td>
 
-                      {/* Order ID */}
+                      {/* Order ID & Purchased Item */}
                       <td className="py-3.5 px-4 font-mono text-sm text-[#4A3828]">
-                        {txn.orderId}
+                        <div className="font-semibold">{txn.orderId}</div>
+                        {txn.itemName && (
+                          <div className="text-[11px] font-sans font-medium text-[#8C6D3B] truncate max-w-[200px]" title={txn.itemName}>
+                            {txn.itemName}
+                          </div>
+                        )}
                       </td>
 
                       {/* Customer with Circular Initial Avatar */}
@@ -667,6 +715,29 @@ export const AdminPaymentsPage: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </header>
+
+            {/* Purchased Item & Offering Details */}
+            <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-[#8C6D3B]">
+                  Purchased Item / Service
+                </span>
+                <p className="font-serif font-bold text-base text-[#2C2016] mt-0.5">
+                  {selectedTxn.itemName || 'Cosmic Offering'}
+                </p>
+              </div>
+              <div className="shrink-0">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#EBDCCB] text-[#5A3810] border border-[#DFC9B2]">
+                  {selectedTxn.itemType === 'STORE_PRODUCT'
+                    ? 'Physical Store Product'
+                    : selectedTxn.itemType === 'CARD_UNLOCK'
+                    ? 'Digital Card Unlock'
+                    : selectedTxn.itemType === 'DECK_PASS'
+                    ? 'Digital Deck Pass'
+                    : 'Service'}
+                </span>
+              </div>
+            </div>
 
             {/* Customer & Settlement Details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
