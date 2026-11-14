@@ -54,7 +54,7 @@ const SUIT_META: Record<CardSuit, { label: string; symbol: string; icon: string 
   MasterKey: { label: 'Master Keys', symbol: '☆', icon: '☆' },
 };
 
-const CARD_PAGE_SIZE = 10;
+const CARD_PAGE_SIZE = 13;
 
 /**
  * Maps suit + rank to clean card identifier shown in screenshot (e.g. DH-A, DH-2, DH-3, DH-J)
