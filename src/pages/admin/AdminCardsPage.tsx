@@ -2,20 +2,24 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
+  BookOpen,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Crown,
   Edit3,
+  Hash,
   Layers,
   Lock,
   MoreHorizontal,
+  Quote,
   RefreshCw,
   Save,
   Search,
   Sparkles,
   Star,
+  Tag,
   Trash2,
   Unlock,
   X,
@@ -260,8 +264,12 @@ export const AdminCardsPage: React.FC = () => {
     setActionLoading(true);
     setActionError(null);
     try {
-      await adminService.updateCard(editingCard.id, editForm);
-      showToast(`${editForm.title} was updated successfully.`);
+      await adminService.updateCard(editingCard.id, {
+        line: editForm.line,
+        isFreeByDefault: editForm.isFreeByDefault,
+        price: editForm.isFreeByDefault ? 0 : editForm.price,
+      });
+      showToast(`${editingCard.title} was updated successfully.`);
       setEditingCard(null);
       await fetchCatalog();
     } catch (error: any) {
@@ -780,167 +788,283 @@ export const AdminCardsPage: React.FC = () => {
       )}
 
       {/* Modal: Edit Card */}
-      {editingCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a170b]/45 p-4 backdrop-blur-xs">
-          <section className="bg-[#FFFDF9] border border-[#B9884A]/30 rounded-3xl max-h-[92vh] w-full max-w-2xl overflow-y-auto p-6 sm:p-7 shadow-2xl">
-            <header className="flex items-start justify-between gap-4 border-b border-[#B9884A]/20 pb-4">
-              <div>
-                <h2 className="font-serif text-2xl font-bold text-[#2C2016]">Edit Card</h2>
-                <p className="text-xs text-[#7A6A58] mt-0.5">
-                  {editingCard.suit} · {editingCard.key} · Position #{editingCard.position}
-                </p>
-              </div>
-              <button
-                onClick={() => setEditingCard(null)}
-                className="p-1.5 rounded-lg text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </header>
+      {editingCard && (() => {
+        const meta = SUIT_META[editingCard.suit] || SUIT_META.Dharma;
+        const identifier = getCardIdentifier(editingCard);
+        const isKama = editingCard.suit === 'Kama';
 
-            {actionError && (
-              <div className="mt-4 flex gap-2 rounded-xl border border-[#dd9c91] bg-[#fce9e5] p-3 text-sm text-[#8d2d25]">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>{actionError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSaveEdit} className="mt-5 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                  Card Title
-                  <input
-                    required
-                    value={editForm.title}
-                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                  Label
-                  <input
-                    required
-                    value={editForm.label}
-                    onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
-                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                  />
-                </label>
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a170b]/45 p-4 backdrop-blur-xs">
+            <section className="bg-[#FAF7F2] border border-[#E7DACB] rounded-[28px] max-h-[92vh] w-full max-w-xl overflow-y-auto p-6 sm:p-7 shadow-[0_20px_50px_rgba(44,32,22,0.2)]">
+              {/* Top Ornate Suncrest Divider */}
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="h-px w-14 bg-gradient-to-r from-transparent to-[#C5A880]" />
+                <svg className="w-5 h-4 text-[#8C6D3B]" viewBox="0 0 24 16" fill="currentColor">
+                  <path d="M12 0L14 7L21 4L16 10L24 12L16 13L20 16L12 14L4 16L8 13L0 12L8 10L3 4L10 7Z" />
+                </svg>
+                <div className="h-px w-14 bg-gradient-to-l from-transparent to-[#C5A880]" />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-4">
-                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                  Rank
-                  <input
-                    required
-                    value={editForm.rank}
-                    onChange={(e) => setEditForm({ ...editForm, rank: e.target.value })}
-                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                  Position
-                  <input
-                    required
-                    min="1"
-                    max="55"
-                    type="number"
-                    value={editForm.position}
-                    onChange={(e) => setEditForm({ ...editForm, position: Number(e.target.value) || 1 })}
-                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                  />
-                </label>
-                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                  Price (₹)
-                  <input
-                    type="number"
-                    min="0"
-                    disabled={editForm.isFreeByDefault}
-                    value={editForm.isFreeByDefault ? 0 : editForm.price}
-                    onChange={(e) => setEditForm({ ...editForm, price: Math.max(0, Number(e.target.value) || 0) })}
-                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B] disabled:opacity-50"
-                  />
-                </label>
-                <label className="flex cursor-pointer items-center gap-2.5 self-end rounded-xl border border-[#E5D7C6] bg-[#FAF5EE] px-3.5 py-2.5 text-xs font-bold text-[#2C2016]">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isFreeByDefault}
-                    onChange={(e) => setEditForm({ ...editForm, isFreeByDefault: e.target.checked })}
-                    className="accent-[#8C6D3B] w-4 h-4"
-                  />
-                  <span>Free by default</span>
-                </label>
-              </div>
-
-              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                Suit Theme
-                <input
-                  value={editForm.suitTheme}
-                  onChange={(e) => setEditForm({ ...editForm, suitTheme: e.target.value })}
-                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                />
-              </label>
-
-              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                Card Line (Archetypal Quote)
-                <input
-                  value={editForm.line}
-                  onChange={(e) => setEditForm({ ...editForm, line: e.target.value })}
-                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                />
-              </label>
-
-              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                Short Summary
-                <textarea
-                  required
-                  rows={2}
-                  value={editForm.shortSummary}
-                  onChange={(e) => setEditForm({ ...editForm, shortSummary: e.target.value })}
-                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B] resize-y"
-                />
-              </label>
-
-              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                Detailed Interpretation
-                <textarea
-                  rows={4}
-                  value={editForm.detailedInterpretation}
-                  onChange={(e) => setEditForm({ ...editForm, detailedInterpretation: e.target.value })}
-                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B] resize-y"
-                />
-              </label>
-
-              <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                Reflection Question
-                <input
-                  value={editForm.reflectionQuestion}
-                  onChange={(e) => setEditForm({ ...editForm, reflectionQuestion: e.target.value })}
-                  className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                />
-              </label>
-
-              <footer className="flex justify-end gap-3 border-t border-[#B9884A]/20 pt-4">
+              {/* Header: Title + Subtitle + Close Button */}
+              <header className="flex items-start justify-between gap-4 pb-4">
+                <div>
+                  <h2 className="font-serif text-2xl font-bold tracking-wide text-[#2C2016]">EDIT CARD</h2>
+                  <p className="text-xs text-[#7A6A58] mt-0.5">
+                    Update card quote and access settings
+                  </p>
+                </div>
                 <button
-                  type="button"
                   onClick={() => setEditingCard(null)}
-                  className="px-4 py-2.5 rounded-xl border border-[#B88A4F]/40 bg-[#FAF5EE] text-sm font-bold text-[#5A3810] hover:bg-[#F3EBE0] transition-colors"
+                  className="p-1.5 rounded-lg text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
+                  aria-label="Close"
                 >
-                  Cancel
+                  <X className="w-5 h-5" />
                 </button>
-                <button
-                  disabled={actionLoading}
-                  type="submit"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-sm font-bold text-[#FFFDF9] transition-all shadow-xs disabled:opacity-60 cursor-pointer"
-                >
-                  {actionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  <span>Save Changes</span>
-                </button>
-              </footer>
-            </form>
-          </section>
-        </div>
-      )}
+              </header>
+
+              {actionError && (
+                <div className="mb-4 flex gap-2 rounded-xl border border-[#dd9c91] bg-[#fce9e5] p-3 text-sm text-[#8d2d25]">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{actionError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSaveEdit} className="space-y-5">
+                {/* 1. Top Card Info Box */}
+                <div className="rounded-2xl border border-[#E7DACB] bg-[#FFFDF9]/80 p-4 sm:p-5 flex flex-col sm:flex-row items-center sm:items-stretch gap-5">
+                  {/* Miniature Playing Card Preview */}
+                  <div className="w-32 h-44 rounded-xl border border-[#E0D3C3] bg-[#FFFDF9] shadow-sm relative flex flex-col justify-between p-2.5 shrink-0 select-none">
+                    {/* Inset Border Line */}
+                    <div className="absolute inset-1.5 rounded-lg border border-[#EDE2D4] pointer-events-none" />
+
+                    {/* Top-left Rank & Suit */}
+                    <div className="flex flex-col items-center self-start leading-none z-10">
+                      <span className="font-serif font-bold text-xs text-[#2C2016]">{editingCard.rank || 'A'}</span>
+                      <span className={`text-[10px] mt-0.5 ${isKama ? 'text-[#C2291E]' : 'text-[#2C2016]'}`}>
+                        {meta.symbol}
+                      </span>
+                    </div>
+
+                    {/* Center Motif & Titles */}
+                    <div className="flex flex-col items-center justify-center text-center px-1 z-10 my-auto">
+                      <span className="text-sm text-[#8C6D3B] mb-1">✦</span>
+                      <span className="text-[7.5px] font-cinzel font-bold text-[#8C7A68] uppercase tracking-wider leading-tight">
+                        {editingCard.suit} · {editingCard.label}
+                      </span>
+                      <span className="text-[9px] font-cinzel font-bold text-[#2C2016] uppercase tracking-wide leading-tight mt-0.5">
+                        {editingCard.title}
+                      </span>
+                    </div>
+
+                    {/* Bottom-right Inverted Rank & Suit */}
+                    <div className="self-end rotate-180 flex flex-col items-center leading-none z-10">
+                      <span className="font-serif font-bold text-xs text-[#2C2016]">{editingCard.rank || 'A'}</span>
+                      <span className={`text-[10px] mt-0.5 ${isKama ? 'text-[#C2291E]' : 'text-[#2C2016]'}`}>
+                        {meta.symbol}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Metadata List */}
+                  <div className="flex-1 flex flex-col justify-center divide-y divide-[#F0E5D8]/80 text-xs w-full">
+                    {/* Card Title */}
+                    <div className="flex items-center py-2.5 first:pt-0">
+                      <div className="flex items-center gap-2 w-28 text-[#6E5A48] font-medium shrink-0">
+                        <BookOpen className="w-3.5 h-3.5 text-[#8C6D3B]" />
+                        <span>Card Title</span>
+                      </div>
+                      <span className="font-serif font-bold text-[#2C2016] text-sm truncate">
+                        {editingCard.title}
+                      </span>
+                    </div>
+
+                    {/* Label */}
+                    <div className="flex items-center py-2.5">
+                      <div className="flex items-center gap-2 w-28 text-[#6E5A48] font-medium shrink-0">
+                        <Tag className="w-3.5 h-3.5 text-[#8C6D3B]" />
+                        <span>Label</span>
+                      </div>
+                      <span className="font-serif font-bold text-[#2C2016] text-sm truncate">
+                        {editingCard.label}
+                      </span>
+                    </div>
+
+                    {/* Identifier */}
+                    <div className="flex items-center py-2.5">
+                      <div className="flex items-center gap-2 w-28 text-[#6E5A48] font-medium shrink-0">
+                        <Hash className="w-3.5 h-3.5 text-[#8C6D3B]" />
+                        <span>Identifier</span>
+                      </div>
+                      <span className="font-mono font-bold text-[#2C2016] text-sm">
+                        {identifier}
+                      </span>
+                    </div>
+
+                    {/* Suit */}
+                    <div className="flex items-center py-2.5 last:pb-0">
+                      <div className="flex items-center gap-2 w-28 text-[#6E5A48] font-medium shrink-0">
+                        <span className="text-[#8C6D3B] text-xs font-bold leading-none">♣</span>
+                        <span>Suit</span>
+                      </div>
+                      <span className="font-serif font-bold text-[#2C2016] text-sm flex items-center gap-1.5">
+                        <span>{meta.label}</span>
+                        <span className={isKama ? 'text-[#C2291E]' : ''}>{meta.symbol}</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Middle Section: Card Line (Archetypal Quote) */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Quote className="w-4 h-4 text-[#8C6D3B] fill-[#8C6D3B]/20 shrink-0" />
+                    <span className="font-serif text-xs font-bold text-[#2C2016] tracking-wider uppercase">
+                      CARD LINE (ARCHETYPAL QUOTE)
+                    </span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={editForm.line}
+                    onChange={(e) => setEditForm({ ...editForm, line: e.target.value })}
+                    placeholder="“Enter archetypal quote...”"
+                    className="w-full px-4 py-3 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-serif italic text-[#2C2016] outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] shadow-2xs resize-y leading-relaxed"
+                  />
+                </div>
+
+                {/* 3. Bottom Section: Access Settings */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lock className="w-4 h-4 text-[#8C6D3B] shrink-0" />
+                    <span className="font-serif text-xs font-bold text-[#2C2016] tracking-wider uppercase">
+                      ACCESS SETTINGS
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                    {/* Left: Access Type */}
+                    <div className="sm:border-r sm:border-[#EADCCE] sm:pr-6 space-y-1.5">
+                      <span className="block text-xs font-serif font-bold text-[#4A3828]">
+                        Access Type
+                      </span>
+                      <div className="flex items-center gap-2.5">
+                        {/* Free Option */}
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, isFreeByDefault: true, price: 0 })}
+                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                            editForm.isFreeByDefault
+                              ? 'bg-[#F5E8D6] border-[#D4B896] text-[#2C2016] font-bold shadow-2xs'
+                              : 'bg-[#FFFDF9] border-[#E5D7C6] text-[#6E5A48] hover:bg-[#FAF6F0]'
+                          }`}
+                        >
+                          <span
+                            className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                              editForm.isFreeByDefault ? 'border-[#382618]' : 'border-[#B49E87]'
+                            }`}
+                          >
+                            {editForm.isFreeByDefault && (
+                              <span className="w-2 h-2 rounded-full bg-[#382618]" />
+                            )}
+                          </span>
+                          <span>Free</span>
+                        </button>
+
+                        {/* Paid Option */}
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, isFreeByDefault: false, price: editForm.price || 2 })}
+                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                            !editForm.isFreeByDefault
+                              ? 'bg-[#F5E8D6] border-[#D4B896] text-[#2C2016] font-bold shadow-2xs'
+                              : 'bg-[#FFFDF9] border-[#E5D7C6] text-[#6E5A48] hover:bg-[#FAF6F0]'
+                          }`}
+                        >
+                          <span
+                            className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                              !editForm.isFreeByDefault ? 'border-[#382618]' : 'border-[#B49E87]'
+                            }`}
+                          >
+                            {!editForm.isFreeByDefault && (
+                              <span className="w-2 h-2 rounded-full bg-[#382618]" />
+                            )}
+                          </span>
+                          <span>Paid</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Right: Unlock Price (₹) */}
+                    <div className="space-y-1.5">
+                      <span className="block text-xs font-serif font-bold text-[#4A3828]">
+                        Unlock Price (₹)
+                      </span>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-3.5 pointer-events-none font-serif text-sm font-bold text-[#5A4838]">
+                          ₹
+                        </span>
+                        <input
+                          type="number"
+                          min="0"
+                          disabled={editForm.isFreeByDefault}
+                          value={editForm.isFreeByDefault ? 0 : editForm.price}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              price: Math.max(0, Number(e.target.value) || 0),
+                            })
+                          }
+                          className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-bold text-[#2C2016] outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] disabled:opacity-50 disabled:bg-[#F7F3EC] shadow-2xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lotus / Floral Divider */}
+                <div className="flex items-center justify-center pt-2">
+                  <svg
+                    className="w-7 h-5 text-[#9A7B54]"
+                    viewBox="0 0 32 20"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M16 2C17.5 6 20 8.5 24 9C21 12 18.5 13 16 13C13.5 13 11 12 8 9C12 8.5 14.5 6 16 2Z" />
+                    <path d="M16 7C14.5 9 12 11 7 11.5C9.5 14 12.5 15 16 15C19.5 15 22.5 14 25 11.5C20 11 17.5 9 16 7Z" />
+                    <path d="M16 2V13" />
+                    <path d="M5 16C9 16 13 15.5 16 15C19 15.5 23 16 27 16" />
+                  </svg>
+                </div>
+
+                {/* Footer Buttons */}
+                <footer className="flex items-center justify-end gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCard(null)}
+                    className="px-5 py-2.5 rounded-xl border border-[#D8C7B5] bg-[#FAF5EE] hover:bg-[#F3EBE0] text-sm font-semibold text-[#4A3828] transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={actionLoading}
+                    type="submit"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-sm font-serif font-bold text-[#FFFDF9] transition-all shadow-sm hover:shadow disabled:opacity-60 cursor-pointer"
+                  >
+                    {actionLoading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    <span>Save Changes</span>
+                  </button>
+                </footer>
+              </form>
+            </section>
+          </div>
+        );
+      })()}
 
       {/* Modal: Toggle Free / Paid Access */}
       {accessModalCard && targetAccessState !== null && (
