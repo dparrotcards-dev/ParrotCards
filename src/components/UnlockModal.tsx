@@ -41,6 +41,8 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const cardPrice = card?.price !== undefined ? card.price : 2;
+
   // Authentication view state (for users who are not logged in)
   const [authView, setAuthView] = useState<'LOGIN' | 'REGISTER' | null>(null);
   const [authEmail, setAuthEmail] = useState('');
@@ -202,7 +204,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                 <span>Back to Options</span>
               </button>
               <span className="text-[11px] font-mono font-bold text-[#8C6D3B] px-2 py-0.5 rounded-full bg-[#FAF0D9] border border-[#D5B87D]">
-                {selectedMode === 'CARD' ? '₹2 UNLOCK' : '₹25 PASS'}
+                {selectedMode === 'CARD' ? `₹${cardPrice} UNLOCK` : '₹25 PASS'}
               </span>
             </div>
 
@@ -323,7 +325,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                   <div className="w-5 h-5 border-2 border-[#FAF7F2] border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <span>
-                    {authView === 'LOGIN' ? 'Sign In & Pay' : 'Create Account & Pay'} · {selectedMode === 'CARD' ? '₹2' : '₹25'}
+                    {authView === 'LOGIN' ? 'Sign In & Pay' : 'Create Account & Pay'} · {selectedMode === 'CARD' ? `₹${cardPrice}` : '₹25'}
                   </span>
                 )}
               </button>
@@ -367,7 +369,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                   <div className="text-[10px] uppercase font-bold tracking-wider text-[#8C6D3B] mb-1 font-cinzel">
                     Single Card
                   </div>
-                  <div className="font-cinzel text-2xl font-bold text-[#1A1817]">₹2</div>
+                  <div className="font-cinzel text-2xl font-bold text-[#1A1817]">₹{cardPrice}</div>
                   <div className="text-[11px] text-[#6B635B] mt-1 line-clamp-1 truncate font-serif">
                     {card.title}
                   </div>
@@ -462,7 +464,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
                 <div className="w-5 h-5 border-2 border-[#FAF7F2] border-t-transparent rounded-full animate-spin" />
               ) : (
                 <span>
-                  {!isAuthenticated ? 'Sign In & Proceed to Pay' : 'Proceed to Pay'} · {selectedMode === 'CARD' ? '₹2' : '₹25'}
+                  {!isAuthenticated ? 'Sign In & Proceed to Pay' : 'Proceed to Pay'} · {selectedMode === 'CARD' ? `₹${cardPrice}` : '₹25'}
                 </span>
               )}
             </button>

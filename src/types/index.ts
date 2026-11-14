@@ -39,6 +39,7 @@ export interface ICard {
   isSovereign: boolean;
   isFree: boolean;
   isUnlocked: boolean;
+  price?: number;
 }
 
 export interface ICardDefinition {
@@ -57,6 +58,7 @@ export interface ICardDefinition {
   reflectionQuestion: string;
   position: number;
   isFreeByDefault: boolean;
+  price?: number;
   category: string;
 }
 
