@@ -33,7 +33,6 @@ export interface ProductItem {
   id: string;
   name: string;
   shortDescription: string;
-  sku: string;
   category: ProductCategory;
   priceRupees: number;
   mrpRupees: number;
@@ -107,11 +106,10 @@ const ProductArtThumbnail: React.FC<{ product: ProductItem }> = ({ product }) =>
     );
   }
 
-  const sku = (product.sku || '').toUpperCase();
   const cat = product.category;
 
   // 1. Rudraksha Mala (Brown beads with golden pendant/tassel)
-  if (cat === 'Rudraksha' || sku.startsWith('RUD')) {
+  if (cat === 'Rudraksha') {
     return (
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#8C5E24] via-[#5F380E] to-[#2B1704] relative">
         <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
@@ -130,7 +128,7 @@ const ProductArtThumbnail: React.FC<{ product: ProductItem }> = ({ product }) =>
   }
 
   // 2. Amethyst / Gemstone (Faceted oval sparkling purple gemstone)
-  if (cat === 'Gemstones' || sku.startsWith('GEM')) {
+  if (cat === 'Gemstones') {
     return (
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#4A206B] via-[#2D1244] to-[#160624] relative">
         <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
@@ -148,7 +146,7 @@ const ProductArtThumbnail: React.FC<{ product: ProductItem }> = ({ product }) =>
   }
 
   // 3. Shree Yantra (Golden Sacred Geometry on plate)
-  if (cat === 'Yantra' || sku.startsWith('YNT')) {
+  if (cat === 'Yantra') {
     return (
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#8C6228] via-[#5C3F14] to-[#2B1B06] relative">
         <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
@@ -167,7 +165,7 @@ const ProductArtThumbnail: React.FC<{ product: ProductItem }> = ({ product }) =>
   }
 
   // 4. Vedic Astrology Guide (Deep Blue & Gold Book)
-  if (cat === 'Astrology Books' || sku.startsWith('BK')) {
+  if (cat === 'Astrology Books') {
     return (
       <div className="w-12 h-12 rounded-xl overflow-hidden border border-[#D9C4AB] shadow-xs shrink-0 flex items-center justify-center bg-gradient-to-b from-[#1C2842] via-[#10192B] to-[#080D18] relative">
         <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
@@ -232,7 +230,6 @@ export const AdminProductsPage: React.FC = () => {
   // Form Fields
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formSku, setFormSku] = useState('');
   const [formPrice, setFormPrice] = useState('');
   const [formMrp, setFormMrp] = useState('');
   const [formStock, setFormStock] = useState('20');
@@ -250,11 +247,10 @@ export const AdminProductsPage: React.FC = () => {
     try {
       const data = await adminService.getProducts({ page: 1, limit: 100 });
       if (data?.products && Array.isArray(data.products)) {
-        const mapped: ProductItem[] = data.products.map((p: any, idx: number) => ({
+        const mapped: ProductItem[] = data.products.map((p: any) => ({
           id: p.id || p._id,
           name: p.name,
           shortDescription: p.shortDescription || '',
-          sku: p.sku || `PRD-${String(idx + 1).padStart(3, '0')}`,
           category: (p.category as ProductCategory) || 'Gemstones',
           priceRupees: p.priceRupees ?? Math.round((p.pricePaise || 0) / 100),
           mrpRupees: p.mrpRupees ?? Math.round((p.mrpPaise || 0) / 100),
@@ -319,7 +315,6 @@ export const AdminProductsPage: React.FC = () => {
         !q ||
         p.name.toLowerCase().includes(q) ||
         p.shortDescription.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q);
 
       return matchesCategory && matchesStatus && matchesStock && matchesQuery;
@@ -338,7 +333,6 @@ export const AdminProductsPage: React.FC = () => {
     setEditingProduct(null);
     setFormName('');
     setFormDescription('');
-    setFormSku(`PRD-${Math.floor(100 + Math.random() * 900)}`);
     setFormPrice('999');
     setFormMrp('1499');
     setFormStock('25');
@@ -354,7 +348,6 @@ export const AdminProductsPage: React.FC = () => {
     setEditingProduct(p);
     setFormName(p.name);
     setFormDescription(p.shortDescription);
-    setFormSku(p.sku);
     setFormPrice(String(p.priceRupees));
     setFormMrp(String(p.mrpRupees));
     setFormStock(String(p.stock));
@@ -623,7 +616,7 @@ export const AdminProductsPage: React.FC = () => {
                 setSearch(e.target.value);
                 resetToFirstPage();
               }}
-              placeholder="Search product by name, SKU or category..."
+              placeholder="Search product by name or category..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] placeholder:text-[#8C7A68] focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] outline-none transition-all shadow-2xs"
             />
           </div>
@@ -687,9 +680,6 @@ export const AdminProductsPage: React.FC = () => {
                   Product
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
-                  SKU
-                </th>
-                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
                   Category
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
@@ -712,7 +702,7 @@ export const AdminProductsPage: React.FC = () => {
             <tbody className="divide-y divide-[#F0E5D8]">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-20 text-center text-[#735e49]">
+                  <td colSpan={8} className="py-20 text-center text-[#735e49]">
                     <span className="mx-auto mb-3 block h-8 w-8 rounded-full border-2 border-[#8C6D3B] border-t-transparent animate-spin" />
                     <span className="font-serif text-sm">Loading store inventory…</span>
                   </td>
@@ -749,13 +739,6 @@ export const AdminProductsPage: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                      </td>
-
-                      {/* SKU Badge */}
-                      <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-[#F5ECE0] border border-[#E3D4C2] text-[#4A3828] text-xs font-mono font-bold tracking-wide">
-                          {product.sku}
-                        </span>
                       </td>
 
                       {/* Category Pill with Icon */}
@@ -926,7 +909,7 @@ export const AdminProductsPage: React.FC = () => {
                   {editingProduct ? 'Edit Product' : 'Add New Product'}
                 </h2>
                 <p className="text-xs text-[#7A6A58] mt-0.5">
-                  Configure store listing, inventory quantity, SKU, and retail pricing
+                  Configure store listing, inventory quantity, and retail pricing
                 </p>
               </div>
               <button
@@ -973,17 +956,7 @@ export const AdminProductsPage: React.FC = () => {
                 </label>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
-                  SKU Identifier
-                  <input
-                    required
-                    value={formSku}
-                    onChange={(e) => setFormSku(e.target.value)}
-                    placeholder="e.g. RUD-001"
-                    className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-mono text-[#2C2016] outline-none focus:border-[#8C6D3B]"
-                  />
-                </label>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block space-y-1 text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
                   Selling Price (₹)
                   <input
@@ -1131,7 +1104,7 @@ export const AdminProductsPage: React.FC = () => {
 
             <div className="rounded-2xl border border-[#FACDCF] bg-[#FFF8F8] p-4 text-sm text-[#5E342B] leading-relaxed">
               <p>
-                Are you sure you want to delete <strong>{deletingProduct.name}</strong> ({deletingProduct.sku}) from the store catalog?
+                Are you sure you want to delete <strong>{deletingProduct.name}</strong> from the store catalog?
               </p>
             </div>
 
