@@ -594,17 +594,18 @@ export const AdminOrdersPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Product Mini Thumbnails */}
+                      {/* Products (Names) */}
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5">
-                          {firstTwo.map((p, pIdx) => (
-                            <ProductMiniIcon key={pIdx} productName={p.name} />
-                          ))}
-                          {extraCount > 0 && (
-                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-md bg-[#F2ECE1] border border-[#E0D4C2] text-[11px] font-mono font-bold text-[#6B5A4B]">
-                              +{extraCount}
+                        <div className="flex flex-col gap-1 max-w-[260px]">
+                          {order.products.map((p, pIdx) => (
+                            <span
+                              key={pIdx}
+                              className="font-serif text-[14px] font-semibold text-[#2C2016] leading-tight truncate block"
+                              title={p.name}
+                            >
+                              {p.name}{p.quantity > 1 ? ` (×${p.quantity})` : ''}
                             </span>
-                          )}
+                          ))}
                         </div>
                       </td>
 
@@ -816,16 +817,13 @@ export const AdminOrdersPage: React.FC = () => {
               <div className="border border-[#E5D7C6] rounded-2xl overflow-hidden divide-y divide-[#F0E5D8]">
                 {selectedOrder.products.map((item, idx) => (
                   <div key={idx} className="p-3.5 flex items-center justify-between gap-3 bg-[#FFFDF9]">
-                    <div className="flex items-center gap-3">
-                      <ProductMiniIcon productName={item.name} />
-                      <div>
-                        <span className="block font-serif font-bold text-sm text-[#2C2016]">
-                          {item.name}
-                        </span>
-                        <span className="block text-xs text-[#7A6A58]">
-                          Qty: {item.quantity} · {item.category}
-                        </span>
-                      </div>
+                    <div>
+                      <span className="block font-serif font-bold text-sm text-[#2C2016]">
+                        {item.name}
+                      </span>
+                      <span className="block text-xs text-[#7A6A58]">
+                        Qty: {item.quantity} · {item.category}
+                      </span>
                     </div>
                     <span className="font-serif font-bold text-sm text-[#2C2016]">
                       ₹ {item.priceRupees.toLocaleString('en-IN')}
