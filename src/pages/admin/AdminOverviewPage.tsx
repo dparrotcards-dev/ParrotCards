@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Box,
-  ChevronDown,
-  Package,
   RefreshCw,
   ShoppingCart,
   Users,
@@ -36,12 +34,6 @@ const formatDate = (date?: string) => {
   return parsed.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-const formatChartDate = (date: string) => {
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return date;
-  return parsed.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-};
-
 const formatItemType = (value: string) =>
   value
     .replace(/_/g, ' ')
@@ -70,68 +62,6 @@ const MetricCard: React.FC<{
     <div className={`mt-1 font-serif text-[36px] font-bold leading-none tracking-[-0.04em] text-[#30170e] ${valueClassName}`}>{value}</div>
   </article>
 );
-
-const SalesChart: React.FC<{ trend: AdminDashboardData['revenueTrend'] }> = ({ trend }) => {
-  const chartData = trend.length > 0 ? trend.slice(-30) : [];
-  const width = 700;
-  const height = 235;
-  const padding = { top: 20, right: 18, bottom: 34, left: 48 };
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
-  const maxRevenue = Math.max(...chartData.map((item) => item.revenueRupees), 1);
-  const points = chartData.map((item, index) => {
-    const x = padding.left + (chartData.length === 1 ? chartWidth / 2 : (index / (chartData.length - 1)) * chartWidth);
-    const y = padding.top + chartHeight - (item.revenueRupees / maxRevenue) * chartHeight;
-    return { ...item, x, y };
-  });
-  const linePath = points.map((point) => `${point.x},${point.y}`).join(' ');
-  const areaPath = points.length
-    ? `M ${points[0].x} ${padding.top + chartHeight} L ${points.map((point) => `${point.x} ${point.y}`).join(' L ')} L ${points[points.length - 1].x} ${padding.top + chartHeight} Z`
-    : '';
-  const labelStep = Math.max(1, Math.ceil(chartData.length / 6));
-
-  if (!chartData.length) {
-    return <div className="flex h-[230px] items-center justify-center text-sm italic text-[#8b7562]">No completed sales recorded in the last 30 days.</div>;
-  }
-
-  return (
-    <div className="h-[230px] w-full">
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full overflow-visible" role="img" aria-label="Sales overview chart">
-        <defs>
-          <linearGradient id="salesArea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#d18b1e" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="#f6e0b4" stopOpacity="0.05" />
-          </linearGradient>
-        </defs>
-        {[0, 0.25, 0.5, 0.75, 1].map((line) => {
-          const y = padding.top + chartHeight - line * chartHeight;
-          const amount = Math.round(maxRevenue * line);
-          return (
-            <g key={line}>
-              <line x1={padding.left} x2={width - padding.right} y1={y} y2={y} stroke="#9a6b2f" strokeOpacity="0.15" />
-              <text x={padding.left - 12} y={y + 4} textAnchor="end" fill="#6e5440" fontFamily="Georgia, serif" fontSize="12">
-                {amount === 0 ? '0' : `₹${numberFormat.format(amount)}`}
-              </text>
-            </g>
-          );
-        })}
-        <path d={areaPath} fill="url(#salesArea)" />
-        <polyline fill="none" points={linePath} stroke="#ba790d" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-        {points.map((point, index) => (
-          <g key={`${point.date}-${index}`}>
-            <circle cx={point.x} cy={point.y} r="4.5" fill="#c17b0f" />
-            <circle cx={point.x} cy={point.y} r="2" fill="#f9ebce" />
-            {(index % labelStep === 0 || index === points.length - 1) && (
-              <text x={point.x} y={height - 9} textAnchor="middle" fill="#523a28" fontFamily="Georgia, serif" fontSize="12">
-                {formatChartDate(point.date)}
-              </text>
-            )}
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-};
 
 export const AdminOverviewPage: React.FC = () => {
   const navigate = useNavigate();
@@ -215,36 +145,31 @@ export const AdminOverviewPage: React.FC = () => {
         <MetricCard label="Total Revenue" value={`₹ ${moneyFormat.format(metrics?.totalRevenueRupees || 0)}`} valueClassName="text-[30px]" icon={<span className="font-serif text-[44px] font-bold leading-none">₹</span>} />
       </section>
 
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
-        <article className="admin-paper-panel overflow-hidden p-4 sm:p-5">
-          <div className="mb-1 flex items-center justify-between gap-3">
-            <h2 className="font-serif text-[27px] font-bold leading-none text-[#2c180f]">Sales Overview</h2>
+      <section className="grid grid-cols-1 gap-5">
+        <article className="admin-paper-panel p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <h2 className="font-serif text-[25px] font-bold leading-none text-[#2c180f]">
+              Order Status <span className="text-[18px]">(Last 30 Days)</span>
+            </h2>
             <button
               onClick={fetchDashboard}
               disabled={loading}
-              className="flex items-center gap-2 rounded-full border border-[#bb8a4e]/40 bg-[#fffaf2] px-3.5 py-2 font-serif text-sm font-bold text-[#3d291c] shadow-sm transition hover:bg-[#f7ead7] disabled:opacity-60"
+              className="flex items-center gap-2 rounded-full border border-[#bb8a4e]/40 bg-[#fffaf2] px-3.5 py-2 font-serif text-sm font-bold text-[#3d291c] shadow-sm transition hover:bg-[#f7ead7] disabled:opacity-60 cursor-pointer"
             >
-              <span className="hidden sm:inline">Last 30 Days</span>
-              <span className="sm:hidden">30 Days</span>
-              <ChevronDown className="h-4 w-4" />
               <RefreshCw className={`h-3.5 w-3.5 text-[#a56815] ${loading ? 'animate-spin' : ''}`} />
+              <span className="text-xs">Refresh</span>
             </button>
           </div>
-          <SalesChart trend={data?.revenueTrend || []} />
-        </article>
-
-        <article className="admin-paper-panel p-4 sm:p-5">
-          <h2 className="font-serif text-[25px] font-bold leading-none text-[#2c180f]">Order Status <span className="text-[18px]">(Last 30 Days)</span></h2>
-          <div className="mt-4 flex flex-col items-center gap-5 min-[440px]:flex-row min-[440px]:items-center xl:gap-4">
+          <div className="mt-4 flex flex-col items-center justify-around gap-6 sm:flex-row xl:gap-12">
             <div className="relative flex h-[188px] w-[188px] shrink-0 items-center justify-center rounded-full" style={{ background: donutBackground }}>
               <div className="flex h-[128px] w-[128px] flex-col items-center justify-center rounded-full bg-[#fffaf3] shadow-[inset_0_1px_6px_rgba(83,49,17,0.12)]">
                 <span className="font-serif text-[31px] font-bold leading-none text-[#2e180e]">{numberFormat.format(totalOrders)}</span>
                 <span className="mt-1 font-serif text-[16px] leading-none text-[#4c3020]">Total Orders</span>
               </div>
             </div>
-            <div className="w-full space-y-2">
+            <div className="w-full max-w-lg space-y-2.5">
               {statusSlices.map((status) => (
-                <div key={status.label} className="flex items-center gap-3 border-b border-[#b9884a]/20 pb-2 last:border-0">
+                <div key={status.label} className="flex items-center gap-3 border-b border-[#b9884a]/20 pb-2.5 last:border-0">
                   <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: status.color }} />
                   <span className="flex-1 font-serif text-[17px] font-semibold text-[#382116]">{status.label}</span>
                   <span className="font-serif text-[18px] font-bold text-[#382116]">{numberFormat.format(status.value)}</span>
