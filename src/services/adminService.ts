@@ -41,7 +41,9 @@ export interface AdminDashboardData {
   recentOrders: Array<{
     id: string;
     orderId: string;
+    customerName?: string;
     userEmail: string;
+    productName?: string;
     amountRupees: number;
     itemType: string;
     currency: string;
@@ -126,6 +128,16 @@ export const adminService = {
   getPayments: async (params?: { page?: number; limit?: number; status?: string; itemType?: string; search?: string }) => {
     const res = await api.get('/admin/payments', { params });
     return res.data.data;
+  },
+
+  getStoreOrders: async (params?: { page?: number; limit?: number; status?: string; search?: string }) => {
+    const res = await api.get('/admin/store-orders', { params });
+    return res.data.data;
+  },
+
+  updateStoreOrderStatus: async (id: string, status: string) => {
+    const res = await api.patch(`/admin/store-orders/${id}/status`, { status });
+    return res.data;
   },
 
   deletePayment: async (id: string) => {

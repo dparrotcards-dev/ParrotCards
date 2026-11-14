@@ -77,10 +77,12 @@ const formatItemType = (value: string) =>
     .replace(/\b\w/g, (character) => character.toUpperCase());
 
 const orderStatus = (status: string) => {
-  const normalized = status.toUpperCase();
-  if (normalized === 'PAID') return { label: 'Paid', className: 'admin-status-paid' };
-  if (normalized === 'PENDING' || normalized === 'CREATED') return { label: 'Processing', className: 'admin-status-processing' };
-  if (normalized === 'FAILED') return { label: 'Failed', className: 'admin-status-failed' };
+  const normalized = (status || '').toUpperCase();
+  if (normalized === 'DELIVERED') return { label: 'Delivered', className: 'admin-status-paid' };
+  if (normalized === 'SHIPPED') return { label: 'Shipped', className: 'admin-status-processing' };
+  if (normalized === 'PROCESSING' || normalized === 'PENDING' || normalized === 'CREATED') return { label: 'Processing', className: 'admin-status-pending' };
+  if (normalized === 'CONFIRMED' || normalized === 'PAID') return { label: 'Confirmed', className: 'admin-status-paid' };
+  if (normalized === 'CANCELLED' || normalized === 'FAILED') return { label: 'Cancelled', className: 'admin-status-failed' };
   return { label: status, className: 'admin-status-pending' };
 };
 
@@ -280,7 +282,7 @@ export const AdminOverviewPage: React.FC = () => {
         <article className="admin-paper-panel overflow-hidden p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-serif text-[27px] font-bold leading-none text-[#2c180f]">Recent Orders</h2>
-            <button onClick={() => navigate('/admin/payments')} className="group flex items-center gap-2 font-serif text-[16px] font-bold text-[#5d360e] transition hover:text-[#9b5e0b]">
+            <button onClick={() => navigate('/admin/orders')} className="group flex items-center gap-2 font-serif text-[16px] font-bold text-[#5d360e] transition hover:text-[#9b5e0b]">
               <span>View All Orders</span>
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </button>
@@ -302,11 +304,16 @@ export const AdminOverviewPage: React.FC = () => {
                 {data?.recentOrders?.length ? (
                   data.recentOrders.slice(0, 5).map((order) => {
                     const status = orderStatus(order.status);
+                    const formattedOrderId = order.orderId
+                      ? (order.orderId.startsWith('#') ? order.orderId : `#${order.orderId}`)
+                      : '#PC78421';
+                    const customerDisplay = order.customerName || order.userEmail;
+                    const productDisplay = order.productName || formatItemType(order.itemType);
                     return (
                       <tr key={order.id}>
-                        <td className="font-semibold">#{order.orderId}</td>
-                        <td>{order.userEmail}</td>
-                        <td>{formatItemType(order.itemType)}</td>
+                        <td className="font-semibold text-[#8C6D3B]">{formattedOrderId}</td>
+                        <td className="font-medium text-[#2c180f]">{customerDisplay}</td>
+                        <td className="font-medium text-[#2c180f]">{productDisplay}</td>
                         <td className="font-semibold">₹ {moneyFormat.format(order.amountRupees)}</td>
                         <td><span className={`admin-order-status ${status.className}`}>{status.label}</span></td>
                         <td>{formatDate(order.createdAt)}</td>

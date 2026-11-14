@@ -383,6 +383,27 @@ export const CartPage: React.FC = () => {
               paymentMethod: `Online (Razorpay: ${response.razorpay_payment_id})`,
             };
 
+            // Save order to backend MongoDB
+            try {
+              await api.post('/store/orders', {
+                items: resolvedItems.map((x) => ({ product: x.product, quantity: x.entry.quantity })),
+                totalAmount: totalPayable,
+                shippingAddress: {
+                  fullName,
+                  phone: cleanPhone,
+                  email,
+                  address: streetAddress,
+                  city,
+                  state: stateName,
+                  pincode,
+                },
+                paymentMethod: `Online (Razorpay: ${response.razorpay_payment_id})`,
+                paymentId: response.razorpay_payment_id,
+              });
+            } catch (postErr) {
+              console.warn('Backend store order save warning:', postErr);
+            }
+
             try {
               const storedOrders = localStorage.getItem('pc_orders');
               const list: PlacedOrder[] = storedOrders ? JSON.parse(storedOrders) : [];
@@ -414,7 +435,7 @@ export const CartPage: React.FC = () => {
     }
 
     // ─── CASH ON DELIVERY (COD) ───
-    setTimeout(() => {
+    setTimeout(async () => {
       const orderId = `PC-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
       const newOrder: PlacedOrder = {
         orderId,
@@ -437,6 +458,26 @@ export const CartPage: React.FC = () => {
         },
         paymentMethod: 'Cash on Delivery (COD)',
       };
+
+      // Save order to backend MongoDB
+      try {
+        await api.post('/store/orders', {
+          items: resolvedItems.map((x) => ({ product: x.product, quantity: x.entry.quantity })),
+          totalAmount: totalPayable,
+          shippingAddress: {
+            fullName,
+            phone: cleanPhone,
+            email,
+            address: streetAddress,
+            city,
+            state: stateName,
+            pincode,
+          },
+          paymentMethod: 'Cash on Delivery (COD)',
+        });
+      } catch (postErr) {
+        console.warn('Backend COD order save warning:', postErr);
+      }
 
       try {
         const storedOrders = localStorage.getItem('pc_orders');

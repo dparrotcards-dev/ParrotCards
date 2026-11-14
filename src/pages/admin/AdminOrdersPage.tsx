@@ -147,71 +147,60 @@ export const AdminOrdersPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Load real live orders from backend payments/orders API
+  // Load real store product orders from backend store-orders API
   const loadOrders = async () => {
     setLoading(true);
     try {
-      const data = await adminService.getPayments({ page: 1, limit: 100 });
-      if (data?.payments && Array.isArray(data.payments)) {
-        const liveMapped: CustomerOrder[] = data.payments.map((p: any, idx: number) => {
-          const rawName = p.userName || p.customer?.name || (p.userEmail ? p.userEmail.split('@')[0] : `Seeker ${idx + 1}`);
-          const customerName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-          const customerEmail = p.userEmail || p.customer?.email || 'N/A';
-          const customerPhone = p.phone || p.customer?.phone || '—';
+      const data = await adminService.getStoreOrders({ page: 1, limit: 100 });
+      if (data?.orders && Array.isArray(data.orders)) {
+        const liveMapped: CustomerOrder[] = data.orders.map((o: any, idx: number) => {
+          const customerName = o.customerName || (o.customerEmail ? o.customerEmail.split('@')[0] : `Customer ${idx + 1}`);
+          const customerEmail = o.customerEmail || '—';
+          const customerPhone = o.customerPhone || '—';
+          const resolvedStatus: OrderStatus = (o.status as OrderStatus) || 'Confirmed';
 
-          const statusMap: Record<string, OrderStatus> = {
-            PAID: 'Delivered',
-            SUCCESS: 'Delivered',
-            COMPLETED: 'Delivered',
-            CREATED: 'Confirmed',
-            PROCESSING: 'Processing',
-            SHIPPED: 'Shipped',
-            FAILED: 'Cancelled',
-            EXPIRED: 'Cancelled',
-            REFUNDED: 'Cancelled',
-          };
-          const resolvedStatus: OrderStatus = statusMap[p.status?.toUpperCase()] || 'Confirmed';
-
-          const getItemTitle = (itemType: string, itemId?: string) => {
-            if (itemType === 'DECK_PASS') return 'Full 55-Card Cosmic Deck Pass';
-            if (itemType === 'CARD_UNLOCK') return itemId ? `Card Unlock (${itemId})` : 'Personalized Natal Card';
-            if (itemType === 'STORE_PRODUCT') return itemId || 'Cosmic Store Sacred Item';
-            return 'Cosmic Reading Pass';
-          };
-
-          const rawAmount = p.amountRupees ?? (p.amountPaise ? Math.round(p.amountPaise / 100) : 0);
+          const productsList: OrderItemProduct[] = (o.products && o.products.length > 0)
+            ? o.products.map((p: any) => ({
+                name: p.name || 'Store Sacred Item',
+                category: p.category || 'Store Product',
+                quantity: p.quantity || 1,
+                priceRupees: p.priceRupees || 0,
+                imageUrl: p.imageUrl,
+              }))
+            : [
+                {
+                  name: 'Cosmic Store Sacred Item',
+                  category: 'Store Product',
+                  quantity: 1,
+                  priceRupees: o.totalAmountRupees || 0,
+                },
+              ];
 
           return {
-            id: p.id || `live-${idx}`,
-            orderId: p.orderId ? (p.orderId.startsWith('#') ? p.orderId : `#${p.orderId}`) : `#PC${String(idx + 1).padStart(5, '0')}`,
+            id: o.id || o._id || `store-${idx}`,
+            orderId: o.orderId ? (o.orderId.startsWith('#') ? o.orderId : `#${o.orderId}`) : `#PC${String(idx + 1).padStart(5, '0')}`,
             customerName,
             customerPhone,
             customerEmail,
             customerInitial: customerName.charAt(0).toUpperCase() || 'S',
-            products: [
-              {
-                name: getItemTitle(p.itemType, p.itemId),
-                category: p.itemType === 'STORE_PRODUCT' ? 'Store Product' : 'Cosmic Entitlement',
-                quantity: 1,
-                priceRupees: rawAmount,
-              },
-            ],
-            totalAmountRupees: rawAmount,
-            shippingCity: p.shippingCity || 'Digital Delivery',
-            shippingState: p.shippingState || 'Online',
-            shippingPincode: p.shippingPincode || 'Instant',
-            orderDateFormatted: new Date(p.createdAt || Date.now()).toLocaleDateString('en-IN', {
+            products: productsList,
+            totalAmountRupees: o.totalAmountRupees || 0,
+            shippingCity: o.shippingAddress?.city || 'Jaipur',
+            shippingState: o.shippingAddress?.state || 'Rajasthan',
+            shippingPincode: o.shippingAddress?.pincode || '302015',
+            orderDateFormatted: new Date(o.createdAt || Date.now()).toLocaleDateString('en-IN', {
               day: '2-digit',
               month: 'short',
               year: 'numeric',
             }),
-            orderTimeFormatted: new Date(p.createdAt || Date.now()).toLocaleTimeString('en-IN', {
+            orderTimeFormatted: new Date(o.createdAt || Date.now()).toLocaleTimeString('en-IN', {
               hour: '2-digit',
               minute: '2-digit',
               hour12: true,
             }),
             status: resolvedStatus,
-            courierName: resolvedStatus === 'Delivered' ? 'Instant Digital Access' : undefined,
+            courierName: o.courierName || 'Blue Dart Express',
+            trackingNumber: o.trackingNumber,
           };
         });
 
@@ -220,7 +209,7 @@ export const AdminOrdersPage: React.FC = () => {
         setOrders([]);
       }
     } catch (err) {
-      console.error('Failed to load orders from API:', err);
+      console.error('Failed to load store orders from API:', err);
       setOrders([]);
     } finally {
       setLoading(false);
@@ -293,6 +282,14 @@ export const AdminOrdersPage: React.FC = () => {
     setSavingStatus(true);
 
     try {
+      if (!statusUpdatingOrder.id.startsWith('store-')) {
+        try {
+          await adminService.updateStoreOrderStatus(statusUpdatingOrder.id, newStatus);
+        } catch (apiErr) {
+          console.warn('Backend order status update warning:', apiErr);
+        }
+      }
+
       const updated: CustomerOrder = {
         ...statusUpdatingOrder,
         status: newStatus,
