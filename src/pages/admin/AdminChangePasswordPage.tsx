@@ -79,7 +79,10 @@ export const AdminChangePasswordPage: React.FC = () => {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to update password. Please check your credentials.';
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to update password. Please check your credentials.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -91,69 +94,64 @@ export const AdminChangePasswordPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-white/10">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#C9A45C]/15 border border-[#C9A45C]/30 flex items-center justify-center text-[#C9A45C]">
-              <KeyRound className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="font-serif text-2xl font-bold text-[#F6F0E6] tracking-tight">
-                Change Admin Password
-              </h1>
-              <p className="text-xs text-[#A7A4C4] mt-0.5">
-                Update your administrative console credentials securely with bcrypt encryption
-              </p>
-            </div>
+      {/* Current Admin Badge Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl bg-[#FFFDF9] border border-[#E8DCCF] shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#8C6D3B]/10 border border-[#8C6D3B]/25 flex items-center justify-center text-[#8C6D3B]">
+            <KeyRound className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="font-serif text-lg font-bold text-[#2C2016]">
+              Administrative Credentials
+            </h2>
+            <p className="text-xs text-[#7B6E64]">
+              Change password for your authorized admin console account
+            </p>
           </div>
         </div>
 
-        {/* Current Admin Badge */}
-        <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-[#111033] border border-white/10 text-xs text-[#A7A4C4]">
-          <Shield className="w-4 h-4 text-[#C9A45C]" />
+        <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6] text-xs text-[#6B5A4E]">
+          <Shield className="w-4 h-4 text-[#8C6D3B]" />
           <span>Signed in as:</span>
-          <span className="font-semibold text-[#F6F0E6]">{adminUser?.email || 'Administrator'}</span>
-          <span className="px-2 py-0.5 rounded-full bg-[#C9A45C]/20 text-[#C9A45C] text-[10px] font-bold uppercase tracking-wider">
+          <span className="font-semibold text-[#2C2016]">{adminUser?.email || 'Administrator'}</span>
+          <span className="px-2 py-0.5 rounded-full bg-[#8C6D3B]/15 text-[#6B4E26] text-[10px] font-bold uppercase tracking-wider">
             {adminUser?.role || 'Admin'}
           </span>
         </div>
       </div>
 
-      {/* Main Form Card */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Form Card */}
         <div className="lg:col-span-2">
-          <div className="bg-[#111033] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-            {/* Subtle Cosmic Background Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#C9A45C]/5 rounded-full blur-3xl pointer-events-none" />
-
-            <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+          <div className="bg-[#FFFDF9] border border-[#E8DCCF] rounded-3xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(56,38,24,0.04)] relative">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Error Banner */}
               {error && (
-                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-3">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">{error}</span>
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-3">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed font-medium">{error}</span>
                 </div>
               )}
 
               {/* Success Banner */}
               {success && (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-3">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <div className="leading-relaxed">
-                    <p className="font-semibold text-emerald-200">Success!</p>
-                    <p>{success}</p>
+                    <p className="font-semibold text-emerald-900">Success!</p>
+                    <p className="font-medium">{success}</p>
                   </div>
                 </div>
               )}
 
               {/* Current Password Field */}
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[#F6F0E6] uppercase tracking-wider">
-                  Current Password <span className="text-rose-400">*</span>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Current Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A7A4C4]">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A8988B]">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -161,13 +159,13 @@ export const AdminChangePasswordPage: React.FC = () => {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter existing admin password"
-                    className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#08071B]/80 border border-white/15 text-sm text-[#F6F0E6] placeholder-[#A7A4C4]/50 focus:outline-none focus:border-[#C9A45C] focus:ring-1 focus:ring-[#C9A45C] transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] placeholder-[#A8988B]/60 outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] transition-all"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrent(!showCurrent)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A7A4C4] hover:text-[#F6F0E6] transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A8988B] hover:text-[#2C2016] transition-colors"
                   >
                     {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -175,12 +173,12 @@ export const AdminChangePasswordPage: React.FC = () => {
               </div>
 
               {/* New Password Field */}
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[#F6F0E6] uppercase tracking-wider">
-                  New Password <span className="text-rose-400">*</span>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  New Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A7A4C4]">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A8988B]">
                     <KeyRound className="w-4 h-4" />
                   </div>
                   <input
@@ -188,13 +186,13 @@ export const AdminChangePasswordPage: React.FC = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="At least 6 characters"
-                    className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#08071B]/80 border border-white/15 text-sm text-[#F6F0E6] placeholder-[#A7A4C4]/50 focus:outline-none focus:border-[#C9A45C] focus:ring-1 focus:ring-[#C9A45C] transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] placeholder-[#A8988B]/60 outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] transition-all"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowNew(!showNew)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A7A4C4] hover:text-[#F6F0E6] transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A8988B] hover:text-[#2C2016] transition-colors"
                   >
                     {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -202,11 +200,19 @@ export const AdminChangePasswordPage: React.FC = () => {
 
                 {/* Password Criteria Checklist */}
                 {newPassword && (
-                  <div className="pt-1.5 flex flex-wrap gap-3 text-[11px]">
-                    <span className={`flex items-center gap-1 ${isMinLength ? 'text-emerald-400' : 'text-[#A7A4C4]'}`}>
+                  <div className="pt-1 flex flex-wrap gap-3 text-[11px]">
+                    <span
+                      className={`flex items-center gap-1 font-medium ${
+                        isMinLength ? 'text-emerald-700' : 'text-[#8C6D3B]'
+                      }`}
+                    >
                       <CheckCircle2 className="w-3 h-3" /> Minimum 6 characters
                     </span>
-                    <span className={`flex items-center gap-1 ${hasLettersAndNumbers ? 'text-emerald-400' : 'text-[#A7A4C4]'}`}>
+                    <span
+                      className={`flex items-center gap-1 font-medium ${
+                        hasLettersAndNumbers ? 'text-emerald-700' : 'text-[#8C6D3B]'
+                      }`}
+                    >
                       <CheckCircle2 className="w-3 h-3" /> Letters & numbers recommended
                     </span>
                   </div>
@@ -214,12 +220,12 @@ export const AdminChangePasswordPage: React.FC = () => {
               </div>
 
               {/* Confirm New Password Field */}
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[#F6F0E6] uppercase tracking-wider">
-                  Confirm New Password <span className="text-rose-400">*</span>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#8C6D3B]">
+                  Confirm New Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A7A4C4]">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#A8988B]">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <input
@@ -227,30 +233,34 @@ export const AdminChangePasswordPage: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat new password"
-                    className="w-full pl-10 pr-10 py-3 rounded-2xl bg-[#08071B]/80 border border-white/15 text-sm text-[#F6F0E6] placeholder-[#A7A4C4]/50 focus:outline-none focus:border-[#C9A45C] focus:ring-1 focus:ring-[#C9A45C] transition-all"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm text-[#2C2016] placeholder-[#A8988B]/60 outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] transition-all"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A7A4C4] hover:text-[#F6F0E6] transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#A8988B] hover:text-[#2C2016] transition-colors"
                   >
                     {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {confirmPassword && newPassword && (
-                  <p className={`text-[11px] ${newPassword === confirmPassword ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <p
+                    className={`text-[11px] font-medium ${
+                      newPassword === confirmPassword ? 'text-emerald-700' : 'text-rose-600'
+                    }`}
+                  >
                     {newPassword === confirmPassword ? '✓ Passwords match' : '✕ Passwords do not match'}
                   </p>
                 )}
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-4 flex flex-col sm:flex-row items-center gap-3">
+              <div className="pt-3 flex flex-col sm:flex-row items-center gap-3">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-[#C9A45C] hover:bg-[#d6b36a] text-[#08071B] font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#C9A45C]/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-7 py-3 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-[#FAF6F0] font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -259,7 +269,7 @@ export const AdminChangePasswordPage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-4 h-4 text-[#D8B468]" />
                       <span>Update Password</span>
                     </>
                   )}
@@ -274,7 +284,7 @@ export const AdminChangePasswordPage: React.FC = () => {
                     setError(null);
                     setSuccess(null);
                   }}
-                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-xs text-[#A7A4C4] hover:text-[#F6F0E6] font-medium transition-all"
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl border border-[#E5D7C6] bg-[#FAF5EE] text-xs text-[#694316] hover:bg-[#F0E6D8] font-bold transition-all"
                 >
                   Clear Fields
                 </button>
@@ -285,37 +295,38 @@ export const AdminChangePasswordPage: React.FC = () => {
 
         {/* Security & Audit Guidelines Sidebar Card */}
         <div className="space-y-4">
-          <div className="bg-[#111033] border border-white/10 rounded-3xl p-6 space-y-4">
-            <div className="flex items-center gap-2.5 text-[#C9A45C]">
-              <Shield className="w-4 h-4" />
-              <h3 className="font-serif font-bold text-sm text-[#F6F0E6]">Security Protocol</h3>
+          <div className="bg-[#FFFDF9] border border-[#E8DCCF] rounded-3xl p-6 space-y-4 shadow-[0_4px_24px_rgba(56,38,24,0.04)]">
+            <div className="flex items-center gap-2.5 text-[#8C6D3B]">
+              <Shield className="w-5 h-5 text-[#8C6D3B]" />
+              <h3 className="font-serif font-bold text-sm text-[#2C2016]">Security Protocol</h3>
             </div>
-            <p className="text-xs text-[#A7A4C4] leading-relaxed">
-              Administrative credentials gate access to celestial card configurations, financial data, and user registries.
+            <p className="text-xs text-[#7B6E64] leading-relaxed">
+              Administrative credentials gate access to cards, store products, customers, and financial records.
             </p>
-            <ul className="space-y-2.5 text-xs text-[#A7A4C4]">
+            <ul className="space-y-2.5 text-xs text-[#5D4E43]">
               <li className="flex items-start gap-2">
-                <span className="text-[#C9A45C] font-bold">•</span>
+                <span className="text-[#8C6D3B] font-bold">•</span>
                 <span>Passwords are salted with 10 rounds of bcrypt hashing before database commit.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#C9A45C] font-bold">•</span>
+                <span className="text-[#8C6D3B] font-bold">•</span>
                 <span>Any change event is permanently stored in the immutable system Audit Trail.</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#C9A45C] font-bold">•</span>
-                <span>Never share administrative credentials or reuse consumer account passwords.</span>
+                <span className="text-[#8C6D3B] font-bold">•</span>
+                <span>Never share administrative credentials or reuse common personal passwords.</span>
               </li>
             </ul>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#08071B] border border-white/5 text-center space-y-1">
-            <span className="text-[11px] text-[#A7A4C4]">Active Session Protocol:</span>
-            <div className="text-xs font-mono text-emerald-400 font-semibold">JWT Bearer • SSL Encrypted</div>
+          <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E8DCCF] text-center space-y-1">
+            <span className="text-[11px] text-[#7B6E64]">Active Session Protocol:</span>
+            <div className="text-xs font-mono text-[#2C2016] font-semibold">JWT Bearer • SSL Encrypted</div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default AdminChangePasswordPage;

@@ -5,6 +5,7 @@ import {
   Bird,
   ChevronDown,
   CreditCard,
+  KeyRound,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { label: 'Products Management', to: '/admin/store', icon: Package },
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Transactions', to: '/admin/transactions', icon: CreditCard },
+  { label: 'Change Password', to: '/admin/change-password', icon: KeyRound },
 ] as const;
 
 const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
@@ -37,6 +39,7 @@ const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
   '/admin/orders': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
   '/admin/payments': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
   '/admin/transactions': { title: 'Transactions', subtitle: 'View and manage all payment transactions' },
+  '/admin/change-password': { title: 'Change Password', subtitle: 'Update administrative login credentials securely' },
 };
 
 export const AdminShell: React.FC = () => {
