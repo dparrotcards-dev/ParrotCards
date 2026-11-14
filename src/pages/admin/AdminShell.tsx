@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Bell,
   Bird,
   ChevronDown,
   CreditCard,
@@ -220,10 +219,6 @@ export const AdminShell: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-5">
-              <button className="relative rounded-full p-2 text-[#3b2115] transition hover:bg-[#a56a1a]/10" aria-label="Notifications">
-                <Bell className="h-7 w-7" strokeWidth={1.9} />
-                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-[#fffaf2] bg-[#bd3025]" />
-              </button>
               <details className="group relative">
                 <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl py-1.5 pl-1 pr-2 transition hover:bg-[#a56a1a]/10">
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f0e5d5] text-[#452b1b]">
