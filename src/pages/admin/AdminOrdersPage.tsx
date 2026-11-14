@@ -841,16 +841,7 @@ export const AdminOrdersPage: React.FC = () => {
               </span>
             </div>
 
-            <footer className="flex justify-between items-center border-t border-[#B9884A]/20 pt-4">
-              <button
-                onClick={() => {
-                  setSelectedOrder(null);
-                  handleOpenStatusUpdater(selectedOrder);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#B88A4F]/40 bg-[#FAF5EE] text-sm font-bold text-[#5A3810] hover:bg-[#F3EBE0] transition-colors"
-              >
-                <span>Update Shipping & Status</span>
-              </button>
+            <footer className="flex justify-end items-center border-t border-[#B9884A]/20 pt-4">
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-sm font-bold text-[#FFFDF9] transition-all shadow-xs"
