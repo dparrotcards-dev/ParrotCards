@@ -7,6 +7,13 @@ export interface AdminDashboardData {
     totalCalculations: number;
     totalOrders: number;
     paidOrdersCount: number;
+    storeStatusCounts?: {
+      delivered: number;
+      shipped: number;
+      processing: number;
+      confirmed: number;
+      cancelled: number;
+    };
     paymentSuccessRate: number;
     totalRevenueRupees: number;
     activePassesCount: number;

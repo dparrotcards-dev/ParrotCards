@@ -171,15 +171,23 @@ export const AdminOverviewPage: React.FC = () => {
   const paidOrders = metrics?.paidOrdersCount || 0;
   const pendingOrders = Math.max(totalOrders - paidOrders, 0);
 
-  const statusSlices = useMemo<StatusSlice[]>(
-    () => [
+  const statusSlices = useMemo<StatusSlice[]>(() => {
+    if (metrics?.storeStatusCounts) {
+      const counts = metrics.storeStatusCounts;
+      return [
+        { label: 'Delivered', value: counts.delivered || 0, color: '#68411d' },
+        { label: 'Shipped', value: counts.shipped || 0, color: '#a56815' },
+        { label: 'Processing', value: (counts.processing || 0) + (counts.confirmed || 0), color: '#d39b35' },
+        { label: 'Cancelled', value: counts.cancelled || 0, color: '#b82b33' },
+      ];
+    }
+    return [
       { label: 'Paid', value: paidOrders, color: '#68411d' },
       { label: 'Processing', value: pendingOrders, color: '#d39b35' },
       { label: 'Failed / Other', value: 0, color: '#e9c170' },
       { label: 'Pending', value: 0, color: '#f8dfad' },
-    ],
-    [paidOrders, pendingOrders]
-  );
+    ];
+  }, [metrics, paidOrders, pendingOrders]);
 
   const donutBackground = useMemo(() => {
     const total = statusSlices.reduce((sum, status) => sum + status.value, 0);
