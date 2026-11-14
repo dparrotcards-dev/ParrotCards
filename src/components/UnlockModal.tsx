@@ -41,7 +41,7 @@ export const UnlockModal: React.FC<UnlockModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const cardPrice = card?.price !== undefined ? card.price : 2;
+  const cardPrice = 2;
 
   // Authentication view state (for users who are not logged in)
   const [authView, setAuthView] = useState<'LOGIN' | 'REGISTER' | null>(null);

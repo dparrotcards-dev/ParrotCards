@@ -17,7 +17,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
   const [loading, setLoading] = useState<boolean>(true);
   const [interpretation, setInterpretation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const cardPrice = card?.price !== undefined ? card.price : 2;
+  const cardPrice = 2;
 
   useEffect(() => {
     if (!card) return;

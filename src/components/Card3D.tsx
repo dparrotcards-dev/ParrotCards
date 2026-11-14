@@ -47,7 +47,7 @@ export const Card3D: React.FC<Card3DProps> = ({
   onUnlockPass,
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
-  const cardPrice = card.price !== undefined ? card.price : 2;
+  const cardPrice = 2;
 
   // Auto-reset flipped state whenever the card changes or if card is locked
   useEffect(() => {
