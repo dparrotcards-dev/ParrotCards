@@ -11,7 +11,6 @@ import {
   Layers,
   Lock,
   MoreHorizontal,
-  Plus,
   RefreshCw,
   Save,
   Search,
@@ -478,17 +477,6 @@ export const AdminCardsPage: React.FC = () => {
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
           </div>
         </div>
-
-        {/* Add Card Button */}
-        <button
-          onClick={() =>
-            showToast('New card creation is not available in the current catalog API. You can edit any existing card.')
-          }
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-[#FFFDF9] font-serif font-bold text-sm tracking-wide shadow-sm hover:shadow transition-all shrink-0 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Card</span>
-        </button>
       </section>
 
       {/* 4. Table Matching the Exact UI Screenshot */}
