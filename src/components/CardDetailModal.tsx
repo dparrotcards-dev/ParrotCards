@@ -17,6 +17,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
   const [loading, setLoading] = useState<boolean>(true);
   const [interpretation, setInterpretation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const cardPrice = card?.price !== undefined ? card.price : 2;
 
   useEffect(() => {
     if (!card) return;
@@ -108,7 +109,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
             <div>
               <h3 className="font-cinzel text-xl font-bold text-[#8C6D3B]">Card Deep Wisdom is Sealed</h3>
               <p className="text-xs text-[#6B635B] mt-1 max-w-md mx-auto font-serif">
-                Unlock this specific card for ₹2, or unlock all 55 cards with a 30-day all-access deck pass for ₹25.
+                Unlock this specific card for ₹{cardPrice}, or unlock all 55 cards with a 30-day all-access deck pass for ₹25.
               </p>
             </div>
             <button
@@ -118,7 +119,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
               }}
               className="py-2.5 px-6 rounded-xl bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-xs uppercase tracking-wider shadow-md transition-all active:scale-95"
             >
-              Unlock Now · ₹2
+              Unlock Now · ₹{cardPrice}
             </button>
           </div>
         ) : loading ? (

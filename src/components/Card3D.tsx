@@ -47,6 +47,7 @@ export const Card3D: React.FC<Card3DProps> = ({
   onUnlockPass,
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const cardPrice = card.price !== undefined ? card.price : 2;
 
   // Auto-reset flipped state whenever the card changes or if card is locked
   useEffect(() => {
@@ -178,7 +179,7 @@ export const Card3D: React.FC<Card3DProps> = ({
               </div>
             ) : (
               <div className="px-2 py-0.5 rounded-full bg-[#FAF0D9] text-[#8C6D3B] font-sans font-bold text-[8px] sm:text-[8.5px] tracking-wider uppercase border border-[#D5B87D] shadow-xs">
-                ₹2 PAID
+                ₹{cardPrice} PAID
               </div>
             )}
           </div>
@@ -253,7 +254,7 @@ export const Card3D: React.FC<Card3DProps> = ({
                   }}
                   className="w-full py-2 px-3.5 rounded-xl bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all"
                 >
-                  Unlock Card · ₹2
+                  Unlock Card · ₹{cardPrice}
                 </button>
                 <button
                   onClick={(e) => {
@@ -316,7 +317,7 @@ export const Card3D: React.FC<Card3DProps> = ({
                 }}
                 className="py-1.5 px-3 rounded-lg bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-[11px] uppercase tracking-wider shadow-md active:scale-95 transition-all"
               >
-                Unlock Card · ₹2
+                Unlock Card · ₹{cardPrice}
               </button>
             </div>
           ) : !hasAstroData ? (
