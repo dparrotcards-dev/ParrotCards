@@ -7,7 +7,6 @@ import {
   Package,
   RefreshCw,
   ShoppingCart,
-  Truck,
   Users,
 } from 'lucide-react';
 import { adminService, AdminDashboardData } from '../../services/adminService';
@@ -230,12 +229,11 @@ export const AdminOverviewPage: React.FC = () => {
     <div className="space-y-5 pb-5">
       {error && <div className="rounded-2xl border border-[#bd5c46]/35 bg-[#fbebe4] px-4 py-3 text-sm text-[#8a3228]">{error}</div>}
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Total Products" value={numberFormat.format(productTotal)} icon={<Box className="h-9 w-9" strokeWidth={1.7} />} />
         <MetricCard label="Total Customers" value={numberFormat.format(metrics?.totalUsers || 0)} icon={<Users className="h-9 w-9" strokeWidth={1.7} />} />
         <MetricCard label="Total Orders" value={numberFormat.format(totalOrders)} icon={<ShoppingCart className="h-9 w-9" strokeWidth={1.7} />} />
         <MetricCard label="Total Revenue" value={`₹ ${moneyFormat.format(metrics?.totalRevenueRupees || 0)}`} valueClassName="text-[30px]" icon={<span className="font-serif text-[44px] font-bold leading-none">₹</span>} />
-        <MetricCard label="Pending Orders" value={numberFormat.format(pendingOrders)} icon={<Truck className="h-9 w-9" strokeWidth={1.7} />} />
       </section>
 
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
