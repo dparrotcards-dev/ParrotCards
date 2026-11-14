@@ -267,7 +267,6 @@ export const AdminCardsPage: React.FC = () => {
       await adminService.updateCard(editingCard.id, {
         line: editForm.line,
         isFreeByDefault: editForm.isFreeByDefault,
-        price: editForm.isFreeByDefault ? 0 : editForm.price,
       });
       showToast(`${editingCard.title} was updated successfully.`);
       setEditingCard(null);
@@ -509,9 +508,6 @@ export const AdminCardsPage: React.FC = () => {
                   Access
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
-                  Price
-                </th>
-                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
                   Action
                 </th>
               </tr>
@@ -519,7 +515,7 @@ export const AdminCardsPage: React.FC = () => {
             <tbody className="divide-y divide-[#F0E5D8]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center text-[#735e49]">
+                  <td colSpan={6} className="py-20 text-center text-[#735e49]">
                     <span className="mx-auto mb-3 block h-8 w-8 rounded-full border-2 border-[#8C6D3B] border-t-transparent animate-spin" />
                     <span className="font-serif text-sm">Loading 55-card catalog…</span>
                   </td>
@@ -598,11 +594,6 @@ export const AdminCardsPage: React.FC = () => {
                         </button>
                       </td>
 
-                      {/* Price */}
-                      <td className="py-3.5 px-4 text-center font-semibold text-sm text-[#2C2016]">
-                        {card.isFreeByDefault ? '—' : `₹${card.price ?? 2}`}
-                      </td>
-
                       {/* Action */}
                       <td className="py-3.5 px-4 text-center">
                         <div className="inline-flex items-center justify-center gap-1">
@@ -629,7 +620,7 @@ export const AdminCardsPage: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center italic text-[#806A57]">
+                  <td colSpan={6} className="py-16 text-center italic text-[#806A57]">
                     No cards match the selected filters.
                   </td>
                 </tr>
@@ -940,82 +931,54 @@ export const AdminCardsPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-                    {/* Left: Access Type */}
-                    <div className="sm:border-r sm:border-[#EADCCE] sm:pr-6 space-y-1.5">
-                      <span className="block text-xs font-serif font-bold text-[#4A3828]">
-                        Access Type
-                      </span>
-                      <div className="flex items-center gap-2.5">
-                        {/* Free Option */}
-                        <button
-                          type="button"
-                          onClick={() => setEditForm({ ...editForm, isFreeByDefault: true, price: 0 })}
-                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
-                            editForm.isFreeByDefault
-                              ? 'bg-[#F5E8D6] border-[#D4B896] text-[#2C2016] font-bold shadow-2xs'
-                              : 'bg-[#FFFDF9] border-[#E5D7C6] text-[#6E5A48] hover:bg-[#FAF6F0]'
+                  <div className="space-y-1.5">
+                    <span className="block text-xs font-serif font-bold text-[#4A3828]">
+                      Access Type
+                    </span>
+                    <div className="flex items-center gap-3 max-w-xs">
+                      {/* Free Option */}
+                      <button
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, isFreeByDefault: true })}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                          editForm.isFreeByDefault
+                            ? 'bg-[#F5E8D6] border-[#D4B896] text-[#2C2016] font-bold shadow-2xs'
+                            : 'bg-[#FFFDF9] border-[#E5D7C6] text-[#6E5A48] hover:bg-[#FAF6F0]'
+                        }`}
+                      >
+                        <span
+                          className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                            editForm.isFreeByDefault ? 'border-[#382618]' : 'border-[#B49E87]'
                           }`}
                         >
-                          <span
-                            className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                              editForm.isFreeByDefault ? 'border-[#382618]' : 'border-[#B49E87]'
-                            }`}
-                          >
-                            {editForm.isFreeByDefault && (
-                              <span className="w-2 h-2 rounded-full bg-[#382618]" />
-                            )}
-                          </span>
-                          <span>Free</span>
-                        </button>
-
-                        {/* Paid Option */}
-                        <button
-                          type="button"
-                          onClick={() => setEditForm({ ...editForm, isFreeByDefault: false, price: editForm.price || 2 })}
-                          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
-                            !editForm.isFreeByDefault
-                              ? 'bg-[#F5E8D6] border-[#D4B896] text-[#2C2016] font-bold shadow-2xs'
-                              : 'bg-[#FFFDF9] border-[#E5D7C6] text-[#6E5A48] hover:bg-[#FAF6F0]'
-                          }`}
-                        >
-                          <span
-                            className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                              !editForm.isFreeByDefault ? 'border-[#382618]' : 'border-[#B49E87]'
-                            }`}
-                          >
-                            {!editForm.isFreeByDefault && (
-                              <span className="w-2 h-2 rounded-full bg-[#382618]" />
-                            )}
-                          </span>
-                          <span>Paid</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Right: Unlock Price (₹) */}
-                    <div className="space-y-1.5">
-                      <span className="block text-xs font-serif font-bold text-[#4A3828]">
-                        Unlock Price (₹)
-                      </span>
-                      <div className="relative flex items-center">
-                        <span className="absolute left-3.5 pointer-events-none font-serif text-sm font-bold text-[#5A4838]">
-                          ₹
+                          {editForm.isFreeByDefault && (
+                            <span className="w-2 h-2 rounded-full bg-[#382618]" />
+                          )}
                         </span>
-                        <input
-                          type="number"
-                          min="0"
-                          disabled={editForm.isFreeByDefault}
-                          value={editForm.isFreeByDefault ? 0 : editForm.price}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              price: Math.max(0, Number(e.target.value) || 0),
-                            })
-                          }
-                          className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-bold text-[#2C2016] outline-none focus:border-[#8C6D3B] focus:ring-1 focus:ring-[#8C6D3B] disabled:opacity-50 disabled:bg-[#F7F3EC] shadow-2xs"
-                        />
-                      </div>
+                        <span>Free</span>
+                      </button>
+
+                      {/* Paid Option */}
+                      <button
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, isFreeByDefault: false })}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all cursor-pointer ${
+                          !editForm.isFreeByDefault
+                            ? 'bg-[#F5E8D6] border-[#D4B896] text-[#2C2016] font-bold shadow-2xs'
+                            : 'bg-[#FFFDF9] border-[#E5D7C6] text-[#6E5A48] hover:bg-[#FAF6F0]'
+                        }`}
+                      >
+                        <span
+                          className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                            !editForm.isFreeByDefault ? 'border-[#382618]' : 'border-[#B49E87]'
+                          }`}
+                        >
+                          {!editForm.isFreeByDefault && (
+                            <span className="w-2 h-2 rounded-full bg-[#382618]" />
+                          )}
+                        </span>
+                        <span>Paid</span>
+                      </button>
                     </div>
                   </div>
                 </div>
