@@ -24,7 +24,7 @@ import {
 import { adminService } from '../../services/adminService';
 
 export type PaymentStatus = 'Success' | 'Failed' | 'Refunded';
-export type PaymentMethod = 'UPI' | 'Credit Card' | 'Net Banking' | 'Wallet';
+export type PaymentMethod = 'UPI' | 'Credit Card' | 'Net Banking' | 'Wallet' | 'Cash on Delivery' | '—';
 
 export interface TransactionRecord {
   id: string;
@@ -50,40 +50,64 @@ const PAGE_SIZE = 10;
 /**
  * Payment method pill badge matching reference screenshot
  */
-const PaymentMethodBadge: React.FC<{ method: PaymentMethod }> = ({ method }) => {
-  switch (method) {
-    case 'UPI':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF4E8] text-[#8A4810] border border-[#FADCC0]">
-          <span className="font-mono font-black italic tracking-tighter text-[11px] leading-none text-[#C45E1B]">
-            UPI
-          </span>
-          <span>UPI</span>
-        </span>
-      );
-    case 'Credit Card':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#F3EEF9] text-[#6E4298] border border-[#E1D4ED]">
-          <CreditCard className="w-3.5 h-3.5 text-[#6E4298]" />
-          <span>Credit Card</span>
-        </span>
-      );
-    case 'Net Banking':
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EEF5FC] text-[#29689C] border border-[#CCE2F7]">
-          <Landmark className="w-3.5 h-3.5 text-[#29689C]" />
-          <span>Net Banking</span>
-        </span>
-      );
-    case 'Wallet':
-    default:
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FDF0EE] text-[#9E3E34] border border-[#FADCD7]">
-          <Wallet className="w-3.5 h-3.5 text-[#9E3E34]" />
-          <span>Wallet</span>
-        </span>
-      );
+const PaymentMethodBadge: React.FC<{ method?: PaymentMethod | string }> = ({ method }) => {
+  const norm = (method || '').trim().toLowerCase();
+
+  if (!norm || norm === '—' || norm === 'none' || norm === 'undefined' || norm === 'null') {
+    return <span className="font-mono text-sm text-[#8C7A68]">—</span>;
   }
+
+  if (norm.includes('card')) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#F3EEF9] text-[#6E4298] border border-[#E1D4ED]">
+        <CreditCard className="w-3.5 h-3.5 text-[#6E4298]" />
+        <span>Credit Card</span>
+      </span>
+    );
+  }
+
+  if (norm.includes('bank') || norm.includes('netbanking')) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#EEF5FC] text-[#29689C] border border-[#CCE2F7]">
+        <Landmark className="w-3.5 h-3.5 text-[#29689C]" />
+        <span>Net Banking</span>
+      </span>
+    );
+  }
+
+  if (norm.includes('wallet')) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FDF0EE] text-[#9E3E34] border border-[#FADCD7]">
+        <Wallet className="w-3.5 h-3.5 text-[#9E3E34]" />
+        <span>Wallet</span>
+      </span>
+    );
+  }
+
+  if (norm.includes('cod') || norm.includes('cash')) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#F0F7F0] text-[#2D6A2E] border border-[#D0E7D0]">
+        <span>Cash on Delivery</span>
+      </span>
+    );
+  }
+
+  if (norm.includes('upi')) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FFF4E8] text-[#8A4810] border border-[#FADCC0]">
+        <span className="font-mono font-black italic tracking-tighter text-[11px] leading-none text-[#C45E1B]">
+          UPI
+        </span>
+        <span>UPI</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FAF5EE] text-[#5A4838] border border-[#E5D7C6]">
+      <span>{method}</span>
+    </span>
+  );
 };
 
 /**
@@ -149,13 +173,19 @@ export const AdminPaymentsPage: React.FC = () => {
           const isRefund = p.status === 'REFUNDED' || p.status === 'refunded';
           const resolvedStatus: PaymentStatus = isSuccess ? 'Success' : isRefund ? 'Refunded' : 'Failed';
 
-          let resolvedMethod: PaymentMethod = 'UPI';
+          let resolvedMethod: PaymentMethod = '—';
           const rawMethod = (p.paymentMethod || '').trim().toLowerCase();
-          if (rawMethod.includes('card')) resolvedMethod = 'Credit Card';
-          else if (rawMethod.includes('bank')) resolvedMethod = 'Net Banking';
-          else if (rawMethod.includes('wallet')) resolvedMethod = 'Wallet';
-          else {
+          if (rawMethod && rawMethod !== '—' && rawMethod !== 'none') {
+            if (rawMethod.includes('card')) resolvedMethod = 'Credit Card';
+            else if (rawMethod.includes('bank') || rawMethod.includes('netbanking')) resolvedMethod = 'Net Banking';
+            else if (rawMethod.includes('wallet')) resolvedMethod = 'Wallet';
+            else if (rawMethod.includes('upi')) resolvedMethod = 'UPI';
+            else if (rawMethod.includes('cod') || rawMethod.includes('cash')) resolvedMethod = 'Cash on Delivery';
+            else resolvedMethod = p.paymentMethod;
+          } else if (isSuccess) {
             resolvedMethod = 'UPI';
+          } else {
+            resolvedMethod = '—';
           }
 
           const rawAmount = p.amountRupees ?? (p.amountPaise ? Math.round(p.amountPaise / 100) : 0);
@@ -238,7 +268,9 @@ export const AdminPaymentsPage: React.FC = () => {
       const matchesStatus =
         statusFilter === 'all' || t.status.toLowerCase() === statusFilter.toLowerCase();
       const matchesMethod =
-        methodFilter === 'all' || t.paymentMethod.toLowerCase() === methodFilter.toLowerCase();
+        methodFilter === 'all' ||
+        (methodFilter === 'none' && t.paymentMethod === '—') ||
+        (t.paymentMethod !== '—' && t.paymentMethod.toLowerCase() === methodFilter.toLowerCase());
       const matchesType =
         typeFilter === 'all' ||
         (typeFilter === 'cards' && t.itemType === 'CARD_UNLOCK') ||
@@ -440,6 +472,8 @@ export const AdminPaymentsPage: React.FC = () => {
               <option value="credit card">Credit Card</option>
               <option value="net banking">Net Banking</option>
               <option value="wallet">Wallet</option>
+              <option value="cash on delivery">Cash on Delivery</option>
+              <option value="none">Not Attempted (—)</option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
           </div>
