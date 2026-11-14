@@ -31,7 +31,7 @@ const NAV_ITEMS = [
 ] as const;
 
 const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
-  '/admin/dashboard': { title: 'Dashboard', subtitle: 'Cosmic Store Overview & Insights' },
+  '/admin/dashboard': { title: 'Dashboard', subtitle: 'Overview & Insights' },
   '/admin/users': { title: 'Users', subtitle: 'Manage customers and their account details' },
   '/admin/cards': { title: 'Cards Management', subtitle: 'Manage all 55 cards, their content, and access settings.' },
   '/admin/store': { title: 'Products Management', subtitle: 'Manage all store products, categories, price and inventory' },
@@ -85,7 +85,7 @@ export const AdminShell: React.FC = () => {
 
   const currentPage = PAGE_COPY[location.pathname] || {
     title: 'Admin Panel',
-    subtitle: 'Parrot Cards cosmic store administration',
+    subtitle: 'Parrot Cards administration',
   };
 
   const navigation = () => (
@@ -115,7 +115,7 @@ export const AdminShell: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#fbf5ea] flex flex-col items-center justify-center gap-4 text-[#382219]">
         <div className="h-10 w-10 rounded-full border-2 border-[#a86a12] border-t-transparent animate-spin" />
-        <p className="font-serif text-base">Opening your cosmic store console…</p>
+        <p className="font-serif text-base">Opening your admin console…</p>
       </div>
     );
   }
@@ -178,10 +178,13 @@ export const AdminShell: React.FC = () => {
               <Bird className="h-[57px] w-[57px] text-[#a8650c]" strokeWidth={1.2} />
             </div>
             <div className="mt-[-2px] font-serif text-[26px] font-bold tracking-[0.02em] text-[#331a0f]">PARROT CARDS</div>
-            <div className="admin-brand-divider mx-auto mt-2 w-[162px]" />
-            <p className="mt-2 font-serif text-[12px] font-bold tracking-[0.16em] uppercase text-[#6B4E36] leading-tight">
-              COSMIC STORE<br />ADMIN PANEL
-            </p>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <span className="h-[1px] w-5 bg-[#A8650C]/45" />
+              <p className="font-serif text-[12px] font-bold tracking-[0.18em] uppercase text-[#6B4E36]">
+                ADMIN PANEL
+              </p>
+              <span className="h-[1px] w-5 bg-[#A8650C]/45" />
+            </div>
           </div>
 
           <div className="border-t border-[#a96e21]/20 px-2 py-5">{navigation()}</div>

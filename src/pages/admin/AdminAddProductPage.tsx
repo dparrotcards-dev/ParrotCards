@@ -119,7 +119,7 @@ export const AdminAddProductPage: React.FC = () => {
         <div className="flex items-center gap-2 text-[11px] font-medium">
           <span className="text-[#AAA8B5]">Console</span>
           <span className="text-white/30">/</span>
-          <span className="text-[#C9A45C]">Cosmic Store</span>
+          <span className="text-[#C9A45C]">Products</span>
           <span className="text-white/30">/</span>
           <span className="text-[#F4F0E7]">Add Product</span>
         </div>
@@ -128,9 +128,9 @@ export const AdminAddProductPage: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
         <div>
           <h1 className="font-serif text-2xl font-bold uppercase tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-[#D8A83F] via-[#FFF0C8] to-[#C9A45C] sm:text-3xl">
-            Add Cosmic Product
+            Add Product
           </h1>
-          <p className="font-serif text-xs italic text-[#A7A4C4]">Create a new product for your cosmic store.</p>
+          <p className="font-serif text-xs italic text-[#A7A4C4]">Create a new product for your catalog.</p>
         </div>
         <Link
           to="/admin/store"
