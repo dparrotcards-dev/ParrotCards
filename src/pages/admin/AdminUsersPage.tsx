@@ -3,7 +3,6 @@ import {
   AlertCircle,
   AlertTriangle,
   CheckCircle2,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -81,11 +80,10 @@ const initials = (name: string) =>
 
 const exportCsv = (users: AdminUser[]) => {
   const rows = [
-    ['Customer', 'Email', 'Role', 'Registered On', 'Total Orders', 'Total Spent'],
+    ['Customer', 'Email', 'Registered On', 'Total Orders', 'Total Spent'],
     ...users.map((user) => [
       user.name,
       user.email,
-      user.role,
       formatDateTime(user.createdAt),
       String(user.totalOrders),
       String(user.totalSpentRupees),
@@ -133,8 +131,6 @@ export const AdminUsersPage: React.FC = () => {
   const [metrics, setMetrics] = useState<UserMetrics>(EMPTY_METRICS);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('user');
-  const [orderFilter, setOrderFilter] = useState<'all' | 'with_orders' | 'no_orders'>('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -158,7 +154,6 @@ export const AdminUsersPage: React.FC = () => {
         page: requestedPage,
         limit: 8,
         search,
-        role: roleFilter,
       });
       setUsers(data.users || []);
       setMetrics(data.metrics || EMPTY_METRICS);
@@ -174,13 +169,9 @@ export const AdminUsersPage: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, roleFilter]);
+  }, [page]);
 
-  const visibleUsers = useMemo(() => {
-    if (orderFilter === 'with_orders') return users.filter((user) => user.totalOrders > 0);
-    if (orderFilter === 'no_orders') return users.filter((user) => user.totalOrders === 0);
-    return users;
-  }, [users, orderFilter]);
+  const visibleUsers = users;
 
   const firstCustomerNumber = totalCount ? (page - 1) * 8 + 1 : 0;
   const lastCustomerNumber = totalCount ? Math.min((page - 1) * 8 + users.length, totalCount) : 0;
@@ -241,7 +232,7 @@ export const AdminUsersPage: React.FC = () => {
         <CustomerMetric label="Total Customer Spending" value={`₹ ${moneyFormat.format(metrics.totalCustomerSpendingRupees)}`} icon={<span className="font-serif text-[44px] font-bold leading-none">₹</span>} />
       </section>
 
-      <section className="admin-customer-filters flex flex-col gap-3 p-3 sm:p-4 xl:flex-row xl:items-center">
+      <section className="admin-customer-filters flex flex-col gap-3 p-3 sm:p-4 sm:flex-row sm:items-center">
         <form onSubmit={handleSearchSubmit} className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#2f2118]" strokeWidth={2.25} />
           <input
@@ -253,46 +244,14 @@ export const AdminUsersPage: React.FC = () => {
           />
         </form>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:w-[770px]">
-          <label className="relative">
-            <span className="sr-only">Filter by order count</span>
-            <select
-              value={orderFilter}
-              onChange={(event) => setOrderFilter(event.target.value as typeof orderFilter)}
-              className="h-[52px] w-full appearance-none rounded-xl border border-[#b78a4f]/35 bg-[#fffdf9] px-4 pr-10 font-serif text-[17px] font-bold text-[#342117] outline-none focus:border-[#98641c]"
-            >
-              <option value="all">Order Count: All</option>
-              <option value="with_orders">With Orders</option>
-              <option value="no_orders">No Orders Yet</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2" />
-          </label>
-          <label className="relative">
-            <span className="sr-only">Filter by account type</span>
-            <select
-              value={roleFilter}
-              onChange={(event) => {
-                setRoleFilter(event.target.value);
-                setPage(1);
-              }}
-              className="h-[52px] w-full appearance-none rounded-xl border border-[#b78a4f]/35 bg-[#fffdf9] px-4 pr-10 font-serif text-[17px] font-bold text-[#342117] outline-none focus:border-[#98641c]"
-            >
-              <option value="user">Customer Status: Active</option>
-              <option value="ALL">Customer Status: All</option>
-              <option value="admin">Administrators</option>
-              <option value="superadmin">Super Admins</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2" />
-          </label>
-          <button
-            onClick={() => exportCsv(visibleUsers)}
-            type="button"
-            className="flex h-[52px] items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[#6a3507] to-[#572906] px-5 font-serif text-[18px] font-bold text-[#fff9ed] shadow-[0_3px_8px_rgba(77,38,3,0.2)] transition hover:brightness-110"
-          >
-            <Download className="h-5 w-5" />
-            Export
-          </button>
-        </div>
+        <button
+          onClick={() => exportCsv(visibleUsers)}
+          type="button"
+          className="flex h-[52px] shrink-0 items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-[#6a3507] to-[#572906] px-6 font-serif text-[18px] font-bold text-[#fff9ed] shadow-[0_3px_8px_rgba(77,38,3,0.2)] transition hover:brightness-110"
+        >
+          <Download className="h-5 w-5" />
+          Export
+        </button>
       </section>
 
       <section className="admin-paper-panel overflow-hidden">
@@ -303,18 +262,16 @@ export const AdminUsersPage: React.FC = () => {
                 <th>#</th>
                 <th>Customer</th>
                 <th>Email</th>
-                <th>Account Type</th>
                 <th>Registered On</th>
                 <th className="text-center">Total Orders</th>
                 <th className="text-right">Total Spent</th>
-                <th className="text-center">Status</th>
                 <th className="text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-14 text-center text-[#735e49]">
+                  <td colSpan={7} className="py-14 text-center text-[#735e49]">
                     <span className="mx-auto mb-3 block h-7 w-7 rounded-full border-2 border-[#b67619] border-t-transparent animate-spin" />
                     Loading customer records…
                   </td>
@@ -334,11 +291,9 @@ export const AdminUsersPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="text-[15px]">{customer.email}</td>
-                      <td className="capitalize text-[15px]">{customer.role.replace(/_/g, ' ')}</td>
                       <td className="text-[15px]">{formatDateTime(customer.createdAt)}</td>
                       <td className="text-center font-semibold">{numberFormat.format(customer.totalOrders)}</td>
                       <td className="text-right font-semibold">₹ {moneyFormat.format(customer.totalSpentRupees)}</td>
-                      <td className="text-center"><span className="admin-user-active"><i /> Active</span></td>
                       <td>
                         <div className="flex items-center justify-center gap-2">
                           <button onClick={() => handleInspectUser(customer.id)} className="admin-row-action" title="View customer details" aria-label={`View ${customer.name}`}>
@@ -360,7 +315,7 @@ export const AdminUsersPage: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-14 text-center italic text-[#806a57]">No customers match the selected filters.</td>
+                  <td colSpan={7} className="py-14 text-center italic text-[#806a57]">No customers found.</td>
                 </tr>
               )}
             </tbody>
