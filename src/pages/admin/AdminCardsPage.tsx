@@ -154,7 +154,6 @@ export const AdminCardsPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<CardTab>('ALL');
   const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'paid'>('all');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
 
   // Modals
@@ -476,22 +475,6 @@ export const AdminCardsPage: React.FC = () => {
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
           </div>
-
-          {/* Status Filter Dropdown */}
-          <div className="relative min-w-[140px]">
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                resetToFirstPage();
-              }}
-              className="w-full appearance-none pl-3.5 pr-8 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-medium text-[#2C2016] focus:border-[#8C6D3B] outline-none cursor-pointer shadow-2xs"
-            >
-              <option value="all">Status: All</option>
-              <option value="active">Status: Active</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C6D3B]" />
-          </div>
         </div>
 
         {/* Add Card Button */}
@@ -525,26 +508,20 @@ export const AdminCardsPage: React.FC = () => {
                   Suit
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
-                  Card Type
-                </th>
-                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
                   Access
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
-                  Price (₹)
+                  Price
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
-                  Status
-                </th>
-                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider text-center">
-                  Actions
+                  Action
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F0E5D8]">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-20 text-center text-[#735e49]">
+                  <td colSpan={7} className="py-20 text-center text-[#735e49]">
                     <span className="mx-auto mb-3 block h-8 w-8 rounded-full border-2 border-[#8C6D3B] border-t-transparent animate-spin" />
                     <span className="font-serif text-sm">Loading 55-card catalog…</span>
                   </td>
@@ -552,7 +529,6 @@ export const AdminCardsPage: React.FC = () => {
               ) : displayedCards.length ? (
                 displayedCards.map((card, index) => {
                   const meta = SUIT_META[card.suit] || SUIT_META.Dharma;
-                  const typeBadge = getCardTypeBadge(card);
                   const identifier = getCardIdentifier(card);
                   const isKama = card.suit === 'Kama';
 
@@ -599,15 +575,6 @@ export const AdminCardsPage: React.FC = () => {
                         </span>
                       </td>
 
-                      {/* Card Type Pill */}
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${typeBadge.classes}`}
-                        >
-                          {typeBadge.label}
-                        </span>
-                      </td>
-
                       {/* Access Setting */}
                       <td className="py-3.5 px-4">
                         <button
@@ -633,20 +600,12 @@ export const AdminCardsPage: React.FC = () => {
                         </button>
                       </td>
 
-                      {/* Price (₹) */}
+                      {/* Price */}
                       <td className="py-3.5 px-4 text-center font-semibold text-sm text-[#2C2016]">
                         {card.isFreeByDefault ? '—' : card.price || 299}
                       </td>
 
-                      {/* Status */}
-                      <td className="py-3.5 px-4 text-center">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#EAF7EE] text-[#1D7E33] border border-[#C6EED0]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#1D7E33]" />
-                          <span>Active</span>
-                        </span>
-                      </td>
-
-                      {/* Actions */}
+                      {/* Action */}
                       <td className="py-3.5 px-4 text-center">
                         <div className="inline-flex items-center justify-center gap-1">
                           <button
@@ -672,7 +631,7 @@ export const AdminCardsPage: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-16 text-center italic text-[#806A57]">
+                  <td colSpan={7} className="py-16 text-center italic text-[#806A57]">
                     No cards match the selected filters.
                   </td>
                 </tr>
