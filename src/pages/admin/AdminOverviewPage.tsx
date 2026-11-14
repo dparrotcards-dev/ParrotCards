@@ -29,33 +29,6 @@ type StatusSlice = {
 const numberFormat = new Intl.NumberFormat('en-IN');
 const moneyFormat = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
 
-const fallbackProducts: StoreProduct[] = [
-  {
-    id: 'catalog-rudraksha',
-    name: 'Rudraksha',
-    shortDescription: 'Spiritual Protection & Energy',
-    category: 'Rudraksha',
-    priceRupees: 0,
-    imageUrl: '/store_rudraksha_bracelet.jpg',
-  },
-  {
-    id: 'catalog-gemstone',
-    name: 'Gemstones',
-    shortDescription: 'Healing & Planetary Balance',
-    category: 'Gemstones',
-    priceRupees: 0,
-    imageUrl: '/store_cosmic_watch.jpg',
-  },
-  {
-    id: 'catalog-yantra',
-    name: 'Sacred Yantras',
-    shortDescription: 'Wealth, Protection & Harmony',
-    category: 'Yantra',
-    priceRupees: 0,
-    imageUrl: '/card_emblem_sun.png',
-  },
-];
-
 const formatDate = (date?: string) => {
   if (!date) return '—';
   const parsed = new Date(date);
@@ -223,8 +196,6 @@ export const AdminOverviewPage: React.FC = () => {
     return `conic-gradient(${stops.join(', ')})`;
   }, [statusSlices]);
 
-  const displayProducts = products.length ? products : fallbackProducts;
-
   return (
     <div className="space-y-5 pb-5">
       {error && <div className="rounded-2xl border border-[#bd5c46]/35 bg-[#fbebe4] px-4 py-3 text-sm text-[#8a3228]">{error}</div>}
@@ -276,7 +247,7 @@ export const AdminOverviewPage: React.FC = () => {
         </article>
       </section>
 
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(350px,0.95fr)]">
+      <section className="grid grid-cols-1 gap-5">
         <article className="admin-paper-panel overflow-hidden p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-serif text-[27px] font-bold leading-none text-[#2c180f]">Recent Orders</h2>
@@ -300,7 +271,7 @@ export const AdminOverviewPage: React.FC = () => {
               </thead>
               <tbody>
                 {data?.recentOrders?.length ? (
-                  data.recentOrders.slice(0, 5).map((order) => {
+                  data.recentOrders.slice(0, 6).map((order) => {
                     const status = orderStatus(order.status);
                     const formattedOrderId = order.orderId
                       ? (order.orderId.startsWith('#') ? order.orderId : `#${order.orderId}`)
@@ -326,43 +297,6 @@ export const AdminOverviewPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </article>
-
-        <article className="admin-paper-panel p-4 sm:p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="font-serif text-[27px] font-bold leading-none text-[#2c180f]">Top Selling Products</h2>
-            <button onClick={() => navigate('/admin/store')} className="group flex items-center gap-1.5 whitespace-nowrap font-serif text-[15px] font-bold text-[#5d360e] transition hover:text-[#9b5e0b]">
-              <span>View All</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </button>
-          </div>
-          <div className="divide-y divide-[#b9884a]/20">
-            {displayProducts.slice(0, 3).map((product) => (
-              <div key={product.id} className="flex min-h-[77px] items-center gap-3 py-2 first:pt-0 last:pb-0">
-                <div className="h-[68px] w-[74px] shrink-0 overflow-hidden rounded-lg bg-[#f0e6d5]">
-                  <img
-                    src={product.imageUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-serif text-[19px] font-bold leading-tight text-[#382116]">{product.name}</div>
-                  <div className="mt-0.5 truncate font-serif text-[15px] leading-tight text-[#5e4837]">{product.shortDescription || product.category}</div>
-                </div>
-                <div className="text-right font-serif">
-                  <div className="text-[18px] font-bold leading-tight text-[#3b2114]">
-                    {product.priceRupees ? `₹ ${moneyFormat.format(product.priceRupees)}` : product.category}
-                  </div>
-                  <div className="text-[13px] leading-tight text-[#654a33]">{products.length ? 'Listed' : 'Catalogue'}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {!products.length && <p className="mt-3 text-xs italic text-[#8c725b]">These are catalogue placeholders until products are added to your store.</p>}
         </article>
       </section>
     </div>
