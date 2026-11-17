@@ -16,6 +16,9 @@ export interface AdminDashboardData {
     };
     paymentSuccessRate: number;
     totalRevenueRupees: number;
+    cardUnlocksRevenue?: number;
+    deckPassesRevenue?: number;
+    storeProductsRevenue?: number;
     activePassesCount: number;
     aiInterpretationsCount: number;
     fallbackInterpretationsCount: number;

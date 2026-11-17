@@ -55,11 +55,13 @@ const MetricCard: React.FC<{
   value: React.ReactNode;
   icon: React.ReactNode;
   valueClassName?: string;
-}> = ({ label, value, icon, valueClassName = '' }) => (
+  subtitle?: React.ReactNode;
+}> = ({ label, value, icon, valueClassName = '', subtitle }) => (
   <article className="admin-stat-card flex min-h-[148px] flex-col items-center justify-center px-3 py-4 text-center">
     <div className="mb-2 text-[#9a6113]">{icon}</div>
     <h2 className="font-serif text-[18px] font-bold leading-tight text-[#2c180f]">{label}</h2>
     <div className={`mt-1 font-serif text-[36px] font-bold leading-none tracking-[-0.04em] text-[#30170e] ${valueClassName}`}>{value}</div>
+    {subtitle && <div className="mt-2 text-[11px] font-medium text-[#7d6756] leading-tight">{subtitle}</div>}
   </article>
 );
 
@@ -142,7 +144,19 @@ export const AdminOverviewPage: React.FC = () => {
         <MetricCard label="Total Products" value={numberFormat.format(productTotal)} icon={<Box className="h-9 w-9" strokeWidth={1.7} />} />
         <MetricCard label="Total Customers" value={numberFormat.format(metrics?.totalUsers || 0)} icon={<Users className="h-9 w-9" strokeWidth={1.7} />} />
         <MetricCard label="Total Orders" value={numberFormat.format(totalOrders)} icon={<ShoppingCart className="h-9 w-9" strokeWidth={1.7} />} />
-        <MetricCard label="Total Revenue" value={`₹ ${moneyFormat.format(metrics?.totalRevenueRupees || 0)}`} valueClassName="text-[30px]" icon={<span className="font-serif text-[44px] font-bold leading-none">₹</span>} />
+        <MetricCard
+          label="Total Revenue"
+          value={`₹ ${moneyFormat.format(metrics?.totalRevenueRupees || 0)}`}
+          valueClassName="text-[30px]"
+          icon={<span className="font-serif text-[44px] font-bold leading-none">₹</span>}
+          subtitle={
+            metrics ? (
+              <span>
+                Cards: ₹{moneyFormat.format(metrics.cardUnlocksRevenue || 0)} • Passes: ₹{moneyFormat.format(metrics.deckPassesRevenue || 0)} • Store: ₹{moneyFormat.format(metrics.storeProductsRevenue || 0)}
+              </span>
+            ) : undefined
+          }
+        />
       </section>
 
       <section className="grid grid-cols-1 gap-5">
