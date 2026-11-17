@@ -9,6 +9,8 @@ import {
   User,
   X,
   ExternalLink,
+  Check,
+  AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -47,6 +49,34 @@ const getStatusBadge = (status: string) => {
         pillClass: 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]',
       };
   }
+};
+
+const formatOrderDate = (dateVal: any) => {
+  const d = new Date(dateVal || Date.now());
+  return d.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+const formatStepTime = (dateVal: any, addMinutes = 0) => {
+  const d = new Date(dateVal || Date.now());
+  if (addMinutes) {
+    d.setMinutes(d.getMinutes() + addMinutes);
+  }
+  const dateStr = d.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+  });
+  const timeStr = d
+    .toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+    .toLowerCase();
+  return `${dateStr}, ${timeStr}`;
 };
 
 export const MyOrdersPage: React.FC = () => {
@@ -248,176 +278,341 @@ export const MyOrdersPage: React.FC = () => {
         )}
       </section>
 
-      {/* Modal: View Single Order Details */}
-      {selectedOrderModal && (
-        <div
-          className="fixed inset-0 z-60 flex items-center justify-center bg-[#2a170b]/55 p-4 backdrop-blur-xs"
-          onClick={() => setSelectedOrderModal(null)}
-        >
-          <section
-            className="bg-[#FFFDF9] border border-[#E8DCCF] rounded-3xl max-h-[92vh] w-full max-w-2xl overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-4 text-left"
-            onClick={(e) => e.stopPropagation()}
+      {/* Modal: View Single Order Details (Matches Design media_1794900852195_d463fada.jpg) */}
+      {selectedOrderModal && (() => {
+        const normStatus = (selectedOrderModal.status || 'Confirmed').toLowerCase();
+        const isCancelled = normStatus === 'cancelled';
+
+        // Step index: 0: Order Placed, 1: Confirmed, 2: Processing, 3: Shipped, 4: Delivered
+        let activeStepIndex = 2; // Default to Processing active (in progress) for confirmed orders
+        if (normStatus === 'pending') {
+          activeStepIndex = 1;
+        } else if (normStatus === 'confirmed') {
+          activeStepIndex = 2; // Matches reference screenshot: Placed & Confirmed completed, Processing is "In Progress"
+        } else if (normStatus === 'processing') {
+          activeStepIndex = 2;
+        } else if (normStatus === 'shipped') {
+          activeStepIndex = 3;
+        } else if (normStatus === 'delivered') {
+          activeStepIndex = 5; // All completed
+        }
+
+        const createdAt = selectedOrderModal.createdAt || Date.now();
+        const orderPlacedTime = formatStepTime(createdAt, 0);
+        const orderConfirmedTime = formatStepTime(createdAt, 2);
+
+        const trackingSteps = [
+          {
+            key: 'placed',
+            label: 'Order Placed',
+            icon: <Check className="w-4 h-4 stroke-[2.5]" />,
+            timestamp: orderPlacedTime,
+            upcomingLabel: 'Pending',
+          },
+          {
+            key: 'confirmed',
+            label: 'Confirmed',
+            icon: <Check className="w-4 h-4 stroke-[2.5]" />,
+            timestamp: orderConfirmedTime,
+            upcomingLabel: 'Pending',
+          },
+          {
+            key: 'processing',
+            label: 'Processing',
+            icon: <Truck className="w-4 h-4 text-[#B57418]" />,
+            timestamp: formatStepTime(selectedOrderModal.updatedAt || createdAt, 15),
+            upcomingLabel: 'Yet to process',
+          },
+          {
+            key: 'shipped',
+            label: 'Shipped',
+            icon: <Truck className="w-4 h-4 text-[#9CA3AF]" />,
+            timestamp: formatStepTime(selectedOrderModal.updatedAt || createdAt, 60),
+            upcomingLabel: 'Yet to ship',
+          },
+          {
+            key: 'delivered',
+            label: 'Delivered',
+            icon: <Package className="w-4 h-4 text-[#9CA3AF]" />,
+            timestamp: formatStepTime(selectedOrderModal.updatedAt || createdAt, 120),
+            upcomingLabel: 'Yet to deliver',
+          },
+        ];
+
+        const statusBadge = getStatusBadge(selectedOrderModal.status);
+        const currentTrackingStatus =
+          normStatus === 'confirmed'
+            ? 'Processing'
+            : selectedOrderModal.status || 'Processing';
+
+        return (
+          <div
+            className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
+            onClick={() => setSelectedOrderModal(null)}
           >
-            {/* Header */}
-            <header className="flex items-start justify-between gap-4 pb-2 border-b border-[#1A1817]/10">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6] flex items-center justify-center shrink-0 text-[#8C6D3B]">
-                  <Package className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-xl text-[#2C2016] leading-tight">
-                    Order Details
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-semibold text-sm text-[#2C2016]">
-                      Order ID: {selectedOrderModal.orderId}
-                    </span>
-                    <span
-                      className={`px-3 py-0.5 rounded-full text-xs font-semibold border ${
-                        getStatusBadge(selectedOrderModal.status).pillClass
-                      }`}
-                    >
-                      {selectedOrderModal.status || 'Confirmed'}
-                    </span>
+            <section
+              className="bg-[#FFFDF9] border border-[#E8DCCF] rounded-3xl max-h-[92vh] w-full max-w-2xl overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-4 text-left"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <header className="flex items-start justify-between gap-4 pb-2 border-b border-[#1A1817]/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6] flex items-center justify-center shrink-0 text-[#8C6D3B]">
+                    <Package className="w-6 h-6" />
                   </div>
-                  <p className="text-xs text-[#7A6A58] mt-0.5">
-                    Placed on{' '}
-                    {new Date(selectedOrderModal.createdAt || Date.now()).toLocaleDateString('en-IN', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedOrderModal(null)}
-                className="p-2 rounded-xl text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </header>
-
-            {/* Customer Details & Shipping Address */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
-                  <User className="w-4 h-4 text-[#8C6D3B]" />
-                  <span>Customer Details</span>
-                </div>
-                <p className="font-serif font-bold text-base text-[#2C2016] uppercase pt-1">
-                  {selectedOrderModal.customerName || user?.name}
-                </p>
-                <p className="text-xs text-[#5A4838]">
-                  Phone: {selectedOrderModal.customerPhone || '—'}
-                </p>
-                <p className="text-xs text-[#5A4838]">
-                  Email: {selectedOrderModal.customerEmail || user?.email}
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
-                  <MapPin className="w-4 h-4 text-[#8C6D3B]" />
-                  <span>Delivery Address</span>
-                </div>
-                <p className="font-serif font-bold text-base text-[#2C2016] uppercase pt-1">
-                  {selectedOrderModal.shippingAddress?.city
-                    ? `${selectedOrderModal.shippingAddress.city.toUpperCase()}, ${selectedOrderModal.shippingAddress.state}`
-                    : '—'}
-                </p>
-                {selectedOrderModal.shippingAddress?.address && (
-                  <p className="text-xs text-[#5A4838]">
-                    {selectedOrderModal.shippingAddress.address}
-                  </p>
-                )}
-                <p className="text-xs text-[#7A6A58]">
-                  Pincode: {selectedOrderModal.shippingAddress?.pincode || '—'}
-                </p>
-              </div>
-            </div>
-
-            {/* Order Items */}
-            <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
-                <Package className="w-4 h-4 text-[#8C6D3B]" />
-                <span>Order Items ({selectedOrderModal.products?.length || 0})</span>
-              </div>
-              <div className="space-y-3">
-                {selectedOrderModal.products?.map((item: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          className="w-12 h-12 rounded-xl object-cover bg-[#EBDCCB] border border-[#DFC9B2] shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-xl bg-[#EBDCCB] border border-[#DFC9B2] flex items-center justify-center shrink-0 text-[#8C6D3B]">
-                          <Package className="w-6 h-6" />
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-serif font-bold text-sm text-[#2C2016] capitalize">
-                          {item.name}
-                        </p>
-                        <p className="text-xs text-[#7A6A58]">
-                          Qty: {item.quantity || 1} {item.category ? `• ${item.category}` : ''}
-                        </p>
-                      </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-xl text-[#2C2016] leading-tight uppercase tracking-wide">
+                      ORDER DETAILS
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="font-semibold text-sm text-[#2C2016]">
+                        Order ID: {selectedOrderModal.orderId?.startsWith('#') ? selectedOrderModal.orderId : `#${selectedOrderModal.orderId}`}
+                      </span>
+                      <span
+                        className={`px-3 py-0.5 rounded-full text-xs font-semibold border ${statusBadge.pillClass}`}
+                      >
+                        {selectedOrderModal.status || 'Confirmed'}
+                      </span>
                     </div>
-                    <span className="font-serif font-bold text-sm text-[#2C2016]">
-                      ₹ {item.priceRupees?.toLocaleString('en-IN') || 0}
+                    <p className="text-xs text-[#7A6A58] mt-0.5">
+                      Placed on {formatOrderDate(selectedOrderModal.createdAt)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedOrderModal(null)}
+                  className="p-1.5 rounded-xl text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </header>
+
+              {/* ═══ 1. ORDER TRACKING CARD ═══ */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/80 space-y-4">
+                {/* Tracking Header Row */}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6] flex items-center justify-center text-[#8C6D3B] shrink-0">
+                      <Truck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-serif font-bold text-xs uppercase tracking-wider text-[#2C2016]">
+                        ORDER TRACKING
+                      </h4>
+                      <p className="text-xs text-[#7A6A58]">
+                        Track your order from confirmation to delivery.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Current Status Pill */}
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#DFC9B2] bg-[#FFFDF9] text-xs font-semibold text-[#2C2016] shadow-2xs">
+                    <span className="w-2 h-2 rounded-full bg-[#B57418]" />
+                    <span>
+                      Current Status: <span className="font-bold text-[#2C2016] capitalize">{currentTrackingStatus}</span>
                     </span>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Payment Details */}
-            <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
-                <CreditCard className="w-4 h-4 text-[#8C6D3B]" />
-                <span>Payment Details</span>
-              </div>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#7A6A58]">Payment Method</span>
-                  <span className="font-medium text-[#2C2016]">
-                    {selectedOrderModal.paymentMethod?.includes('Razorpay')
-                      ? 'Online (Razorpay)'
-                      : selectedOrderModal.paymentMethod || 'Online'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#7A6A58]">Payment Status</span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Success
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-[#E5D7C6]/60">
-                  <span className="text-[#7A6A58] font-medium">Amount Paid</span>
-                  <span className="font-serif font-bold text-sm text-[#2C2016]">
-                    ₹ {selectedOrderModal.totalAmountRupees?.toLocaleString('en-IN') || 0}
-                  </span>
-                </div>
-              </div>
-            </div>
+                {/* Stepper Timeline */}
+                {isCancelled ? (
+                  <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                    <span>This order has been cancelled.</span>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto pt-2 pb-1">
+                    <div className="min-w-[520px] grid grid-cols-5">
+                      {trackingSteps.map((st, idx) => {
+                        const isCompleted = idx < activeStepIndex;
+                        const isCurrent = idx === activeStepIndex;
+                        const isUpcoming = idx > activeStepIndex;
 
-            {/* Total Summary */}
-            <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 flex items-center justify-between">
-              <span className="font-serif font-bold text-base text-[#2C2016]">
-                Total Order Amount
-              </span>
-              <span className="font-serif font-bold text-2xl text-[#2C2016]">
-                ₹ {selectedOrderModal.totalAmountRupees?.toLocaleString('en-IN') || 0}
-              </span>
-            </div>
-          </section>
-        </div>
-      )}
+                        return (
+                          <div key={st.key} className="relative flex flex-col items-center text-center px-1">
+                            {/* Connector line to the next step */}
+                            {idx < trackingSteps.length - 1 && (
+                              <div
+                                className={`absolute top-4 left-1/2 w-full h-0.5 -translate-y-1/2 z-0 ${
+                                  idx < activeStepIndex ? 'bg-[#B88A4F]' : 'bg-[#E5D7C6]'
+                                }`}
+                              />
+                            )}
+
+                            {/* Circle Icon */}
+                            <div
+                              className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                                isCompleted
+                                  ? 'bg-[#4A321F] text-white shadow-xs'
+                                  : isCurrent
+                                  ? 'bg-[#FDF3E3] border-2 border-[#B57418] text-[#B57418] shadow-xs'
+                                  : 'bg-[#FAF5EE] border border-[#D5C7B6] text-[#9CA3AF]'
+                              }`}
+                            >
+                              {isCompleted ? (
+                                <Check className="w-4 h-4 stroke-[2.5]" />
+                              ) : (
+                                st.icon
+                              )}
+                            </div>
+
+                            {/* Step Title */}
+                            <span
+                              className={`mt-2 font-bold text-xs ${
+                                isUpcoming ? 'text-[#7A6A58]' : 'text-[#2C2016]'
+                              }`}
+                            >
+                              {st.label}
+                            </span>
+
+                            {/* Sub-badge / Timestamp */}
+                            <div className="mt-1">
+                              {isCompleted ? (
+                                <span className="text-[11px] text-[#7A6A58] block leading-tight">
+                                  {st.timestamp}
+                                </span>
+                              ) : isCurrent ? (
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#FDF3E3] text-[#B57418] border border-[#F5DEBA]">
+                                  In Progress
+                                </span>
+                              ) : (
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] text-[#7A6A58] bg-[#FAF5EE] border border-[#E5D7C6]">
+                                  {st.upcomingLabel}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ═══ 2. CUSTOMER DETAILS & DELIVERY ADDRESS ═══ */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                    <User className="w-4 h-4 text-[#8C6D3B]" />
+                    <span>CUSTOMER DETAILS</span>
+                  </div>
+                  <p className="font-serif font-bold text-base text-[#2C2016] uppercase pt-1">
+                    {selectedOrderModal.customerName || selectedOrderModal.shippingAddress?.fullName || user?.name || 'Customer'}
+                  </p>
+                  <p className="text-xs text-[#5A4838]">
+                    Phone: {selectedOrderModal.customerPhone || selectedOrderModal.shippingAddress?.phone || '—'}
+                  </p>
+                  <p className="text-xs text-[#5A4838]">
+                    Email: {selectedOrderModal.customerEmail || selectedOrderModal.shippingAddress?.email || user?.email || '—'}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                    <MapPin className="w-4 h-4 text-[#8C6D3B]" />
+                    <span>DELIVERY ADDRESS</span>
+                  </div>
+                  <p className="font-serif font-bold text-base text-[#2C2016] uppercase pt-1">
+                    {selectedOrderModal.shippingAddress?.city
+                      ? `${selectedOrderModal.shippingAddress.city.toUpperCase()} , ${(
+                          selectedOrderModal.shippingAddress.state || ''
+                        ).toUpperCase()}`
+                      : '—'}
+                  </p>
+                  {selectedOrderModal.shippingAddress?.address && (
+                    <p className="text-xs text-[#5A4838]">
+                      {selectedOrderModal.shippingAddress.address}
+                    </p>
+                  )}
+                  <p className="text-xs text-[#7A6A58]">
+                    Pincode: {selectedOrderModal.shippingAddress?.pincode || '—'}
+                  </p>
+                </div>
+              </div>
+
+              {/* ═══ 3. ORDER ITEMS ═══ */}
+              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                  <Package className="w-4 h-4 text-[#8C6D3B]" />
+                  <span>ORDER ITEMS ({selectedOrderModal.products?.length || 0})</span>
+                </div>
+                <div className="space-y-3">
+                  {selectedOrderModal.products?.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-12 h-12 rounded-xl object-cover bg-[#EBDCCB] border border-[#DFC9B2] shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-[#EBDCCB] border border-[#DFC9B2] flex items-center justify-center shrink-0 text-[#8C6D3B]">
+                            <Package className="w-6 h-6" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-serif font-bold text-sm text-[#2C2016] uppercase">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-[#7A6A58]">
+                            Qty: {item.quantity || 1} {item.category ? `• ${item.category}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-serif font-bold text-sm text-[#2C2016]">
+                        ₹ {item.priceRupees?.toLocaleString('en-IN') || 0}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ═══ 4. PAYMENT DETAILS ═══ */}
+              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                  <CreditCard className="w-4 h-4 text-[#8C6D3B]" />
+                  <span>PAYMENT DETAILS</span>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#7A6A58]">Payment Method</span>
+                    <span className="font-medium text-[#2C2016]">
+                      {selectedOrderModal.paymentMethod?.includes('Razorpay')
+                        ? 'Online (Razorpay)'
+                        : selectedOrderModal.paymentMethod || 'Online (Razorpay)'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#7A6A58]">Payment Status</span>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Success
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[#7A6A58] font-medium">Amount Paid</span>
+                    <span className="font-serif font-bold text-sm text-[#2C2016]">
+                      ₹ {selectedOrderModal.totalAmountRupees?.toLocaleString('en-IN') || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ═══ 5. TOTAL ORDER AMOUNT ═══ */}
+              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 flex items-center justify-between">
+                <span className="font-serif font-bold text-sm sm:text-base text-[#2C2016] uppercase tracking-wide">
+                  TOTAL ORDER AMOUNT
+                </span>
+                <span className="font-serif font-bold text-xl sm:text-2xl text-[#2C2016]">
+                  ₹ {selectedOrderModal.totalAmountRupees?.toLocaleString('en-IN') || 0}
+                </span>
+              </div>
+            </section>
+          </div>
+        );
+      })()}
     </div>
   );
 };
+
