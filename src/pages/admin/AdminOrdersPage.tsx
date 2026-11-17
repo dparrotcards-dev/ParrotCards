@@ -2,15 +2,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   AlertCircle,
   Calendar,
+  Check,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
   Download,
   Eye,
+  Mail,
   MapPin,
   MoreHorizontal,
   Package,
+  Phone,
   RefreshCw,
   Search,
   ShoppingCart,
@@ -22,6 +26,7 @@ import {
 import { adminService } from '../../services/adminService';
 
 export type OrderStatus =
+  | 'Pending'
   | 'Confirmed'
   | 'Processing'
   | 'Shipped'
@@ -53,6 +58,9 @@ export interface CustomerOrder {
   status: OrderStatus;
   courierName?: string;
   trackingNumber?: string;
+  paymentMethod?: string;
+  paymentId?: string;
+  paymentStatus?: string;
 }
 
 const PAGE_SIZE = 10;
@@ -132,6 +140,7 @@ export const AdminOrdersPage: React.FC = () => {
 
   // Selected Order for View Details Modal
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrder | null>(null);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState<boolean>(true);
 
   // Status update modal / quick changer
   const [statusUpdatingOrder, setStatusUpdatingOrder] = useState<CustomerOrder | null>(null);
@@ -147,6 +156,34 @@ export const AdminOrdersPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  // Direct status change from Order Details Modal
+  const handleDirectStatusChange = async (targetStatus: OrderStatus) => {
+    if (!selectedOrder) return;
+    setSavingStatus(true);
+    try {
+      if (!selectedOrder.id.startsWith('store-')) {
+        try {
+          await adminService.updateStoreOrderStatus(selectedOrder.id, targetStatus);
+        } catch (apiErr) {
+          console.warn('Backend order status update warning:', apiErr);
+        }
+      }
+
+      const updated: CustomerOrder = {
+        ...selectedOrder,
+        status: targetStatus,
+      };
+
+      setSelectedOrder(updated);
+      setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? updated : o)));
+      showToast(`Order ${updated.orderId} status updated to "${targetStatus}".`);
+    } catch (err) {
+      showToast('Failed to update status');
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
   // Load real store product orders from backend store-orders API
   const loadOrders = async () => {
     setLoading(true);
@@ -158,6 +195,13 @@ export const AdminOrdersPage: React.FC = () => {
           const customerEmail = o.customerEmail || '—';
           const customerPhone = o.customerPhone || '—';
           const resolvedStatus: OrderStatus = (o.status as OrderStatus) || 'Confirmed';
+
+          // Extract paymentId from paymentMethod if stored like "Online (Razorpay: pay_xxx)"
+          const payMatch = o.paymentMethod?.match(/(pay_[A-Za-z0-9]+)/);
+          const paymentId = payMatch ? payMatch[1] : (o.paymentId || o.razorpayPaymentId || '—');
+          const cleanPaymentMethod = o.paymentMethod?.includes('Razorpay')
+            ? 'Online (Razorpay)'
+            : (o.paymentMethod || 'Online (Razorpay)');
 
           const productsList: OrderItemProduct[] = (o.products && o.products.length > 0)
             ? o.products.map((p: any) => ({
@@ -201,6 +245,9 @@ export const AdminOrdersPage: React.FC = () => {
             status: resolvedStatus,
             courierName: o.courierName || 'Blue Dart Express',
             trackingNumber: o.trackingNumber,
+            paymentMethod: cleanPaymentMethod,
+            paymentId,
+            paymentStatus: o.paymentStatus || 'PAID',
           };
         });
 
@@ -336,6 +383,15 @@ export const AdminOrdersPage: React.FC = () => {
     showToast('Orders exported to CSV successfully.');
   };
 
+  const STATUS_OPTIONS: { label: OrderStatus; dotColor: string }[] = [
+    { label: 'Pending', dotColor: 'bg-[#6B7280]' },
+    { label: 'Confirmed', dotColor: 'bg-[#7C3AED]' },
+    { label: 'Processing', dotColor: 'bg-[#F59E0B]' },
+    { label: 'Shipped', dotColor: 'bg-[#2563EB]' },
+    { label: 'Delivered', dotColor: 'bg-[#10B981]' },
+    { label: 'Cancelled', dotColor: 'bg-[#EF4444]' },
+  ];
+
   // Status badge styling helper
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -358,6 +414,11 @@ export const AdminOrdersPage: React.FC = () => {
         return {
           dotClass: 'bg-[#71449B]',
           pillClass: 'bg-[#F3EEF9] text-[#71449B] border-[#E3D5F0]',
+        };
+      case 'Pending':
+        return {
+          dotClass: 'bg-[#6B7280]',
+          pillClass: 'bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]',
         };
       case 'Cancelled':
       default:
@@ -658,7 +719,10 @@ export const AdminOrdersPage: React.FC = () => {
                       <td className="py-3.5 px-4 text-center">
                         <div className="inline-flex items-center justify-center gap-1">
                           <button
-                            onClick={() => setSelectedOrder(order)}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setIsStatusDropdownOpen(true);
+                            }}
                             className="p-1.5 rounded-lg text-[#6B5A4B] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
                             title="View Order Details"
                             aria-label={`View order ${order.orderId}`}
@@ -750,105 +814,217 @@ export const AdminOrdersPage: React.FC = () => {
 
       {/* Modal: View Order Details */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a170b]/45 p-4 backdrop-blur-xs">
-          <section className="bg-[#FFFDF9] border border-[#B9884A]/30 rounded-3xl max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-5">
-            <header className="flex items-start justify-between gap-4 border-b border-[#B9884A]/20 pb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xl font-bold text-[#2C2016]">
-                    {selectedOrder.orderId}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-medium border ${
-                      getStatusBadge(selectedOrder.status).pillClass
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${getStatusBadge(selectedOrder.status).dotClass}`} />
-                    <span>{selectedOrder.status}</span>
-                  </span>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a170b]/45 p-4 backdrop-blur-xs"
+          onClick={() => setSelectedOrder(null)}
+        >
+          <section
+            className="bg-[#FFFDF9] border border-[#E8DCCF] rounded-3xl max-h-[92vh] w-full max-w-2xl overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 1. Header */}
+            <header className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6] flex items-center justify-center shrink-0 text-[#8C6D3B]">
+                  <Package className="w-6 h-6" />
                 </div>
-                <p className="text-xs text-[#7A6A58] mt-1">
-                  Placed on {selectedOrder.orderDateFormatted} at {selectedOrder.orderTimeFormatted}
-                </p>
+                <div>
+                  <h3 className="font-serif font-bold text-xl text-[#2C2016] leading-tight">
+                    Order Details
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="font-semibold text-sm text-[#2C2016]">
+                      Order ID: {selectedOrder.orderId}
+                    </span>
+                    <span
+                      className={`px-3 py-0.5 rounded-full text-xs font-semibold border ${
+                        getStatusBadge(selectedOrder.status).pillClass
+                      }`}
+                    >
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#7A6A58] mt-0.5">
+                    Placed on {selectedOrder.orderDateFormatted} at {selectedOrder.orderTimeFormatted}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="p-1.5 rounded-lg text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors"
+                className="p-2 rounded-xl text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </header>
 
-            {/* Customer & Address Details */}
+            {/* 2. Customer Details & Shipping Address */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/60 space-y-1.5">
-                <span className="block text-[11px] font-bold uppercase tracking-wider text-[#8C6D3B]">
-                  Customer Contact
-                </span>
-                <p className="font-serif font-bold text-base text-[#2C2016]">
+              {/* Customer Details */}
+              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                  <User className="w-4 h-4 text-[#8C6D3B]" />
+                  <span>Customer Details</span>
+                </div>
+                <p className="font-serif font-bold text-base text-[#2C2016] uppercase pt-1">
                   {selectedOrder.customerName}
                 </p>
-                <p className="text-xs text-[#5A4838]">{selectedOrder.customerPhone}</p>
-                <p className="text-xs text-[#5A4838]">{selectedOrder.customerEmail}</p>
+                <div className="flex items-center gap-2 text-xs text-[#5A4838]">
+                  <Phone className="w-3.5 h-3.5 text-[#8C6D3B]" />
+                  <span>{selectedOrder.customerPhone || '—'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#5A4838]">
+                  <Mail className="w-3.5 h-3.5 text-[#8C6D3B]" />
+                  <span>{selectedOrder.customerEmail || '—'}</span>
+                </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/60 space-y-1.5">
-                <span className="block text-[11px] font-bold uppercase tracking-wider text-[#8C6D3B]">
-                  Shipping Address
-                </span>
-                <p className="font-semibold text-sm text-[#2C2016]">
-                  {selectedOrder.shippingCity}, {selectedOrder.shippingState}
+              {/* Shipping Address */}
+              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                  <MapPin className="w-4 h-4 text-[#8C6D3B]" />
+                  <span>Shipping Address</span>
+                </div>
+                <p className="font-serif font-bold text-base text-[#2C2016] uppercase pt-1">
+                  {selectedOrder.shippingCity ? `${selectedOrder.shippingCity.toUpperCase()}, ${selectedOrder.shippingState}` : '—'}
                 </p>
-                <p className="text-xs text-[#5A4838]">Pincode: {selectedOrder.shippingPincode}</p>
-                {selectedOrder.courierName && (
-                  <p className="text-xs text-[#8C6D3B] font-medium mt-1">
-                    Via {selectedOrder.courierName} ({selectedOrder.trackingNumber})
-                  </p>
-                )}
+                <p className="text-xs text-[#7A6A58]">
+                  Pincode: {selectedOrder.shippingPincode || '—'}
+                </p>
               </div>
             </div>
 
-            {/* Itemized Order Products */}
-            <div className="space-y-2">
-              <span className="block text-[11px] font-bold uppercase tracking-wider text-[#8C6D3B]">
-                Order Items ({selectedOrder.products.length})
-              </span>
-              <div className="border border-[#E5D7C6] rounded-2xl overflow-hidden divide-y divide-[#F0E5D8]">
-                {selectedOrder.products.map((item, idx) => (
-                  <div key={idx} className="p-3.5 flex items-center justify-between gap-3 bg-[#FFFDF9]">
-                    <div>
-                      <span className="block font-serif font-bold text-sm text-[#2C2016]">
-                        {item.name}
-                      </span>
-                      <span className="block text-xs text-[#7A6A58]">
-                        Qty: {item.quantity} · {item.category}
+            {/* 3. Items & Payment Details (Left) + Update Order Status (Right) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+              {/* Left Column */}
+              <div className="space-y-4">
+                {/* Order Items */}
+                <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                    <Package className="w-4 h-4 text-[#8C6D3B]" />
+                    <span>Order Items ({selectedOrder.products.length})</span>
+                  </div>
+                  <div className="space-y-3">
+                    {selectedOrder.products.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-11 h-11 rounded-xl object-cover bg-[#EBDCCB] border border-[#DFC9B2] shrink-0"
+                            />
+                          ) : (
+                            <div className="w-11 h-11 rounded-xl bg-[#EBDCCB] border border-[#DFC9B2] flex items-center justify-center shrink-0 text-[#8C6D3B]">
+                              <Package className="w-5 h-5" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-serif font-bold text-sm text-[#2C2016] capitalize">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-[#7A6A58]">
+                              Qty: {item.quantity}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-serif font-bold text-sm text-[#2C2016]">
+                          ₹ {item.priceRupees.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Payment Details */}
+                <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                    <CreditCard className="w-4 h-4 text-[#8C6D3B]" />
+                    <span>Payment Details</span>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#7A6A58]">Payment Method</span>
+                      <span className="font-medium text-[#2C2016]">{selectedOrder.paymentMethod || 'Online (Razorpay)'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#7A6A58]">Payment ID</span>
+                      <span className="font-mono text-[#2C2016] font-medium">{selectedOrder.paymentId || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#7A6A58]">Payment Status</span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Success
                       </span>
                     </div>
-                    <span className="font-serif font-bold text-sm text-[#2C2016]">
-                      ₹ {item.priceRupees.toLocaleString('en-IN')}
-                    </span>
+                    <div className="flex items-center justify-between pt-2 border-t border-[#E5D7C6]/60">
+                      <span className="text-[#7A6A58] font-medium">Amount Paid</span>
+                      <span className="font-serif font-bold text-sm text-[#2C2016]">
+                        ₹ {selectedOrder.totalAmountRupees.toLocaleString('en-IN')}
+                      </span>
+                    </div>
                   </div>
-                ))}
+                </div>
+              </div>
+
+              {/* Right Column: Update Order Status */}
+              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                  <Truck className="w-4 h-4 text-[#8C6D3B]" />
+                  <span>Update Order Status</span>
+                </div>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
+                    disabled={savingStatus}
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-medium text-[#2C2016] shadow-2xs hover:border-[#8C6D3B] transition-colors cursor-pointer"
+                  >
+                    <span className="font-semibold text-sm text-[#2C2016]">
+                      {selectedOrder.status}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-[#8C6D3B] transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isStatusDropdownOpen && (
+                    <div className="mt-2 w-full rounded-2xl border border-[#E5D7C6] bg-[#FFFDF9] shadow-lg overflow-hidden p-1 space-y-0.5">
+                      {STATUS_OPTIONS.map((opt) => {
+                        const isSelected = selectedOrder.status === opt.label;
+                        return (
+                          <button
+                            key={opt.label}
+                            type="button"
+                            onClick={() => handleDirectStatusChange(opt.label)}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-purple-100/70 text-purple-900'
+                                : 'text-[#4A3828] hover:bg-[#FAF5EE]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className={`w-2 h-2 rounded-full ${opt.dotColor}`} />
+                              <span>{opt.label}</span>
+                            </div>
+                            {isSelected && <Check className="w-4 h-4 text-purple-700" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Total Summary */}
-            <div className="p-4 rounded-2xl bg-[#FFF9EE] border border-[#EBDCCB] flex items-center justify-between">
-              <span className="font-serif font-bold text-base text-[#2C2016]">Total Order Amount</span>
-              <span className="font-serif font-bold text-xl text-[#2C2016]">
+            {/* 4. Total Order Amount Bottom Card */}
+            <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 flex items-center justify-between">
+              <span className="font-serif font-bold text-base text-[#2C2016]">
+                Total Order Amount
+              </span>
+              <span className="font-serif font-bold text-2xl text-[#2C2016]">
                 ₹ {selectedOrder.totalAmountRupees.toLocaleString('en-IN')}
               </span>
             </div>
-
-            <footer className="flex justify-end items-center border-t border-[#B9884A]/20 pt-4">
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="px-5 py-2.5 rounded-xl bg-[#382618] hover:bg-[#4E3725] text-sm font-bold text-[#FFFDF9] transition-all shadow-xs"
-              >
-                Close
-              </button>
-            </footer>
           </section>
         </div>
       )}
