@@ -12,7 +12,6 @@ import {
   Eye,
   Mail,
   MapPin,
-  MoreHorizontal,
   Package,
   Phone,
   RefreshCw,
@@ -717,7 +716,7 @@ export const AdminOrdersPage: React.FC = () => {
 
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-center">
-                        <div className="inline-flex items-center justify-center gap-1">
+                        <div className="inline-flex items-center justify-center">
                           <button
                             onClick={() => {
                               setSelectedOrder(order);
@@ -728,14 +727,6 @@ export const AdminOrdersPage: React.FC = () => {
                             aria-label={`View order ${order.orderId}`}
                           >
                             <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenStatusUpdater(order)}
-                            className="p-1.5 rounded-lg text-[#6B5A4B] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
-                            title="Update Status / Delivery Info"
-                            aria-label={`Options for ${order.orderId}`}
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
