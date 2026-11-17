@@ -139,7 +139,8 @@ export const AdminOrdersPage: React.FC = () => {
 
   // Selected Order for View Details Modal
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrder | null>(null);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState<boolean>(true);
+  const [modalDraftStatus, setModalDraftStatus] = useState<OrderStatus>('Pending');
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState<boolean>(false);
 
   // Status update modal / quick changer
   const [statusUpdatingOrder, setStatusUpdatingOrder] = useState<CustomerOrder | null>(null);
@@ -155,14 +156,14 @@ export const AdminOrdersPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Direct status change from Order Details Modal
-  const handleDirectStatusChange = async (targetStatus: OrderStatus) => {
+  // Save status from Order Details Modal (only saves when Save button is clicked)
+  const handleSaveModalStatus = async () => {
     if (!selectedOrder) return;
     setSavingStatus(true);
     try {
       if (!selectedOrder.id.startsWith('store-')) {
         try {
-          await adminService.updateStoreOrderStatus(selectedOrder.id, targetStatus);
+          await adminService.updateStoreOrderStatus(selectedOrder.id, modalDraftStatus);
         } catch (apiErr) {
           console.warn('Backend order status update warning:', apiErr);
         }
@@ -170,12 +171,13 @@ export const AdminOrdersPage: React.FC = () => {
 
       const updated: CustomerOrder = {
         ...selectedOrder,
-        status: targetStatus,
+        status: modalDraftStatus,
       };
 
       setSelectedOrder(updated);
       setOrders((prev) => prev.map((o) => (o.id === selectedOrder.id ? updated : o)));
-      showToast(`Order ${updated.orderId} status updated to "${targetStatus}".`);
+      showToast(`Order ${updated.orderId} status updated to "${modalDraftStatus}".`);
+      setIsStatusDropdownOpen(false);
     } catch (err) {
       showToast('Failed to update status');
     } finally {
@@ -720,7 +722,8 @@ export const AdminOrdersPage: React.FC = () => {
                           <button
                             onClick={() => {
                               setSelectedOrder(order);
-                              setIsStatusDropdownOpen(true);
+                              setModalDraftStatus(order.status);
+                              setIsStatusDropdownOpen(false);
                             }}
                             className="p-1.5 rounded-lg text-[#6B5A4B] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
                             title="View Order Details"
@@ -959,51 +962,85 @@ export const AdminOrdersPage: React.FC = () => {
               </div>
 
               {/* Right Column: Update Order Status */}
-              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
-                  <Truck className="w-4 h-4 text-[#8C6D3B]" />
-                  <span>Update Order Status</span>
+              <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 space-y-3 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8C6D3B]">
+                    <Truck className="w-4 h-4 text-[#8C6D3B]" />
+                    <span>Update Order Status</span>
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
+                      disabled={savingStatus}
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-medium text-[#2C2016] shadow-2xs hover:border-[#8C6D3B] transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            STATUS_OPTIONS.find((s) => s.label === modalDraftStatus)?.dotColor ||
+                            'bg-gray-400'
+                          }`}
+                        />
+                        <span className="font-semibold text-sm text-[#2C2016]">
+                          {modalDraftStatus}
+                        </span>
+                      </div>
+                      <ChevronDown
+                        className={`w-4 h-4 text-[#8C6D3B] transition-transform ${
+                          isStatusDropdownOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {isStatusDropdownOpen && (
+                      <div className="mt-2 w-full rounded-2xl border border-[#E5D7C6] bg-[#FFFDF9] shadow-lg overflow-hidden p-1 space-y-0.5 z-20">
+                        {STATUS_OPTIONS.map((opt) => {
+                          const isSelected = modalDraftStatus === opt.label;
+                          return (
+                            <button
+                              key={opt.label}
+                              type="button"
+                              onClick={() => {
+                                setModalDraftStatus(opt.label);
+                                setIsStatusDropdownOpen(false);
+                              }}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-purple-100/70 text-purple-900'
+                                  : 'text-[#4A3828] hover:bg-[#FAF5EE]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${opt.dotColor}`} />
+                                <span>{opt.label}</span>
+                              </div>
+                              {isSelected && <Check className="w-4 h-4 text-purple-700" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
-                    disabled={savingStatus}
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-[#E5D7C6] bg-[#FFFDF9] text-sm font-medium text-[#2C2016] shadow-2xs hover:border-[#8C6D3B] transition-colors cursor-pointer"
-                  >
-                    <span className="font-semibold text-sm text-[#2C2016]">
-                      {selectedOrder.status}
-                    </span>
-                    <ChevronDown className={`w-4 h-4 text-[#8C6D3B] transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isStatusDropdownOpen && (
-                    <div className="mt-2 w-full rounded-2xl border border-[#E5D7C6] bg-[#FFFDF9] shadow-lg overflow-hidden p-1 space-y-0.5">
-                      {STATUS_OPTIONS.map((opt) => {
-                        const isSelected = selectedOrder.status === opt.label;
-                        return (
-                          <button
-                            key={opt.label}
-                            type="button"
-                            onClick={() => handleDirectStatusChange(opt.label)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'bg-purple-100/70 text-purple-900'
-                                : 'text-[#4A3828] hover:bg-[#FAF5EE]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${opt.dotColor}`} />
-                              <span>{opt.label}</span>
-                            </div>
-                            {isSelected && <Check className="w-4 h-4 text-purple-700" />}
-                          </button>
-                        );
-                      })}
-                    </div>
+                {/* Save Button */}
+                <button
+                  type="button"
+                  onClick={handleSaveModalStatus}
+                  disabled={savingStatus}
+                  className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs flex items-center justify-center gap-2 bg-[#382618] hover:bg-[#4E3725] text-[#FFFDF9] cursor-pointer disabled:opacity-50 mt-1"
+                >
+                  {savingStatus ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>Save</span>
                   )}
-                </div>
+                </button>
               </div>
             </div>
 
