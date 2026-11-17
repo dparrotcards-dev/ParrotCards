@@ -301,27 +301,27 @@ export const AdminPaymentsPage: React.FC = () => {
   // Export CSV
   const handleExportCSV = () => {
     const headers = [
-      'Transaction ID',
+      '#',
       'Order ID',
-      'Purchased Item',
-      'Item Type',
-      'Customer Name',
+      'Customer',
       'Email',
       'Phone',
+      'Purchase Details',
+      'Offering Type',
       'Amount (INR)',
       'Payment Method',
       'Payment ID',
       'Status',
       'Date & Time',
     ];
-    const rows = filteredTransactions.map((t) => [
-      t.transactionId,
+    const rows = filteredTransactions.map((t, idx) => [
+      idx + 1,
       t.orderId,
-      `"${t.itemName || '—'}"`,
-      `"${t.itemType || '—'}"`,
       `"${t.customerName}"`,
       `"${t.customerEmail}"`,
       `"${t.customerPhone}"`,
+      `"${t.itemName || '—'}"`,
+      `"${t.itemType || '—'}"`,
       t.amountRupees,
       t.paymentMethod,
       t.paymentId,
@@ -535,13 +535,13 @@ export const AdminPaymentsPage: React.FC = () => {
                   #
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
-                  Transaction ID
-                </th>
-                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
                   Order ID
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
                   Customer
+                </th>
+                <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
+                  Purchase Details
                 </th>
                 <th className="py-3.5 px-4 text-xs font-serif font-bold text-[#7A6A58] uppercase tracking-wider">
                   Amount
@@ -581,27 +581,17 @@ export const AdminPaymentsPage: React.FC = () => {
                       key={txn.id}
                       className="hover:bg-[#FAF6F0]/60 transition-colors group"
                     >
-                      {/* Row Index */}
+                      {/* 1. # */}
                       <td className="py-3.5 px-4 text-sm font-semibold text-[#5A4838] text-center">
                         {firstIndex + index}
                       </td>
 
-                      {/* Transaction ID */}
-                      <td className="py-3.5 px-4 font-mono font-bold text-sm text-[#2C2016]">
-                        {txn.transactionId}
+                      {/* 2. Order ID */}
+                      <td className="py-3.5 px-4 font-mono font-semibold text-sm text-[#2C2016]">
+                        {txn.orderId}
                       </td>
 
-                      {/* Order ID & Purchased Item */}
-                      <td className="py-3.5 px-4 font-mono text-sm text-[#4A3828]">
-                        <div className="font-semibold">{txn.orderId}</div>
-                        {txn.itemName && (
-                          <div className="text-[11px] font-sans font-medium text-[#8C6D3B] truncate max-w-[200px]" title={txn.itemName}>
-                            {txn.itemName}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Customer with Circular Initial Avatar */}
+                      {/* 3. Customer */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 rounded-full bg-[#EBDCCB] text-[#5A3810] font-bold text-xs flex items-center justify-center shrink-0">
@@ -613,38 +603,54 @@ export const AdminPaymentsPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Amount */}
+                      {/* 4. Purchase Details */}
+                      <td className="py-3.5 px-4">
+                        <div className="font-serif font-semibold text-sm text-[#2C2016] truncate max-w-[220px]" title={txn.itemName}>
+                          {txn.itemName || 'Cosmic Offering'}
+                        </div>
+                        <div className="text-[11px] font-sans font-medium text-[#8C6D3B]">
+                          {txn.itemType === 'DECK_PASS'
+                            ? '55-Card Deck Pass'
+                            : txn.itemType === 'CARD_UNLOCK'
+                            ? 'Single Card Unlock'
+                            : txn.itemType === 'STORE_PRODUCT'
+                            ? 'Cosmic Store Product'
+                            : txn.itemType || 'Cosmic Offering'}
+                        </div>
+                      </td>
+
+                      {/* 5. Amount */}
                       <td className="py-3.5 px-4 font-serif font-bold text-sm text-[#2C2016]">
                         ₹ {txn.amountRupees.toLocaleString('en-IN')}
                       </td>
 
-                      {/* Payment Method Badge */}
+                      {/* 6. Payment Method */}
                       <td className="py-3.5 px-4">
                         <PaymentMethodBadge method={txn.paymentMethod} />
                       </td>
 
-                      {/* Payment ID (Mono Font Truncated) */}
+                      {/* 7. Payment ID */}
                       <td className="py-3.5 px-4 font-mono text-xs text-[#5A4838]">
                         {truncatedPayId}
                       </td>
 
-                      {/* Status Badge */}
+                      {/* 8. Status */}
                       <td className="py-3.5 px-4 text-center">
                         <StatusBadge status={txn.status} />
                       </td>
 
-                      {/* Date & Time */}
+                      {/* 9. Date & Time */}
                       <td className="py-3.5 px-4 text-xs text-[#5A4838]">
                         {txn.dateFormatted}, {txn.timeFormatted}
                       </td>
 
-                      {/* Actions */}
+                      {/* 10. Actions */}
                       <td className="py-3.5 px-4 text-center">
                         <button
                           onClick={() => setSelectedTxn(txn)}
                           className="p-1.5 rounded-lg text-[#6B5A4B] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
                           title="View Transaction Details"
-                          aria-label={`View transaction ${txn.transactionId}`}
+                          aria-label={`View order ${txn.orderId}`}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -730,12 +736,12 @@ export const AdminPaymentsPage: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-xl font-bold text-[#2C2016]">
-                    {selectedTxn.transactionId}
+                    {selectedTxn.orderId}
                   </span>
                   <StatusBadge status={selectedTxn.status} />
                 </div>
                 <p className="text-xs text-[#7A6A58] mt-1">
-                  Associated with Order <strong className="text-[#2C2016]">{selectedTxn.orderId}</strong>
+                  Payment ID: <strong className="font-mono text-[#2C2016]">{selectedTxn.paymentId}</strong>
                 </p>
               </div>
               <button
@@ -819,7 +825,7 @@ export const AdminPaymentsPage: React.FC = () => {
             <footer className="flex justify-between items-center border-t border-[#B9884A]/20 pt-4">
               <button
                 onClick={() => {
-                  showToast(`Invoice downloaded for transaction ${selectedTxn.transactionId}.`);
+                  showToast(`Invoice downloaded for order ${selectedTxn.orderId}.`);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#B88A4F]/40 bg-[#FAF5EE] text-sm font-bold text-[#5A3810] hover:bg-[#F3EBE0] transition-colors"
               >
