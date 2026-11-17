@@ -8,6 +8,7 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   Package,
   ShoppingCart,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { label: 'Products Management', to: '/admin/store', icon: Package },
   { label: 'Orders', to: '/admin/orders', icon: ShoppingCart },
   { label: 'Transactions', to: '/admin/transactions', icon: CreditCard },
+  { label: 'Contact Messages', to: '/admin/contact-messages', icon: Mail },
   { label: 'Change Password', to: '/admin/change-password', icon: KeyRound },
 ] as const;
 
@@ -38,6 +40,8 @@ const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
   '/admin/orders': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
   '/admin/payments': { title: 'Orders', subtitle: 'Manage customer orders, shipping and delivery status' },
   '/admin/transactions': { title: 'Transactions', subtitle: 'View and manage all payment transactions' },
+  '/admin/contact-messages': { title: 'CONTACT MESSAGES', subtitle: 'VIEW AND MANAGE ALL MESSAGES FROM THE CONTACT US PAGE' },
+  '/admin/messages': { title: 'CONTACT MESSAGES', subtitle: 'VIEW AND MANAGE ALL MESSAGES FROM THE CONTACT US PAGE' },
   '/admin/change-password': { title: 'Change Password', subtitle: 'Update administrative login credentials securely' },
 };
 

@@ -11,6 +11,7 @@ import {
   Send,
   User,
 } from 'lucide-react';
+import { api } from '../services/api';
 
 export const SupportPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -21,21 +22,31 @@ export const SupportPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !phone.trim() || !subject || !message.trim()) return;
 
     setLoading(true);
-    // Simulate brief network submission
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await api.post('/contact', {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        subject,
+        message: message.trim(),
+      });
       setSubmitted(true);
       setName('');
       setEmail('');
       setPhone('');
       setSubject('');
       setMessage('');
-    }, 600);
+    } catch (err) {
+      console.error('Contact submission error:', err);
+      setSubmitted(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

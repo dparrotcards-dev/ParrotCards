@@ -248,5 +248,39 @@ export const adminService = {
     const res = await api.patch(`/admin/products/${id}/stock`, { inStock });
     return res.data;
   },
+
+  // 14. Contact Messages Management
+  getContactMessages: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    dateRange?: string;
+  }) => {
+    const res = await api.get('/admin/messages', { params });
+    return res.data.data;
+  },
+
+  replyToContactMessage: async (
+    id: string,
+    replyText: string,
+    markAsRepliedOnly = false
+  ) => {
+    const res = await api.patch(`/admin/messages/${id}/reply`, {
+      replyText,
+      markAsRepliedOnly,
+    });
+    return res.data;
+  },
+
+  updateContactMessageStatus: async (id: string, status: string) => {
+    const res = await api.patch(`/admin/messages/${id}/status`, { status });
+    return res.data;
+  },
+
+  deleteContactMessage: async (id: string) => {
+    const res = await api.delete(`/admin/messages/${id}`);
+    return res.data;
+  },
 };
 
