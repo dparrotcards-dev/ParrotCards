@@ -14,6 +14,7 @@ import { UserProfilePage } from './pages/UserProfilePage';
 import { SavedDeckPage } from './pages/SavedDeckPage';
 import { PurchasedCardsPage } from './pages/PurchasedCardsPage';
 import { PaymentHistoryPage } from './pages/PaymentHistoryPage';
+import { MyOrdersPage } from './pages/MyOrdersPage';
 import { AboutPage } from './pages/AboutPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
@@ -77,6 +78,8 @@ export const App: React.FC = () => {
               <Route path="cart" element={<CartPage />} />
               <Route path="payment/result" element={<PaymentResultPage />} />
               <Route path="account" element={<UserProfilePage />} />
+              <Route path="my-orders" element={<MyOrdersPage />} />
+              <Route path="orders" element={<MyOrdersPage />} />
               <Route path="saved-deck" element={<SavedDeckPage />} />
               <Route path="purchased-cards" element={<PurchasedCardsPage />} />
               <Route path="payments/history" element={<PaymentHistoryPage />} />
