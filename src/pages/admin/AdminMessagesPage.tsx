@@ -142,7 +142,7 @@ export const AdminMessagesPage: React.FC = () => {
         pending: Math.max(0, prev.pending - (selectedMessage.status === 'Pending' ? 1 : 0)),
       }));
 
-      showToast(`Reply sent to ${selectedMessage.name} successfully.`);
+      showToast(`Reply sent to ${selectedMessage.name} (${selectedMessage.email}) successfully.`);
     } catch (err) {
       console.error('Failed to send reply:', err);
       showToast('Failed to send reply. Please try again.');
