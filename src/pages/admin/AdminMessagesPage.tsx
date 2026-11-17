@@ -34,9 +34,9 @@ export const AdminMessagesPage: React.FC = () => {
   const [messages, setMessages] = useState<ContactMessageItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [stats, setStats] = useState({
-    totalMessages: 24,
-    replied: 14,
-    pending: 10,
+    totalMessages: 0,
+    replied: 0,
+    pending: 0,
   });
 
   // Filters & Pagination
@@ -391,8 +391,18 @@ export const AdminMessagesPage: React.FC = () => {
                   </tr>
                 ) : messages.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-16 text-center text-[#7A6A58]">
-                      No messages found matching your criteria.
+                    <td colSpan={7} className="py-20 text-center text-[#7A6A58]">
+                      <div className="mx-auto flex max-w-sm flex-col items-center justify-center">
+                        <div className="w-14 h-14 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6] flex items-center justify-center text-[#8C6D3B] mb-3 shadow-inner">
+                          <Mail className="w-7 h-7" />
+                        </div>
+                        <h4 className="font-serif text-base font-bold text-[#2C2016] mb-1">
+                          No Contact Messages Yet
+                        </h4>
+                        <p className="text-xs text-[#7A6A58] leading-relaxed">
+                          When visitors and customers submit inquiries on the Contact Us page, they will appear here in real-time.
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -649,3 +659,4 @@ export const AdminMessagesPage: React.FC = () => {
   );
 };
 export default AdminMessagesPage;
+
