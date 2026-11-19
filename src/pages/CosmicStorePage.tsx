@@ -14,9 +14,11 @@ import {
   Star,
   ShoppingCart,
   Sparkles,
+  User,
   X,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 /* ──────────── types ──────────── */
 
@@ -73,6 +75,9 @@ const BADGE_COLORS: Record<string, string> = {
 
 export const CosmicStorePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState<StoreProduct | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const isWishlistFilter = searchParams.get('wishlist') === 'true';
 
@@ -267,6 +272,13 @@ export const CosmicStorePage: React.FC = () => {
 
   /* ──── Cart add ──── */
   const addToCart = (product: StoreProduct) => {
+    // Bina profile login ke product add to cart nahi hoga
+    if (!isAuthenticated || !user) {
+      setPendingProduct(product);
+      setShowLoginModal(true);
+      return;
+    }
+
     try {
       const stored = localStorage.getItem('pc_cart');
       const list: any[] = stored ? JSON.parse(stored) : [];
@@ -769,6 +781,91 @@ export const CosmicStorePage: React.FC = () => {
           >
             View Cart →
           </Link>
+        </div>
+      )}
+
+      {/* ═══ LOGIN REQUIRED MODAL ═══ */}
+      {showLoginModal && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setShowLoginModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-3xl border border-[#E8DCCF] bg-[#FFFDF9] p-6 sm:p-7 text-center shadow-2xl space-y-5 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#F2ECE1] transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Icon */}
+            <div className="w-16 h-16 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6] flex items-center justify-center text-[#8C6D3B] mx-auto shadow-inner">
+              <User className="w-8 h-8" />
+            </div>
+
+            {/* Title & Description */}
+            <div className="space-y-1.5">
+              <h3 className="font-serif text-2xl font-bold text-[#2C2016]">
+                Login to Your Profile
+              </h3>
+              <p className="text-xs text-[#7A6A58] leading-relaxed max-w-xs mx-auto">
+                Please log in to your account to add sacred items to your cart and place orders.
+              </p>
+            </div>
+
+            {/* Pending Product Preview if any */}
+            {pendingProduct && (
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#FAF5EE] border border-[#E5D7C6]/70 text-left">
+                {pendingProduct.imageUrl ? (
+                  <img
+                    src={pendingProduct.imageUrl}
+                    alt={pendingProduct.name}
+                    className="w-12 h-12 rounded-xl object-cover border border-[#DFC9B2] bg-white shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-[#EBDCCB] flex items-center justify-center text-[#8C6D3B] shrink-0">
+                    <ShoppingCart className="w-5 h-5" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-serif font-bold text-xs text-[#2C2016] truncate">
+                    {pendingProduct.name}
+                  </h4>
+                  <p className="text-[11px] text-[#7A6A58]">
+                    ₹ {pendingProduct.priceRupees.toLocaleString('en-IN')}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="space-y-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLoginModal(false);
+                  navigate('/login', { state: { from: '/cosmic-store' } });
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#9C7536] via-[#8C6D3B] to-[#7A5B2B] hover:brightness-105 active:scale-[0.99] text-white font-serif text-sm font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Log In / Sign Up</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowLoginModal(false)}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-[#7A6A58] hover:text-[#2C2016] hover:bg-[#FAF5EE] transition-colors cursor-pointer"
+              >
+                Continue Browsing
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

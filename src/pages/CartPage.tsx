@@ -63,7 +63,14 @@ interface PlacedOrder {
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: '/cart' } });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const [cartEntries, setCartEntries] = useState<CartItemEntry[]>([]);
   const [productsMap, setProductsMap] = useState<Record<string, StoreProduct>>({});
@@ -495,6 +502,14 @@ export const CartPage: React.FC = () => {
       setPlacedOrder(newOrder);
     }, 600);
   };
+
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
+        <div className="w-8 h-8 border-2 border-[#8C6D3B] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] pb-16 pt-2 sm:pt-4">

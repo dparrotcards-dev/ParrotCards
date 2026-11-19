@@ -182,11 +182,17 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
 
             {/* CART (SHOPPING CART) */}
             <Link
-              to="/cart"
+              to={isAuthenticated ? '/cart' : '/login'}
+              state={!isAuthenticated ? { from: '/cart' } : undefined}
               title="Shopping Cart"
               className="group relative flex items-center justify-center p-1 text-[#9A7130] select-none cursor-pointer outline-none caret-transparent transition-transform hover:scale-110"
             >
               <ShoppingCart aria-hidden="true" className="h-[19px] w-[19px] stroke-[1.8] text-[#9A7130] transition-colors group-hover:text-[#8C6D3B]" />
+              {isAuthenticated && cartCount > 0 && (
+                <span className="absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#A34335] px-1 text-[9px] font-bold text-white shadow-xs">
+                  {cartCount}
+                </span>
+              )}
             </Link>
           </div>
         </nav>
@@ -213,12 +219,18 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
           {/* Mobile Wishlist & Cart icons (visible on < lg) */}
           <div className="flex items-center gap-1 sm:gap-1.5 lg:hidden">
             <Link
-              to="/cart"
+              to={isAuthenticated ? '/cart' : '/login'}
+              state={!isAuthenticated ? { from: '/cart' } : undefined}
               title="Cart"
               aria-label="Cart"
               className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#9A7130] transition-colors hover:bg-[#8C6D3B]/10 cursor-pointer"
             >
               <ShoppingCart aria-hidden="true" className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px] stroke-[1.8]" />
+              {isAuthenticated && cartCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#A34335] px-0.5 text-[8.5px] font-bold text-white shadow-xs">
+                  {cartCount}
+                </span>
+              )}
             </Link>
           </div>
 

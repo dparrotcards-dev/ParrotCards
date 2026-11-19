@@ -10,6 +10,7 @@ import {
   Check,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface WishlistDrawerProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ interface StoreProduct {
 
 export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [cartIds, setCartIds] = useState<Set<string>>(new Set());
@@ -164,6 +166,12 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({ isOpen, onClose 
 
   // Add to cart
   const addToCart = (id: string) => {
+    if (!isAuthenticated || !user) {
+      onClose();
+      navigate('/login', { state: { from: '/cosmic-store' } });
+      return;
+    }
+
     try {
       const stored = localStorage.getItem('pc_cart');
       const list: string[] = stored ? JSON.parse(stored) : [];

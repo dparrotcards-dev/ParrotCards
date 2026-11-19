@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Check,
   AlertCircle,
+  XCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -79,12 +80,61 @@ const formatStepTime = (dateVal: any, addMinutes = 0) => {
   return `${dateStr}, ${timeStr}`;
 };
 
+const canCancelOrder = (status: string) => {
+  const norm = (status || 'confirmed').toLowerCase();
+  return ['pending', 'confirmed', 'processing'].includes(norm);
+};
+
+const getOrderKey = (ord: any) => ord?._id || ord?.id;
+
+const formatOrderNumber = (orderId?: string) =>
+  orderId?.startsWith('#') ? orderId : `#${orderId || ''}`;
+
 export const MyOrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedOrderModal, setSelectedOrderModal] = useState<any | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<any | null>(null);
+  const [isCancelling, setIsCancelling] = useState<boolean>(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const showFeedback = (type: 'success' | 'error', message: string) => {
+    setFeedback({ type, message });
+    window.setTimeout(() => setFeedback(null), 3500);
+  };
+
+  const handleCancelOrder = async () => {
+    const target = cancelTarget;
+    const orderKey = getOrderKey(target);
+    if (!target || !orderKey) return;
+
+    setIsCancelling(true);
+    try {
+      const res = await api.patch(`/account/orders/${orderKey}/cancel`);
+      const updatedOrder = res.data?.data?.order;
+
+      setOrders((prev) =>
+        prev.map((ord) =>
+          getOrderKey(ord) === orderKey
+            ? { ...ord, ...(updatedOrder || {}), status: 'Cancelled' }
+            : ord
+        )
+      );
+      setSelectedOrderModal((prev: any) =>
+        prev && getOrderKey(prev) === orderKey
+          ? { ...prev, ...(updatedOrder || {}), status: 'Cancelled' }
+          : prev
+      );
+      setCancelTarget(null);
+      showFeedback('success', 'Order cancelled successfully');
+    } catch (err: any) {
+      showFeedback('error', err?.message || 'Failed to cancel order. Please try again.');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -256,19 +306,30 @@ export const MyOrdersPage: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center justify-end gap-3">
                       <div className="text-right">
                         <span className="text-[11px] text-[#7A6A58] block leading-tight">Total Amount</span>
                         <span className="font-serif font-bold text-base sm:text-lg text-[#2C2016]">
                           ₹ {ord.totalAmountRupees?.toLocaleString('en-IN') || 0}
                         </span>
                       </div>
-                      <button
-                        onClick={() => setSelectedOrderModal(ord)}
-                        className="px-4 py-2 rounded-xl border border-[#B88A4F]/40 bg-[#FFFDF9] hover:bg-[#F2ECE1] text-xs font-bold text-[#5A3810] transition-colors cursor-pointer shadow-2xs"
-                      >
-                        View Details
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedOrderModal(ord)}
+                          className="px-4 py-2 rounded-xl border border-[#B88A4F]/40 bg-[#FFFDF9] hover:bg-[#F2ECE1] text-xs font-bold text-[#5A3810] transition-colors cursor-pointer shadow-2xs"
+                        >
+                          View Details
+                        </button>
+                        {canCancelOrder(ord.status) && (
+                          <button
+                            onClick={() => setCancelTarget(ord)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#B82B33]/30 bg-[#FDEEEF] hover:bg-[#F9DEE0] text-xs font-bold text-[#B82B33] transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Cancel Order
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -612,6 +673,77 @@ export const MyOrdersPage: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Confirmation Modal: Cancel Order */}
+      {cancelTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
+          onClick={() => {
+            if (!isCancelling) setCancelTarget(null);
+          }}
+        >
+          <section
+            className="bg-[#FFFDF9] border border-[#E8DCCF] rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4 text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-[#FDEEEF] border border-[#FACDCF] flex items-center justify-center text-[#B82B33] shrink-0">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-serif font-bold text-lg text-[#2C2016] uppercase tracking-wide leading-tight">
+                  Cancel this order?
+                </h3>
+                <p className="text-xs text-[#7A6A58] mt-1 leading-relaxed">
+                  Order{' '}
+                  <span className="font-mono font-bold text-[#2C2016]">
+                    {formatOrderNumber(cancelTarget.orderId)}
+                  </span>{' '}
+                  will be cancelled. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+              <button
+                onClick={() => setCancelTarget(null)}
+                disabled={isCancelling}
+                className="px-4 py-2 rounded-xl border border-[#D5C7B6] bg-[#FFFDF9] hover:bg-[#F2ECE1] text-xs font-bold text-[#5A4838] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={handleCancelOrder}
+                disabled={isCancelling}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#B82B33] hover:bg-[#9E242B] text-xs font-bold text-white transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isCancelling && (
+                  <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                )}
+                {isCancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* Feedback Toast */}
+      {feedback && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+            feedback.type === 'success'
+              ? 'border-[#8C6D3B]/40 bg-[#1A1817] text-[#FFFDF9]'
+              : 'border-[#FACDCF] bg-[#FDEEEF] text-[#B82B33]'
+          }`}
+        >
+          {feedback.type === 'success' ? (
+            <Check className="h-4 w-4 text-[#E5B85F]" />
+          ) : (
+            <AlertCircle className="h-4 w-4" />
+          )}
+          <span>{feedback.message}</span>
+        </div>
+      )}
     </div>
   );
 };
