@@ -264,7 +264,7 @@ export const CartPage: React.FC = () => {
   );
 
   const discountOnMrp = subtotalMrp - subtotalActual;
-  const deliveryCharge = subtotalActual > 0 ? (subtotalActual >= 500 ? 0 : 50) : 0;
+  const deliveryCharge = 0; // Free delivery on all orders
   const totalPayable = Math.max(0, subtotalActual + deliveryCharge);
   const totalSavings = discountOnMrp;
 
@@ -674,7 +674,7 @@ export const CartPage: React.FC = () => {
                 <div className="flex flex-col items-center text-center">
                   <Truck className="h-5 w-5 text-[#8C6D3B] mb-1" />
                   <span className="font-semibold text-[#1A1817]">Free Shipping</span>
-                  <span>On orders &gt; ₹499</span>
+                  <span>On all orders</span>
                 </div>
                 <div className="flex flex-col items-center text-center">
                   <Sparkles className="h-5 w-5 text-[#8C6D3B] mb-1" />
