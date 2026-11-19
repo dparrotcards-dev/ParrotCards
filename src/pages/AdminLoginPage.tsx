@@ -87,7 +87,7 @@ export const AdminLoginPage: React.FC = () => {
 
     setForgotLoading(true);
     try {
-      const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase());
+      const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase(), 'admin');
       setForgotSuccess(true);
       setForgotMessage(res.message || 'Password reset link has been dispatched to your email.');
     } catch (err: any) {

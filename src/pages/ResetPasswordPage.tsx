@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Lock, Eye, EyeOff, AlertCircle, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
 import { authService } from '../services/authService';
 
-export const ResetPasswordPage: React.FC = () => {
+interface ResetPasswordPageProps {
+  isAdminFlow?: boolean;
+}
+
+export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ isAdminFlow: propIsAdminFlow }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
+  const typeParam = searchParams.get('type') || searchParams.get('role');
+
+  const isAdminFlow = Boolean(
+    propIsAdminFlow ||
+    location.pathname.startsWith('/admin') ||
+    typeParam === 'admin'
+  );
+
+  const loginRoute = isAdminFlow ? '/admin/login' : '/login';
 
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -15,6 +29,30 @@ export const ResetPasswordPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+
+  // Validate token against expected account type upfront
+  useEffect(() => {
+    if (!token) return;
+
+    let isMounted = true;
+    const verifyToken = async () => {
+      try {
+        const res = await authService.verifyResetToken(token, isAdminFlow ? 'admin' : 'customer');
+        if (!isMounted) return;
+        if (!res.valid) {
+          setError(res.message || 'Invalid or expired password reset link. Please request a new one.');
+        }
+      } catch (err: any) {
+        if (!isMounted) return;
+        setError(err.response?.data?.message || err.message || 'Failed to verify reset token.');
+      }
+    };
+
+    verifyToken();
+    return () => {
+      isMounted = false;
+    };
+  }, [token, isAdminFlow]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +75,7 @@ export const ResetPasswordPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await authService.resetPassword(token, password);
+      await authService.resetPassword(token, password, isAdminFlow ? 'admin' : 'customer');
       setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to reset password. Link may be expired.');
@@ -56,14 +94,21 @@ export const ResetPasswordPage: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F2ECE1] border border-[#8C6D3B]/40 text-[#8C6D3B] text-xs font-semibold uppercase tracking-wider mb-2 shadow-sm">
             <KeyRound className="w-3.5 h-3.5 text-[#8C6D3B]" />
-            Security & Authentication
+            Security &amp; Authentication
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1A1817]">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1A1817] uppercase tracking-wide">
             Reset Your Password
           </h1>
-          <p className="font-serif italic text-sm text-[#8C6D3B]">
-            Create a secure new password for your Parrot Cards account.
+          <p className="font-serif italic text-xs sm:text-sm text-[#8C6D3B] uppercase tracking-wider">
+            {isAdminFlow
+              ? 'Create a secure new password for your Parrot Cards Administrator account.'
+              : 'Create a secure new password for your Parrot Cards account.'}
           </p>
+          <div className="flex items-center justify-center gap-3 text-[#8C6D3B]/60 text-xs py-1">
+            <span className="w-12 h-[1px] bg-[#8C6D3B]/30" />
+            <span>) ) &nbsp; ● &nbsp; ( (</span>
+            <span className="w-12 h-[1px] bg-[#8C6D3B]/30" />
+          </div>
         </div>
 
         {/* Card */}
@@ -80,10 +125,10 @@ export const ResetPasswordPage: React.FC = () => {
                 <p>This password reset page requires a valid security token from the email link.</p>
                 <button
                   type="button"
-                  onClick={() => navigate('/admin/login')}
-                  className="mt-3 text-xs font-bold underline hover:opacity-80 block"
+                  onClick={() => navigate(loginRoute)}
+                  className="mt-3 text-xs font-bold underline hover:opacity-80 block cursor-pointer"
                 >
-                  Return to Admin Login &rarr;
+                  {isAdminFlow ? 'Return to Admin Login →' : 'Return to Login →'}
                 </button>
               </div>
             </div>
@@ -110,23 +155,26 @@ export const ResetPasswordPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="pt-2 space-y-2.5">
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin/login')}
-                  className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-md flex items-center justify-center gap-2 hover:brightness-105 transition-all"
-                >
-                  <span>Sign In To Admin Portal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => navigate('/auth')}
-                  className="w-full py-3 px-5 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 text-[#1A1817] font-semibold text-xs tracking-wide hover:bg-[#EAE2D5] transition-all"
-                >
-                  Sign In As Seeker / User
-                </button>
+              <div className="pt-2">
+                {isAdminFlow ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/admin/login')}
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-md flex items-center justify-center gap-2 hover:brightness-105 transition-all cursor-pointer"
+                  >
+                    <span>Sign In To Admin Portal</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login')}
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-md flex items-center justify-center gap-2 hover:brightness-105 transition-all cursor-pointer"
+                  >
+                    <span>Sign In to Your Account</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -151,7 +199,7 @@ export const ResetPasswordPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B] hover:text-[#1A1817] transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B] hover:text-[#1A1817] transition-colors cursor-pointer"
                       aria-label="Toggle password visibility"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -178,7 +226,7 @@ export const ResetPasswordPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B] hover:text-[#1A1817] transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8C6D3B] hover:text-[#1A1817] transition-colors cursor-pointer"
                       aria-label="Toggle password visibility"
                     >
                       {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -191,7 +239,7 @@ export const ResetPasswordPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] hover:brightness-105 active:scale-[0.98] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#8C6D3B] to-[#71562B] hover:brightness-105 active:scale-[0.98] text-[#FFFDF9] font-bold text-sm tracking-wide shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer"
                   >
                     {loading ? (
                       <>
@@ -206,23 +254,40 @@ export const ResetPasswordPage: React.FC = () => {
                     )}
                   </button>
                 </div>
+
+                {/* Back to Login Pill Button (inside card as per design) */}
+                <div className="pt-2 flex flex-col items-center">
+                  <div className="flex items-center justify-center gap-2 text-[#8C6D3B]/40 text-[10px] my-1">
+                    <span className="w-8 h-[1px] bg-[#8C6D3B]/20" />
+                    <span>✦</span>
+                    <span className="w-8 h-[1px] bg-[#8C6D3B]/20" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate(loginRoute)}
+                    className="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-full border border-[#8C6D3B]/40 bg-white/80 hover:bg-[#F2ECE1] text-[#1A1817] text-xs font-serif font-medium tracking-wide shadow-xs transition-all hover:border-[#8C6D3B] cursor-pointer"
+                  >
+                    {isAdminFlow ? '← Back to Admin Login' : '← Back to Login'}
+                  </button>
+                </div>
               </form>
             )
           )}
         </div>
 
-        {/* Back Link */}
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/login')}
-            className="text-xs text-[#8C6D3B] hover:text-[#1A1817] transition-colors font-serif font-medium"
-          >
-            ← Back to Admin Login
-          </button>
-        </div>
+        {/* Fallback back button if missing token */}
+        {!token && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => navigate(loginRoute)}
+              className="text-xs text-[#8C6D3B] hover:text-[#1A1817] transition-colors font-serif font-medium cursor-pointer"
+            >
+              {isAdminFlow ? '← Back to Admin Login' : '← Back to Login'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 };
-

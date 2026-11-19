@@ -22,13 +22,28 @@ export const authService = {
     return res.data.data.user;
   },
 
-  async forgotPassword(email: string): Promise<{ success: boolean; message: string; devLink?: string }> {
-    const res = await api.post('/auth/forgot-password', { email });
+  async forgotPassword(
+    email: string,
+    accountType: 'customer' | 'admin' = 'customer'
+  ): Promise<{ success: boolean; message: string; devLink?: string }> {
+    const res = await api.post('/auth/forgot-password', { email, accountType });
     return res.data;
   },
 
-  async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string }> {
-    const res = await api.post('/auth/reset-password', { token, newPassword });
+  async verifyResetToken(
+    token: string,
+    accountType?: 'customer' | 'admin'
+  ): Promise<{ valid: boolean; accountType?: 'customer' | 'admin'; message?: string }> {
+    const res = await api.post('/auth/verify-reset-token', { token, accountType });
+    return res.data;
+  },
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    accountType?: 'customer' | 'admin'
+  ): Promise<{ success: boolean; message: string; accountType?: string }> {
+    const res = await api.post('/auth/reset-password', { token, newPassword, accountType });
     return res.data;
   },
 };

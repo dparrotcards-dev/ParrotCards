@@ -56,7 +56,7 @@ export const AuthPage: React.FC = () => {
 
     setForgotLoading(true);
     try {
-      const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase());
+      const res = await authService.forgotPassword(forgotEmail.trim().toLowerCase(), 'customer');
       setForgotSuccess(true);
       setForgotMessage(res.message);
     } catch (err: any) {
