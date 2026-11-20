@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { googleLogout } from '@react-oauth/google';
 import { IUser } from '../types';
 import { authService } from '../services/authService';
 
@@ -91,6 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authService.logout();
     } finally {
+      googleLogout();
       setUser(null);
       localStorage.removeItem('pc_token');
       localStorage.removeItem('pc_user');
