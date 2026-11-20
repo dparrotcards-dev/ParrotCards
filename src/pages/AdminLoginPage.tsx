@@ -20,10 +20,10 @@ export const AdminLoginPage: React.FC = () => {
   const [forgotSuccess, setForgotSuccess] = useState<boolean>(false);
   const [forgotMessage, setForgotMessage] = useState<string | null>(null);
 
-  // If already logged in as admin via admin token, redirect to dashboard
+  // Keep admin access limited to the current browser tab session.
   useEffect(() => {
-    const adminToken = localStorage.getItem('pc_admin_token');
-    const adminSaved = localStorage.getItem('pc_admin_user');
+    const adminToken = sessionStorage.getItem('pc_admin_token');
+    const adminSaved = sessionStorage.getItem('pc_admin_user');
     if (adminToken && adminSaved) {
       try {
         const u = JSON.parse(adminSaved);
@@ -59,8 +59,10 @@ export const AdminLoginPage: React.FC = () => {
       }
 
       // Store in dedicated admin keys — preserving frontend user session!
-      localStorage.setItem('pc_admin_token', res.token);
-      localStorage.setItem('pc_admin_user', JSON.stringify(res.user));
+      sessionStorage.setItem('pc_admin_token', res.token);
+      sessionStorage.setItem('pc_admin_user', JSON.stringify(res.user));
+      localStorage.removeItem('pc_admin_token');
+      localStorage.removeItem('pc_admin_user');
 
       setSuccess(true);
       setTimeout(() => {

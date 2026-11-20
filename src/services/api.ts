@@ -34,7 +34,7 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const isAdminEndpoint = config.url?.startsWith('/admin') || config.url?.startsWith('admin');
   const rawToken = isAdminEndpoint
-    ? (localStorage.getItem('pc_admin_token') || localStorage.getItem('pc_token'))
+    ? sessionStorage.getItem('pc_admin_token')
     : localStorage.getItem('pc_token');
 
   const token = rawToken && rawToken !== 'undefined' && rawToken !== 'null' ? rawToken : null;
@@ -56,6 +56,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const isAdminEndpoint = error.config?.url?.startsWith('/admin') || error.config?.url?.startsWith('admin');
+    if (
+      isAdminEndpoint &&
+      error.response?.status === 401 &&
+      window.location.pathname.startsWith('/admin') &&
+      window.location.pathname !== '/admin/login'
+    ) {
+      sessionStorage.removeItem('pc_admin_token');
+      sessionStorage.removeItem('pc_admin_user');
+      window.location.assign('/admin/login');
+    }
+
     const message =
       error.response?.data?.message ||
       (error.response?.data?.errors

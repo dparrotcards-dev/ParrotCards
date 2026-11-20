@@ -17,7 +17,6 @@ import {
   X,
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
-import { useAuth } from '../../context/AuthContext';
 
 type AdminUser = {
   id: string;
@@ -117,13 +116,12 @@ const CustomerMetric: React.FC<{
 );
 
 export const AdminUsersPage: React.FC = () => {
-  const { user: authUser } = useAuth();
   const currentAdmin = (() => {
     try {
-      const saved = localStorage.getItem('pc_admin_user');
-      return saved ? JSON.parse(saved) : authUser;
+      const saved = sessionStorage.getItem('pc_admin_user');
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return authUser;
+      return null;
     }
   })();
 

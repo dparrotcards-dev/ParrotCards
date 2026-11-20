@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle2, KeyRound } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
 
@@ -18,10 +19,11 @@ type AuthFormData = z.infer<typeof authSchema>;
 export const AuthPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register: registerUser } = useAuth();
+  const { login, loginWithGoogle, register: registerUser } = useAuth();
   const [isRegister, setIsRegister] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   // Forgot Password States
   const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false);
@@ -97,6 +99,29 @@ export const AuthPage: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please check credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setError('Google sign-in did not return a valid credential. Please try again.');
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+    try {
+      const loggedInUser = await loginWithGoogle(credentialResponse.credential);
+      if (['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(loggedInUser.role)) {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        const returnUrl = (location.state as any)?.from || '/';
+        navigate(returnUrl, { replace: true });
+      }
+    } catch (err: any) {
+      setError(err.message || 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -324,6 +349,31 @@ export const AuthPage: React.FC = () => {
               )}
             </button>
           </form>
+          {!isRegister && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8C6D3B]/70">
+                <span className="h-px flex-1 bg-[#8C6D3B]/20" />
+                <span>Or continue with</span>
+                <span className="h-px flex-1 bg-[#8C6D3B]/20" />
+              </div>
+              {googleClientId ? (
+                <div className={`flex justify-center ${loading ? 'pointer-events-none opacity-60' : ''}`}>
+                  <GoogleLogin
+                    onSuccess={onGoogleSuccess}
+                    onError={() => setError('Google sign-in failed. Please try again.')}
+                    text="signin_with"
+                    shape="pill"
+                    theme="outline"
+                    width="340"
+                  />
+                </div>
+              ) : (
+                <p className="text-center text-xs text-[#7A1C1C]" role="status">
+                  Google sign-in is not configured yet.
+                </p>
+              )}
+            </div>
+          )}
           </>
           )}
         </div>

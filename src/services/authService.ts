@@ -12,6 +12,11 @@ export const authService = {
     return res.data.data;
   },
 
+  async loginWithGoogle(idToken: string): Promise<{ user: IUser; token: string }> {
+    const res = await api.post('/auth/google', { idToken });
+    return res.data.data;
+  },
+
   async logout(): Promise<void> {
     await api.post('/auth/logout');
     localStorage.removeItem('pc_token');

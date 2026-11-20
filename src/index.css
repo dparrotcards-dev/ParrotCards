@@ -796,11 +796,11 @@ select option:checked {
 }
 
 .admin-main-header {
-  min-height: 91px;
+  min-height: 79px;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(152, 97, 26, 0.16);
-  padding: 14px 29px 12px;
+  padding: 10px 24px;
   background: rgba(255, 251, 244, 0.42);
 }
 
@@ -1307,7 +1307,7 @@ select option:checked {
 
 @media (max-width: 639px) {
   .store-product-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

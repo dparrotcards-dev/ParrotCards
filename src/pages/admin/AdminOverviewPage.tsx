@@ -57,7 +57,7 @@ const MetricCard: React.FC<{
   valueClassName?: string;
   subtitle?: React.ReactNode;
 }> = ({ label, value, icon, valueClassName = '', subtitle }) => (
-  <article className="admin-stat-card flex min-h-[148px] flex-col items-center justify-center px-3 py-4 text-center">
+  <article className="admin-stat-card flex min-h-[146px] flex-col items-center justify-center px-3 py-4 text-center">
     <div className="mb-2 text-[#9a6113]">{icon}</div>
     <h2 className="font-serif text-[18px] font-bold leading-tight text-[#2c180f]">{label}</h2>
     <div className={`mt-1 font-serif text-[36px] font-bold leading-none tracking-[-0.04em] text-[#30170e] ${valueClassName}`}>{value}</div>
@@ -140,7 +140,7 @@ export const AdminOverviewPage: React.FC = () => {
     <div className="space-y-5 pb-5">
       {error && <div className="rounded-2xl border border-[#bd5c46]/35 bg-[#fbebe4] px-4 py-3 text-sm text-[#8a3228]">{error}</div>}
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard label="Total Products" value={numberFormat.format(productTotal)} icon={<Box className="h-9 w-9" strokeWidth={1.7} />} />
         <MetricCard label="Total Customers" value={numberFormat.format(metrics?.totalUsers || 0)} icon={<Users className="h-9 w-9" strokeWidth={1.7} />} />
         <MetricCard label="Total Orders" value={numberFormat.format(totalOrders)} icon={<ShoppingCart className="h-9 w-9" strokeWidth={1.7} />} />
@@ -175,15 +175,15 @@ export const AdminOverviewPage: React.FC = () => {
             </button>
           </div>
           <div className="mt-4 flex flex-col items-center justify-around gap-6 sm:flex-row xl:gap-12">
-            <div className="relative flex h-[188px] w-[188px] shrink-0 items-center justify-center rounded-full" style={{ background: donutBackground }}>
-              <div className="flex h-[128px] w-[128px] flex-col items-center justify-center rounded-full bg-[#fffaf3] shadow-[inset_0_1px_6px_rgba(83,49,17,0.12)]">
+            <div className="relative flex h-[164px] w-[164px] shrink-0 items-center justify-center rounded-full" style={{ background: donutBackground }}>
+              <div className="flex h-[112px] w-[112px] flex-col items-center justify-center rounded-full bg-[#fffaf3] shadow-[inset_0_1px_6px_rgba(83,49,17,0.12)]">
                 <span className="font-serif text-[31px] font-bold leading-none text-[#2e180e]">{numberFormat.format(totalOrders)}</span>
                 <span className="mt-1 font-serif text-[16px] leading-none text-[#4c3020]">Total Orders</span>
               </div>
             </div>
-            <div className="w-full max-w-lg space-y-2.5">
+            <div className="w-full max-w-lg space-y-2">
               {statusSlices.map((status) => (
-                <div key={status.label} className="flex items-center gap-3 border-b border-[#b9884a]/20 pb-2.5 last:border-0">
+                <div key={status.label} className="flex items-center gap-3 border-b border-[#b9884a]/20 pb-2 last:border-0">
                   <span className="h-4 w-4 shrink-0 rounded-full" style={{ backgroundColor: status.color }} />
                   <span className="flex-1 font-serif text-[17px] font-semibold text-[#382116]">{status.label}</span>
                   <span className="font-serif text-[18px] font-bold text-[#382116]">{numberFormat.format(status.value)}</span>

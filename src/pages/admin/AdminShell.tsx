@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bird,
   ChevronDown,
@@ -13,12 +13,10 @@ import {
   Package,
   ShoppingCart,
   Sparkles,
-  Truck,
   UserRound,
   Users,
   X,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import { IUser } from '../../types';
 
 const NAV_ITEMS = [
@@ -48,41 +46,25 @@ const PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
 export const AdminShell: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [adminUser, setAdminUser] = useState<IUser | null>(() => {
     try {
-      const saved = localStorage.getItem('pc_admin_user');
+      const saved = sessionStorage.getItem('pc_admin_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
   });
-  const [adminLoading, setAdminLoading] = useState(true);
-
-  useEffect(() => {
-    const adminToken = localStorage.getItem('pc_admin_token');
-    const adminSaved = localStorage.getItem('pc_admin_user');
-    if (adminToken && adminSaved) {
-      try {
-        setAdminUser(JSON.parse(adminSaved));
-      } catch {
-        setAdminUser(null);
-      }
-    } else if (user && ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(user.role)) {
-      setAdminUser(user);
-    } else {
-      setAdminUser(null);
-    }
-    setAdminLoading(false);
-  }, [user, location.pathname]);
+  const adminToken = sessionStorage.getItem('pc_admin_token');
 
   const isAuthorized =
-    adminUser && ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(adminUser.role);
+    adminToken &&
+    adminUser &&
+    ['admin', 'superadmin', 'analytics_manager', 'content_manager', 'support_admin'].includes(adminUser.role);
 
   const handleLogout = () => {
-    localStorage.removeItem('pc_admin_token');
-    localStorage.removeItem('pc_admin_user');
+    sessionStorage.removeItem('pc_admin_token');
+    sessionStorage.removeItem('pc_admin_user');
     setAdminUser(null);
     navigate('/admin/login');
   };
@@ -102,12 +84,12 @@ export const AdminShell: React.FC = () => {
             to={item.to}
             onClick={() => setMobileDrawerOpen(false)}
             className={({ isActive }) =>
-              `admin-nav-link flex items-center gap-4 rounded-2xl px-5 py-3 text-[15px] font-semibold transition-all ${
+              `admin-nav-link flex items-center gap-3 rounded-2xl px-4 py-2.5 text-[15px] font-semibold transition-all ${
                 isActive ? 'admin-nav-link-active' : 'text-[#35261d] hover:bg-[#a56a1a]/[0.09]'
               }`
             }
           >
-            <Icon className="h-6 w-6 shrink-0" strokeWidth={1.8} />
+            <Icon className="h-5 w-5 shrink-0" strokeWidth={1.8} />
             <span>{item.label}</span>
           </NavLink>
         );
@@ -115,45 +97,8 @@ export const AdminShell: React.FC = () => {
     </nav>
   );
 
-  if (adminLoading) {
-    return (
-      <div className="min-h-screen bg-[#fbf5ea] flex flex-col items-center justify-center gap-4 text-[#382219]">
-        <div className="h-10 w-10 rounded-full border-2 border-[#a86a12] border-t-transparent animate-spin" />
-        <p className="font-serif text-base">Opening your admin console…</p>
-      </div>
-    );
-  }
-
   if (!isAuthorized) {
-    return (
-      <div className="min-h-screen bg-[#fbf5ea] flex items-center justify-center px-4 text-[#382219]">
-        <div className="max-w-md rounded-[28px] border border-[#c9974c]/45 bg-[#fffaf2] p-8 text-center shadow-[0_18px_50px_rgba(86,54,20,0.12)]">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#a66a16]/10 text-[#8c5812]">
-            <Truck className="h-7 w-7" />
-          </div>
-          <h2 className="font-serif text-2xl font-bold">Administrative Access Restricted</h2>
-          <p className="mt-3 text-sm leading-relaxed text-[#725f4c]">
-            {adminUser
-              ? `Your account (${adminUser.email}) does not have administrative privileges.`
-              : 'Please sign in with an authorised administrator account.'}
-          </p>
-          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <button
-              onClick={() => navigate('/admin/login')}
-              className="rounded-xl bg-[#603308] px-5 py-2.5 text-sm font-bold text-[#fffaf1] transition hover:bg-[#7d4812]"
-            >
-              Sign In As Admin
-            </button>
-            <button
-              onClick={() => navigate('/')}
-              className="rounded-xl border border-[#b88335]/50 px-5 py-2.5 text-sm font-bold text-[#694316] transition hover:bg-[#f5ead9]"
-            >
-              Return Home
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <Navigate to="/admin/login" replace state={{ from: location }} />;
   }
 
   return (
@@ -176,12 +121,12 @@ export const AdminShell: React.FC = () => {
       </header>
 
       <div className="flex min-h-screen">
-        <aside className="admin-sidebar hidden w-[270px] shrink-0 flex-col lg:flex" aria-label="Parrot Cards admin sidebar">
-          <div className="px-6 pb-4 pt-7 text-center">
-            <div className="admin-logo-ring mx-auto flex h-[94px] w-[158px] items-center justify-center">
-              <Bird className="h-[57px] w-[57px] text-[#a8650c]" strokeWidth={1.2} />
+        <aside className="admin-sidebar hidden w-[clamp(220px,19.3vw,270px)] shrink-0 flex-col lg:flex" aria-label="Parrot Cards admin sidebar">
+          <div className="px-6 pb-4 pt-6 text-center">
+            <div className="admin-logo-ring mx-auto flex h-[66px] w-[136px] items-center justify-center">
+              <Bird className="h-[44px] w-[44px] text-[#a8650c]" strokeWidth={1.2} />
             </div>
-            <div className="mt-[-2px] font-serif text-[26px] font-bold tracking-[0.02em] text-[#331a0f]">PARROT CARDS</div>
+            <div className="mt-4 font-serif text-[24px] font-bold tracking-[0.02em] text-[#331a0f]">PARROT CARDS</div>
             <div className="mt-2 flex items-center justify-center gap-2">
               <span className="h-[1px] w-5 bg-[#A8650C]/45" />
               <p className="font-serif text-[12px] font-bold tracking-[0.18em] uppercase text-[#6B4E36]">
@@ -191,7 +136,7 @@ export const AdminShell: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-[#a96e21]/20 px-2 py-5">{navigation()}</div>
+          <div className="border-t border-[#a96e21]/20 px-2 py-4">{navigation()}</div>
           <div className="admin-sidebar-ornament mt-auto flex justify-center py-6 opacity-75" aria-hidden="true">
             <svg width="68" height="34" viewBox="0 0 68 34" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M34 2C34 2 28 12 28 18C28 22 30.5 25 34 25C37.5 25 40 22 40 18C40 12 34 2 34 2Z" stroke="#B88A4F" strokeWidth="1.2" fill="#F4E9D9" />
@@ -243,7 +188,7 @@ export const AdminShell: React.FC = () => {
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-7 lg:py-5 xl:px-7">
+          <main className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-6 lg:py-[18px]">
             <Outlet />
           </main>
         </div>

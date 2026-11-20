@@ -11,17 +11,15 @@ import {
   RefreshCw,
   Sparkles,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import { adminService } from '../../services/adminService';
 
 export const AdminChangePasswordPage: React.FC = () => {
-  const { user } = useAuth();
   const adminUser = (() => {
     try {
-      const saved = localStorage.getItem('pc_admin_user');
-      return saved ? JSON.parse(saved) : user;
+      const saved = sessionStorage.getItem('pc_admin_user');
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return user;
+      return null;
     }
   })();
 
