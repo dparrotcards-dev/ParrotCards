@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Sparkles, BookOpen } from 'lucide-react';
+import {
+  Lock,
+  Sparkles,
+  Crosshair,
+  Home,
+  Star,
+  Layers,
+  Globe,
+  Activity,
+  Shield,
+  CircleDot,
+  Hexagon,
+} from 'lucide-react';
 import { ICard } from '../types';
 import { SUIT_METADATA } from './SuitTabs';
 
@@ -9,6 +21,8 @@ interface Card3DProps {
   onUnlock?: (card: ICard) => void;
   onUnlockPass?: () => void;
 }
+
+const ZODIAC_GLYPHS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
 
 const SIGN_NAMES = [
   'Aries • Mesha',
@@ -40,6 +54,37 @@ const HOUSE_LORDS = [
   'Jupiter',
 ];
 
+// Meaningful role sub-title for the back face ribbon matching Image 4
+const CARD_SUBTITLE_MAP: Record<string, string> = {
+  janma_lagna: 'BIRTH ASCENDANT',
+  lagna: 'BIRTH ASCENDANT',
+  surya: 'SOUL ESSENCE',
+  sun: 'SOUL ESSENCE',
+  chandra: 'MIND & INTUITION',
+  moon: 'MIND & INTUITION',
+  mangala: 'DRIVE & WILLPOWER',
+  mars: 'DRIVE & WILLPOWER',
+  budha: 'INTELLECT & COMMERCE',
+  mercury: 'INTELLECT & COMMERCE',
+  guru: 'WISDOM & DHARMA',
+  jupiter: 'WISDOM & DHARMA',
+  shukra: 'HARMONY & DESIRE',
+  venus: 'HARMONY & DESIRE',
+  shani: 'DISCIPLINE & KARMA',
+  saturn: 'DISCIPLINE & KARMA',
+  rahu: 'EVOLUTIONARY EDGE',
+  ketu: 'MOKSHA THRESHOLD',
+  atmakaraka: 'SOUL SIGNIFICATOR',
+  amatyakaraka: 'CAREER SIGNIFICATOR',
+  bhratrikaraka: 'COURAGE SIGNIFICATOR',
+  matrikaraka: 'NOURISHMENT SIGNIFICATOR',
+  putrakaraka: 'CREATION SIGNIFICATOR',
+  gnatikaraka: 'CHALLENGE CATALYST',
+  darakaraka: 'PARTNERSHIP SIGNIFICATOR',
+  yogi_sphuta: 'PROSPERITY POINT',
+  avayogi_sphuta: 'OBSTACLE CATALYST',
+};
+
 export const Card3D: React.FC<Card3DProps> = ({
   card,
   onOpenDetail,
@@ -59,7 +104,9 @@ export const Card3D: React.FC<Card3DProps> = ({
 
   const suitMeta = SUIT_METADATA[card.suit] || SUIT_METADATA.Dharma;
   const isRed = suitMeta.red;
-  const rankColor = isRed ? '#7A1C1C' : card.suit === 'MasterKey' ? '#8C6D3B' : '#2B2927';
+  const rankColor = isRed ? '#8B1E1E' : card.suit === 'MasterKey' ? '#8C6D3B' : '#1E1A17';
+
+  const astro = card.astronomicalPlacement || {};
 
   const fmtDeg = (d: number | null | undefined) => {
     if (d == null || isNaN(d)) return '—';
@@ -68,18 +115,21 @@ export const Card3D: React.FC<Card3DProps> = ({
     return `${deg}° ${String(min).padStart(2, '0')}'`;
   };
 
-  const astro = card.astronomicalPlacement || {};
-  const karakaCode = astro.kar?.code || (card.isSovereign ? 'AK' : null);
+  const getSignIndex = (signVal: number | null | undefined, signNameVal?: string | null): number | null => {
+    if (signVal != null && signVal >= 0 && signVal < 12) return signVal;
+    if (signNameVal) {
+      const idx = SIGN_NAMES.findIndex((s) => s.toLowerCase().startsWith(signNameVal.toLowerCase()));
+      if (idx !== -1) return idx;
+    }
+    return null;
+  };
+
+  const signIdx = getSignIndex(astro.sign, astro.signName);
+  const zodiacGlyph = signIdx != null ? ZODIAC_GLYPHS[signIdx] : '✦';
 
   const formatSign = () => {
-    if (astro.sign != null && astro.sign >= 0 && astro.sign < 12) {
-      return SIGN_NAMES[astro.sign];
-    }
-    if (astro.signName) {
-      const idx = SIGN_NAMES.findIndex((s) => s.toLowerCase().startsWith(astro.signName!.toLowerCase()));
-      if (idx !== -1) return SIGN_NAMES[idx];
-      return astro.signName;
-    }
+    if (signIdx != null) return SIGN_NAMES[signIdx];
+    if (astro.signName) return astro.signName;
     return '—';
   };
 
@@ -96,6 +146,19 @@ export const Card3D: React.FC<Card3DProps> = ({
     return '—';
   };
 
+  const navamshaIdx =
+    astro.navamshaSign != null && astro.navamshaSign >= 0 && astro.navamshaSign < 12
+      ? astro.navamshaSign
+      : getSignIndex(null, astro.navamshaSignName);
+  const navamshaGlyph = navamshaIdx != null ? ZODIAC_GLYPHS[navamshaIdx] : '✦';
+
+  const formatHouseOrdinal = (h: number | null | undefined): string => {
+    if (!h) return '—';
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = h % 100;
+    return `${h}${s[(v - 20) % 10] || s[v] || s[0]} House`;
+  };
+
   const fmtNadi = () => {
     if (!astro.nadi) return '—';
     const trimmed = String(astro.nadi).trim();
@@ -106,32 +169,98 @@ export const Card3D: React.FC<Card3DProps> = ({
   };
 
   const resolvedHouseLord =
-    astro.houseLord || (astro.sign != null && astro.sign >= 0 && astro.sign < 12 ? HOUSE_LORDS[astro.sign] : '—');
+    astro.houseLord || (signIdx != null ? HOUSE_LORDS[signIdx] : '—');
 
-  const rows = [
-    ['Sign (Rashi)', formatSign()],
-    ['Position', fmtDeg(astro.deg)],
-    ['House', astro.house ? String(astro.house) : '—'],
-    ['Birth star', astro.nak || '—'],
-    ['Pada', astro.pada != null ? String(astro.pada) : '—'],
-    ['Star lord', astro.lord || '—'],
-    ['Nadi', fmtNadi()],
-    ['Navamsha (D9)', formatNavamsha()],
-    ['House lord', resolvedHouseLord],
-    ...(astro.kar && astro.kar.name && astro.kar.code ? [['Key planet (Karaka)', `${astro.kar.name} (${astro.kar.code})`]] : []),
-    ...(astro.ruler ? [['Division ruler', astro.ruler]] : []),
-    ...(astro.state ? [['Condition', astro.state]] : []),
-  ];
-
+  const signShort = formatSign().split(' • ')[0];
   const hasAstroData = isCardActuallyUnlocked && (astro.sign != null || astro.deg != null || astro.nak != null);
+
+  // Subtitle for back face ribbon
+  const cardKeyNormalized = (card.key || '').toLowerCase();
+  const backSubtitle =
+    CARD_SUBTITLE_MAP[cardKeyNormalized] ||
+    (card.label.toLowerCase().includes('lagna') ? 'BIRTH ASCENDANT' : card.title || card.suit);
+
+  // Data rows matching Image 4
+  const dataRows = [
+    {
+      id: 'sign',
+      label: 'SIGN (RASHI)',
+      icon: <CircleDot className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: true,
+      glyph: zodiacGlyph,
+      value: formatSign(),
+    },
+    {
+      id: 'position',
+      label: 'POSITION',
+      icon: <Crosshair className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: false,
+      value: fmtDeg(astro.deg),
+    },
+    {
+      id: 'house',
+      label: 'HOUSE',
+      icon: <Home className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: false,
+      value: formatHouseOrdinal(astro.house),
+    },
+    {
+      id: 'nak',
+      label: 'BIRTH STAR',
+      icon: <Star className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: false,
+      value: astro.nak || '—',
+    },
+    {
+      id: 'pada',
+      label: 'PADA',
+      icon: <Layers className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: false,
+      value: astro.pada != null ? String(astro.pada) : '—',
+    },
+    {
+      id: 'lord',
+      label: 'STAR LORD',
+      icon: <Globe className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: false,
+      value: astro.lord || '—',
+    },
+    {
+      id: 'nadi',
+      label: 'NADI',
+      icon: <Activity className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: false,
+      value: fmtNadi(),
+    },
+    {
+      id: 'd9',
+      label: 'NAVAMSHA (D9)',
+      icon: <Hexagon className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: true,
+      glyph: navamshaGlyph,
+      value: formatNavamsha(),
+    },
+    {
+      id: 'houseLord',
+      label: 'HOUSE LORD',
+      icon: <Shield className="w-3.5 h-3.5 text-[#8C6D3B]" />,
+      badge: false,
+      value: resolvedHouseLord,
+    },
+  ];
 
   return (
     <div
-      className="relative h-[clamp(310px,50vh,415px)] max-h-full max-w-[min(285px,calc(100vw-88px))] mx-auto select-none"
-      style={{ aspectRatio: '2 / 3' }}
+      className="relative w-full max-w-[330px] sm:max-w-[345px] md:max-w-[355px] aspect-[1/1.5] mx-auto select-none"
+      style={{
+        perspective: '1200px',
+      }}
     >
       <div
-        className="w-full h-full relative cursor-pointer"
+        className="w-full h-full relative cursor-pointer transition-transform duration-500"
+        style={{
+          transformStyle: 'preserve-3d',
+        }}
         onClick={() => {
           if (isCardActuallyUnlocked) {
             setIsFlipped(!isFlipped);
@@ -140,126 +269,309 @@ export const Card3D: React.FC<Card3DProps> = ({
           }
         }}
       >
-        {/* ================= FRONT FACE (EXACT VINTAGE VELLUM EMBLEM) ================= */}
+        {/* ========================================================================= */}
+        {/*                           FRONT FACE (EXACT IMAGE 3)                      */}
+        {/* ========================================================================= */}
         <div
-          className={`absolute inset-0 rounded-2xl border-[1.5px] overflow-hidden flex flex-col justify-between p-2.5 sm:p-3 transition-all duration-300 ${
+          className={`absolute inset-0 rounded-[26px] sm:rounded-[28px] overflow-hidden flex flex-col justify-between p-3 sm:p-3.5 transition-all duration-300 ${
             showBack ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          } ${
-            card.isSovereign
-              ? 'border-[#8C6D3B] shadow-[0_16px_36px_rgba(140,109,59,0.32),0_0_20px_rgba(140,109,59,0.2)]'
-              : 'border-[#8C6D3B]/60 shadow-[0_12px_28px_rgba(80,60,30,0.14)]'
-          }`}
+          } shadow-[0_16px_36px_rgba(60,40,20,0.18),0_2px_12px_rgba(0,0,0,0.06)]`}
           style={{
-            background: '#FAF5EE',
-            color: rankColor,
+            background: 'linear-gradient(170deg, #FDF9F2 0%, #FAF3E5 50%, #F5ECDA 100%)',
+            border: '2px solid rgba(197, 160, 89, 0.65)',
+            boxShadow: 'inset 0 0 16px rgba(212, 175, 55, 0.15)',
           }}
         >
-          <img
-            src="/card-front-art.svg"
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full pointer-events-none select-none"
-          />
+          {/* Inner Golden Hairline Frame */}
+          <div className="absolute inset-1.5 sm:inset-2 rounded-[22px] border border-[#C5A059]/40 pointer-events-none z-10" />
+
+          {/* Ornate Corner Accents */}
+          <div className="absolute top-2.5 left-2.5 w-6 h-6 border-t-2 border-l-2 border-[#C5A059]/75 rounded-tl-sm pointer-events-none z-10" />
+          <div className="absolute top-2.5 right-2.5 w-6 h-6 border-t-2 border-r-2 border-[#C5A059]/75 rounded-tr-sm pointer-events-none z-10" />
+          <div className="absolute bottom-2.5 left-2.5 w-6 h-6 border-b-2 border-l-2 border-[#C5A059]/75 rounded-bl-sm pointer-events-none z-10" />
+          <div className="absolute bottom-2.5 right-2.5 w-6 h-6 border-b-2 border-r-2 border-[#C5A059]/75 rounded-br-sm pointer-events-none z-10" />
+
+          {/* Traditional Auspicious Cloud Flourishes (Bottom Corners Matching Image 3) */}
+          <svg
+            viewBox="0 0 90 60"
+            fill="none"
+            stroke="#C5A059"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeOpacity="0.75"
+            className="absolute bottom-2 left-2 w-16 h-11 pointer-events-none z-10 select-none"
+          >
+            <path d="M4 52 C14 52, 18 42, 28 42 C36 42, 40 48, 50 48 C60 48, 64 38, 76 38 C84 38, 88 44, 88 52" />
+            <path d="M10 56 C20 56, 26 48, 36 48 C44 48, 48 54, 58 54 C68 54, 74 44, 84 44" />
+            <path d="M22 43 C26 34, 38 34, 44 40 C50 30, 64 30, 70 38" />
+            <circle cx="36" cy="34" r="5" strokeWidth="1" />
+            <circle cx="56" cy="32" r="4" strokeWidth="1" />
+          </svg>
+          <svg
+            viewBox="0 0 90 60"
+            fill="none"
+            stroke="#C5A059"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeOpacity="0.75"
+            className="absolute bottom-2 right-2 w-16 h-11 pointer-events-none z-10 select-none -scale-x-100"
+          >
+            <path d="M4 52 C14 52, 18 42, 28 42 C36 42, 40 48, 50 48 C60 48, 64 38, 76 38 C84 38, 88 44, 88 52" />
+            <path d="M10 56 C20 56, 26 48, 36 48 C44 48, 48 54, 58 54 C68 54, 74 44, 84 44" />
+            <path d="M22 43 C26 34, 38 34, 44 40 C50 30, 64 30, 70 38" />
+            <circle cx="36" cy="34" r="5" strokeWidth="1" />
+            <circle cx="56" cy="32" r="4" strokeWidth="1" />
+          </svg>
 
           {/* Top-Left Corner Index */}
-          <div className="text-left font-serif leading-none select-none z-10 pt-0.5 pl-0.5">
-            <span className="text-base sm:text-lg lg:text-xl font-bold block tracking-tight font-cinzel" style={{ color: rankColor }}>
+          <div className="absolute top-2.5 left-3 select-none z-20 text-center leading-none">
+            <span
+              className="text-lg sm:text-xl font-bold font-cinzel block tracking-tight"
+              style={{ color: rankColor }}
+            >
               {card.rank}
             </span>
-            <span className="text-xs sm:text-sm lg:text-base mt-0.5 block font-bold leading-none" style={{ color: rankColor }}>
-              {suitMeta.symbol}
+            <span
+              className="text-base sm:text-lg block font-bold mt-0.5"
+              style={{ color: rankColor }}
+            >
+              {card.suitSymbol}
             </span>
+            <span className="text-[8px] text-[#C5A059] block mt-0.5">✦</span>
           </div>
 
-          {/* Top-Right Badge (FREE or PAID) */}
-          <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-10">
+          {/* Top-Right Badge: FREE or PAID */}
+          <div className="absolute top-3 right-3 z-20">
             {card.isFree ? (
-              <div className="px-2 py-0.5 rounded-full bg-[#E8F3EB] text-[#2E5A36] font-sans font-bold text-[8px] sm:text-[8.5px] tracking-wider uppercase border border-[#B8D7BE] shadow-xs">
+              <div className="px-2.5 py-0.5 rounded-full bg-[#E5F3EB] text-[#285735] font-sans font-bold text-[8.5px] sm:text-[9px] tracking-wider uppercase border border-[#A8D8B6] shadow-2xs">
                 FREE
               </div>
             ) : (
-              <div className="px-2 py-0.5 rounded-full bg-[#FAF0D9] text-[#8C6D3B] font-sans font-bold text-[8px] sm:text-[8.5px] tracking-wider uppercase border border-[#D5B87D] shadow-xs">
+              <div className="px-2.5 py-0.5 rounded-full bg-[#FAF0D9] text-[#8C6D3B] font-sans font-bold text-[8.5px] sm:text-[9px] tracking-wider uppercase border border-[#D5B87D] shadow-2xs">
                 ₹{cardPrice} PAID
               </div>
             )}
           </div>
 
-          {/* Center Card Content */}
-          <div className="relative text-center my-auto px-1.5 z-10 select-none flex flex-col items-center">
-            {/* Sunburst Emblem */}
-            <img
-              src="/card_emblem_sun.png"
-              alt="Sunburst Emblem"
-              className="w-10 h-10 sm:w-12 sm:h-12 object-contain my-0.5 select-none pointer-events-none"
-            />
+          {/* Top Half-Sunburst & Moon Phase Arch (Exact Art Matching Image 3) */}
+          <div className="relative pt-1 sm:pt-2 w-full flex justify-center items-center z-10 select-none">
+            <svg
+              viewBox="0 0 260 120"
+              fill="none"
+              className="w-full max-w-[230px] sm:max-w-[250px] h-auto overflow-visible select-none pointer-events-none"
+            >
+              {/* Apex 4-Point Star */}
+              <path
+                d="M130 2 L132 12 L142 14 L132 16 L130 26 L128 16 L118 14 L128 12 Z"
+                fill="#C5A059"
+              />
+              <circle cx="130" cy="14" r="1.5" fill="#FAF5EB" />
 
-            {/* Suit & Label */}
-            <div className="text-[8.5px] sm:text-[9.5px] font-bold tracking-[0.16em] text-[#8C6D3B] uppercase mb-0.5 font-cinzel">
-              {suitMeta.name} · {card.label}
+              {/* Dotted Celestial Orbital Arcs */}
+              <path
+                d="M30 92 A 108 108 0 0 1 230 92"
+                stroke="#C5A059"
+                strokeWidth="0.8"
+                strokeDasharray="2.5 3"
+                strokeOpacity="0.75"
+              />
+              <path
+                d="M48 94 A 86 86 0 0 1 212 94"
+                stroke="#C5A059"
+                strokeWidth="0.75"
+                strokeOpacity="0.45"
+              />
+              <path
+                d="M66 96 A 68 68 0 0 1 194 96"
+                stroke="#C5A059"
+                strokeWidth="0.6"
+                strokeOpacity="0.3"
+              />
+
+              {/* Moon Phases Along the Arc */}
+              {/* Left Crescent 1 */}
+              <path
+                d="M62 82 C58 76, 59 66, 68 62 C63 67, 63 77, 68 82 Z"
+                fill="#8C6D3B"
+                fillOpacity="0.65"
+              />
+              {/* Left Crescent 2 */}
+              <path
+                d="M86 64 C82 56, 85 46, 95 44 C90 49, 90 59, 97 64 Z"
+                fill="#8C6D3B"
+                fillOpacity="0.8"
+              />
+              {/* Apex Full / Eclipse Moon */}
+              <circle cx="130" cy="38" r="8" fill="#F4E8D1" stroke="#8C6D3B" strokeWidth="1.2" />
+              <path
+                d="M130 30 A 8 8 0 0 1 130 46 A 4 8 0 0 0 130 30"
+                fill="#594426"
+              />
+              {/* Right Crescent 2 */}
+              <path
+                d="M174 64 C178 56, 175 46, 165 44 C170 49, 170 59, 163 64 Z"
+                fill="#8C6D3B"
+                fillOpacity="0.8"
+              />
+              {/* Right Crescent 1 */}
+              <path
+                d="M198 82 C202 76, 201 66, 192 62 C197 67, 197 77, 192 82 Z"
+                fill="#8C6D3B"
+                fillOpacity="0.65"
+              />
+
+              {/* Radial Sun Rays */}
+              <g stroke="#C5A059" strokeWidth="0.85" strokeOpacity="0.8">
+                {/* 21 Radial Rays */}
+                {Array.from({ length: 21 }).map((_, idx) => {
+                  const angle = 180 + idx * 9;
+                  const rad = (angle * Math.PI) / 180;
+                  const r1 = 36;
+                  const r2 = idx % 2 === 0 ? 68 : 55;
+                  const x1 = 130 + r1 * Math.cos(rad);
+                  const y1 = 98 + r1 * Math.sin(rad);
+                  const x2 = 130 + r2 * Math.cos(rad);
+                  const y2 = 98 + r2 * Math.sin(rad);
+                  return <line key={idx} x1={x1} y1={y1} x2={x2} y2={y2} />;
+                })}
+              </g>
+
+              {/* Semi-circular Horizon Sun */}
+              <path
+                d="M102 98 A 28 28 0 0 1 158 98 Z"
+                fill="url(#frontSunGrad)"
+                stroke="#C5A059"
+                strokeWidth="1.2"
+              />
+              <line x1="85" y1="98" x2="175" y2="98" stroke="#8C6D3B" strokeWidth="1" />
+
+              {/* Gradient Defs */}
+              <defs>
+                <linearGradient id="frontSunGrad" x1="102" y1="98" x2="158" y2="70" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#F9E2AF" />
+                  <stop offset="0.6" stopColor="#D8A952" />
+                  <stop offset="1" stopColor="#A87522" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          {/* Center Card Content */}
+          <div className="relative text-center px-2 z-20 flex flex-col items-center justify-center space-y-1.5 sm:space-y-2 my-auto">
+            {/* Beveled Bronze Ribbon Pill: ✦ SUIT • LABEL ✦ */}
+            <div className="inline-flex items-center justify-center px-4 py-1 rounded-sm bg-gradient-to-r from-[#3D2513] via-[#4D2E17] to-[#3D2513] border border-[#D4AF37] shadow-sm">
+              <span className="text-[9.5px] sm:text-[10.5px] font-cinzel font-bold tracking-[0.16em] text-[#EADBBA] uppercase flex items-center gap-1.5 leading-none">
+                <span>{card.suit}</span>
+                <span className="text-[7.5px] text-[#D4AF37]">♦</span>
+                <span>{card.label}</span>
+              </span>
             </div>
 
-            {/* Card Title */}
-            <h2 className="font-cinzel text-sm sm:text-base md:text-[18px] font-bold leading-tight mb-0.5 text-[#1A1817] tracking-tight">
-              {card.title}
+            {/* Main Card Title */}
+            <h2 className="font-cinzel text-base sm:text-lg md:text-[19px] font-bold text-[#2A1D15] tracking-tight leading-snug px-1">
+              {card.title.toUpperCase()}
             </h2>
 
-            {/* Quote Epigram */}
+            {/* Quote with Laurel Sprigs */}
             {card.line && (
-              <p className="font-cormorant italic text-[10.5px] sm:text-[12px] leading-snug text-[#3D3833] max-w-[210px] mx-auto opacity-95">
-                "{card.line}"
-              </p>
-            )}
+              <div className="flex items-center justify-center gap-1.5 px-2 max-w-[270px]">
+                {/* Left Laurel Sprig */}
+                <svg viewBox="0 0 32 20" fill="none" stroke="#C5A059" strokeWidth="1.2" className="w-4 h-3.5 shrink-0 opacity-80">
+                  <path d="M2 18 C10 16, 20 12, 30 4" />
+                  <path d="M10 14 C9 10, 13 8, 15 11" fill="#C5A059" fillOpacity="0.25" />
+                  <path d="M18 10 C18 6, 22 5, 24 8" fill="#C5A059" fillOpacity="0.25" />
+                </svg>
 
-            {/* Bottom Coordinates Pill */}
-            {hasAstroData && (
-              <div className="mt-1 sm:mt-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF5EE] border border-[#8C6D3B]/40 text-[8.5px] sm:text-[9.5px] font-sans font-medium text-[#1A1817] tracking-wide inline-block shadow-xs">
-                {formatSign().split(' • ')[0]} {fmtDeg(astro.deg)} · {astro.nak || '—'} {astro.pada ? `P${astro.pada}` : ''}
+                <p className="font-cormorant italic text-[11px] sm:text-[12.5px] leading-snug text-[#3B2B20] text-center">
+                  "{card.line}"
+                </p>
+
+                {/* Right Laurel Sprig */}
+                <svg viewBox="0 0 32 20" fill="none" stroke="#C5A059" strokeWidth="1.2" className="w-4 h-3.5 shrink-0 opacity-80 -scale-x-100">
+                  <path d="M2 18 C10 16, 20 12, 30 4" />
+                  <path d="M10 14 C9 10, 13 8, 15 11" fill="#C5A059" fillOpacity="0.25" />
+                  <path d="M18 10 C18 6, 22 5, 24 8" fill="#C5A059" fillOpacity="0.25" />
+                </svg>
               </div>
             )}
 
-            {/* Archetype Lenses Button (Opens Modal) */}
-            {isCardActuallyUnlocked && (
+            {/* Coordinates Pill: ♓ Pisces 9° 27' • Uttara Bhadrapada P2 */}
+            {hasAstroData && (
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 rounded-full bg-gradient-to-r from-[#FAF2E5] via-[#F3E7D3] to-[#FAF2E5] border border-[#C5A059]/60 shadow-2xs mt-0.5">
+                <span className="text-xs sm:text-sm font-bold text-[#6D4C24] leading-none">
+                  {zodiacGlyph}
+                </span>
+                <span className="text-[9.5px] sm:text-[10.5px] font-sans font-medium text-[#221710] tracking-wide whitespace-nowrap">
+                  {signShort} {fmtDeg(astro.deg)} • {astro.nak || '—'} {astro.pada ? `P${astro.pada}` : ''}
+                </span>
+              </div>
+            )}
+
+            {/* Primary Glowing Action Button */}
+            <div className="w-full pt-1 flex justify-center">
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOpenDetail?.(card);
+                  if (isCardActuallyUnlocked) {
+                    onOpenDetail?.(card);
+                  } else {
+                    onUnlock?.(card);
+                  }
                 }}
-                className="mt-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#8C6D3B] to-[#73582D] hover:from-[#73582D] hover:to-[#5C4522] text-[#FAF7F2] font-cinzel font-bold text-[9px] sm:text-[9.5px] tracking-wider inline-flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer z-20"
-                title="View 6 Archetype Lenses, Energy Code & Reading"
+                className="w-full max-w-[230px] sm:max-w-[250px] py-1.5 sm:py-2 px-3 sm:px-4 rounded-full bg-gradient-to-r from-[#44230D] via-[#2F1706] to-[#44230D] border-2 border-[#D4AF37] hover:border-[#F2D794] text-[#FAF4E8] font-cinzel font-bold text-[10px] sm:text-[11px] tracking-wider shadow-[0_4px_14px_rgba(68,35,13,0.35)] hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer z-30 group"
               >
-                <Sparkles className="w-3 h-3 text-amber-200" />
-                <span>Deep Reading (EN / हिंदी) ➔</span>
+                <Sparkles className="w-3.5 h-3.5 text-[#F5D88E] transition-transform group-hover:rotate-12 shrink-0" />
+                <span className="whitespace-nowrap">DEEP READING (EN / हिंदी)</span>
+                <span className="text-amber-200 transition-transform group-hover:translate-x-0.5 leading-none">➔</span>
               </button>
-            )}
+            </div>
+          </div>
+
+          {/* Bottom Center Celestial Ornament */}
+          <div className="relative z-10 text-center pb-1 select-none flex items-center justify-center gap-2 text-[#C5A059] opacity-90 text-[10px]">
+            <span>······</span>
+            <span>☾</span>
+            <span className="text-[9px]">✦</span>
+            <span>☽</span>
+            <span>······</span>
           </div>
 
           {/* Bottom-Right Inverted Corner Index */}
-          <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 font-serif leading-none rotate-180 text-right select-none z-10">
-            <span className="text-base sm:text-lg lg:text-xl font-bold block tracking-tight font-cinzel" style={{ color: rankColor }}>
+          <div className="absolute bottom-2.5 right-3 select-none z-20 text-center leading-none rotate-180">
+            <span
+              className="text-lg sm:text-xl font-bold font-cinzel block tracking-tight"
+              style={{ color: rankColor }}
+            >
               {card.rank}
             </span>
-            <span className="text-xs sm:text-sm lg:text-base mt-0.5 block font-bold leading-none" style={{ color: rankColor }}>
-              {suitMeta.symbol}
+            <span
+              className="text-base sm:text-lg block font-bold mt-0.5"
+              style={{ color: rankColor }}
+            >
+              {card.suitSymbol}
             </span>
+            <span className="text-[8px] text-[#C5A059] block mt-0.5">✦</span>
           </div>
 
-          {/* ================= LOCK OVERLAY ================= */}
+          {/* Lock Overlay for locked cards */}
           {!isCardActuallyUnlocked && (
             <div
               onClick={(e) => {
                 e.stopPropagation();
                 onUnlock?.(card);
               }}
-              className="absolute inset-0 rounded-2xl bg-[#1A1817]/90 backdrop-blur-md z-30 flex flex-col items-center justify-center p-5 text-center text-[#FAF7F2] space-y-3"
+              className="absolute inset-0 rounded-[26px] bg-[#1A1817]/88 backdrop-blur-xs z-40 flex flex-col items-center justify-center p-5 text-center text-[#FAF7F2] space-y-3"
             >
-              <div className="w-10 h-10 rounded-full bg-[#FAF7F2]/10 border border-[#8C6D3B]/60 flex items-center justify-center text-[#8C6D3B] shadow-md">
+              <div className="w-11 h-11 rounded-full bg-[#FAF7F2]/10 border border-[#8C6D3B]/70 flex items-center justify-center text-[#D4AF37] shadow-lg">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-cinzel text-lg font-bold text-[#8C6D3B] tracking-wide">A Sealed Card</h3>
-                <p className="text-[11px] text-[#D8CCA8] mt-0.5 max-w-[200px] leading-tight font-serif">
-                  Unlock {card.label} or access the 55-card deck.
+                <h3 className="font-cinzel text-lg font-bold text-[#D4AF37] tracking-wide">
+                  Card Wisdom Sealed
+                </h3>
+                <p className="text-[11px] text-[#D8CCA8] mt-1 max-w-[210px] leading-tight font-serif">
+                  Unlock {card.label} or acquire the full 55-card deck pass.
                 </p>
               </div>
               <div className="flex flex-col gap-2 w-full max-w-[190px]">
@@ -268,7 +580,7 @@ export const Card3D: React.FC<Card3DProps> = ({
                     e.stopPropagation();
                     onUnlock?.(card);
                   }}
-                  className="w-full py-2 px-3.5 rounded-xl bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all"
+                  className="w-full py-2 px-3.5 rounded-xl bg-gradient-to-r from-[#8C6D3B] to-[#73582D] hover:from-[#73582D] hover:to-[#5C4522] text-[#FAF7F2] font-cinzel font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
                 >
                   Unlock Card · ₹{cardPrice}
                 </button>
@@ -277,7 +589,7 @@ export const Card3D: React.FC<Card3DProps> = ({
                     e.stopPropagation();
                     onUnlockPass?.();
                   }}
-                  className="w-full py-1.5 px-3 rounded-xl bg-[#FAF7F2]/10 border border-[#8C6D3B]/40 text-[#D8CCA8] text-[10.5px] font-cinzel hover:bg-[#FAF7F2]/15 transition-all"
+                  className="w-full py-1.5 px-3 rounded-xl bg-[#FAF7F2]/10 border border-[#8C6D3B]/40 text-[#D8CCA8] text-[10.5px] font-cinzel hover:bg-[#FAF7F2]/15 transition-all cursor-pointer"
                 >
                   Complete Deck Pass · ₹25
                 </button>
@@ -286,98 +598,147 @@ export const Card3D: React.FC<Card3DProps> = ({
           )}
         </div>
 
-        {/* ================= BACK FACE (EXACT VINTAGE ASTRO TABLE - IMAGE 2) ================= */}
+        {/* ========================================================================= */}
+        {/*                            BACK FACE (EXACT IMAGE 4)                      */}
+        {/* ========================================================================= */}
         <div
-          className={`absolute inset-0 rounded-2xl border-[1.5px] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 shadow-xl transition-opacity duration-300 ${
+          className={`absolute inset-0 rounded-[26px] sm:rounded-[28px] overflow-hidden flex flex-col justify-between p-3 sm:p-3.5 transition-all duration-300 ${
             showBack ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          } ${
-            card.isSovereign ? 'border-[#8C6D3B]' : 'border-[#8C6D3B]/60'
-          }`}
+          } shadow-[0_16px_36px_rgba(60,40,20,0.18)]`}
           style={{
-            background: '#FAF5EE',
-            color: '#1A1817',
+            background: 'linear-gradient(170deg, #FDF9F2 0%, #FAF3E5 50%, #F5ECDA 100%)',
+            border: '2px solid rgba(197, 160, 89, 0.65)',
+            boxShadow: 'inset 0 0 16px rgba(212, 175, 55, 0.15)',
           }}
         >
-          <img
-            src="/card-back-art.svg"
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full pointer-events-none select-none"
-          />
+          {/* Inner Golden Hairline Frame */}
+          <div className="absolute inset-1.5 sm:inset-2 rounded-[22px] border border-[#C5A059]/40 pointer-events-none z-10" />
 
-          {/* Header with Title */}
-          <div className="relative text-center pb-1 pt-0.5 border-b border-[#8C6D3B]/25 z-10">
-            <h3 className="font-cinzel text-base sm:text-lg font-bold text-[#73582D] tracking-wide inline-flex items-center gap-1.5">
-              <span className="text-xs text-[#8C6D3B]">✦</span>
-              <span>{card.label}</span>
-              <span className="text-xs text-[#8C6D3B]">✦</span>
+          {/* Ornate Corner Accents */}
+          <div className="absolute top-2.5 left-2.5 w-6 h-6 border-t-2 border-l-2 border-[#C5A059]/75 rounded-tl-sm pointer-events-none z-10" />
+          <div className="absolute top-2.5 right-2.5 w-6 h-6 border-t-2 border-r-2 border-[#C5A059]/75 rounded-tr-sm pointer-events-none z-10" />
+          <div className="absolute bottom-2.5 left-2.5 w-6 h-6 border-b-2 border-l-2 border-[#C5A059]/75 rounded-bl-sm pointer-events-none z-10" />
+          <div className="absolute bottom-2.5 right-2.5 w-6 h-6 border-b-2 border-r-2 border-[#C5A059]/75 rounded-br-sm pointer-events-none z-10" />
+
+          {/* Bottom Cloud Flourishes */}
+          <svg
+            viewBox="0 0 90 60"
+            fill="none"
+            stroke="#C5A059"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeOpacity="0.6"
+            className="absolute bottom-2 left-2 w-14 h-10 pointer-events-none z-10 select-none"
+          >
+            <path d="M4 52 C14 52, 18 42, 28 42 C36 42, 40 48, 50 48 C60 48, 64 38, 76 38 C84 38, 88 44, 88 52" />
+            <path d="M10 56 C20 56, 26 48, 36 48 C44 48, 48 54, 58 54 C68 54, 74 44, 84 44" />
+          </svg>
+          <svg
+            viewBox="0 0 90 60"
+            fill="none"
+            stroke="#C5A059"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeOpacity="0.6"
+            className="absolute bottom-2 right-2 w-14 h-10 pointer-events-none z-10 select-none -scale-x-100"
+          >
+            <path d="M4 52 C14 52, 18 42, 28 42 C36 42, 40 48, 50 48 C60 48, 64 38, 76 38 C84 38, 88 44, 88 52" />
+            <path d="M10 56 C20 56, 26 48, 36 48 C44 48, 48 54, 58 54 C68 54, 74 44, 84 44" />
+          </svg>
+
+          {/* Top Header Section (Exact Image 4) */}
+          <div className="relative text-center pt-1 z-20 flex flex-col items-center">
+            {/* Celestial Sun/Moon Radiance Motif */}
+            <div className="flex items-center justify-center gap-1.5 text-[#C5A059] opacity-90 select-none">
+              <span className="text-[10px]">☾</span>
+              <div className="w-5 h-5 rounded-full border border-[#C5A059] flex items-center justify-center">
+                <span className="text-[9px] text-[#A67B2C]">☼</span>
+              </div>
+              <span className="text-[10px]">☽</span>
+            </div>
+
+            {/* Entity Main Heading: ✦ JANMA LAGNA ✦ */}
+            <h3 className="font-cinzel text-base sm:text-lg font-bold text-[#2A1D15] tracking-wide mt-0.5 flex items-center justify-center gap-1.5">
+              <span className="text-xs text-[#C5A059]">✦</span>
+              <span>{card.label.toUpperCase()}</span>
+              <span className="text-xs text-[#C5A059]">✦</span>
             </h3>
+
+            {/* Sub-ribbon Pill: ✦ BIRTH ASCENDANT ✦ with Laurel Sprigs */}
+            <div className="flex items-center justify-center gap-1.5 mt-0.5">
+              <svg viewBox="0 0 28 16" fill="none" stroke="#C5A059" strokeWidth="1" className="w-3.5 h-3 opacity-75">
+                <path d="M2 14 C8 12, 16 8, 26 2" />
+                <path d="M8 10 C7 7, 11 6, 12 8" fill="#C5A059" fillOpacity="0.25" />
+              </svg>
+
+              <div className="inline-flex items-center px-3 py-0.5 rounded-sm bg-gradient-to-r from-[#3D2513] via-[#4D2E17] to-[#3D2513] border border-[#D4AF37] shadow-2xs">
+                <span className="text-[8px] sm:text-[9px] font-cinzel font-bold tracking-[0.16em] text-[#EADBBA] uppercase leading-none">
+                  ✦ {backSubtitle} ✦
+                </span>
+              </div>
+
+              <svg viewBox="0 0 28 16" fill="none" stroke="#C5A059" strokeWidth="1" className="w-3.5 h-3 opacity-75 -scale-x-100">
+                <path d="M2 14 C8 12, 16 8, 26 2" />
+                <path d="M8 10 C7 7, 11 6, 12 8" fill="#C5A059" fillOpacity="0.25" />
+              </svg>
+            </div>
           </div>
 
-          {/* Astronomical Placement Rows Matching Image 2 */}
-          {!isCardActuallyUnlocked ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-3 text-center space-y-2 z-10">
-              <div className="w-9 h-9 rounded-full bg-[#8C6D3B]/10 border border-[#8C6D3B]/50 flex items-center justify-center text-[#8C6D3B] shadow-md">
-                <Lock className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-cinzel text-sm font-bold text-[#73582D]">Placement Sealed</h4>
-                <p className="text-[10px] text-[#595147] mt-0.5 max-w-[180px] font-serif">
-                  Unlock {card.label} to reveal its exact sign, degree, nakshatra pada & harmonics.
-                </p>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onUnlock?.(card);
-                }}
-                className="py-1.5 px-3 rounded-lg bg-[#8C6D3B] hover:bg-[#73582D] text-[#FAF7F2] font-cinzel font-bold text-[11px] uppercase tracking-wider shadow-md active:scale-95 transition-all"
+          {/* Astronomical Placement Rows (Exact Image 4 Style) */}
+          <div className="flex-1 my-1 sm:my-1.5 space-y-1 overflow-y-auto no-scrollbar z-20 pr-0.5 py-0.5">
+            {dataRows.map((row) => (
+              <div
+                key={row.id}
+                className="bg-[#FAF4E8]/95 hover:bg-[#FAF4E8] border border-[#DECAA7]/75 rounded-xl px-2 sm:px-2.5 py-1 sm:py-1.5 flex items-center justify-between shadow-2xs transition-colors"
               >
-                Unlock Card · ₹{cardPrice}
-              </button>
-            </div>
-          ) : !hasAstroData ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-4 text-center space-y-2 z-10">
-              <div className="w-7 h-7 rounded-full border-2 border-[#8C6D3B]/40 border-t-[#8C6D3B] animate-spin mx-auto" />
-              <p className="font-serif text-xs text-[#8C6D3B]">Aligning celestial coordinates…</p>
-            </div>
-          ) : (
-            <div className="flex-1 min-h-0 my-1 space-y-0.5 overflow-y-auto pr-0.5 card-chart-scrollbar z-10">
-              {rows.map(([label, val], idx) => (
-                <div
-                  key={idx}
-                  className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-1 py-1 border-b border-[#8C6D3B]/15 text-[9px] sm:text-[10px] leading-tight"
-                >
-                  <span className="min-w-0 text-[#595147] font-serif break-words">{label}</span>
-                  <span className="min-w-0 font-sans font-bold text-[#1A1817] text-right break-words">{val}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <div className="w-5 h-5 rounded-full bg-[#F3E7D3] border border-[#C5A059]/40 flex items-center justify-center shrink-0">
+                    {row.icon}
+                  </div>
+                  <span className="font-cinzel text-[8px] sm:text-[8.5px] font-bold text-[#55402C] tracking-wider truncate">
+                    {row.label}
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* Bottom Celestial Sun/Moon Motif Matching Image 2 */}
-          <div className="pt-1 border-t border-[#8C6D3B]/20 text-center flex flex-col items-center z-10">
-            {isCardActuallyUnlocked && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenDetail?.(card);
-                }}
-                className="w-full mb-1 py-1 px-2.5 rounded-lg bg-gradient-to-r from-[#8C6D3B] to-[#73582D] hover:from-[#73582D] hover:to-[#5C4522] text-[#FAF7F2] font-cinzel font-bold text-[9px] sm:text-[9.5px] uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
-              >
-                <Sparkles className="w-3 h-3 text-amber-200" />
-                <span>Deep Reading & Archetype Lenses</span>
-              </button>
-            )}
-            <img
-              src="/card_motif_moon.png"
-              alt="Celestial Phases"
-              className="w-20 sm:w-24 object-contain my-0.5 select-none pointer-events-none"
-            />
-            <span className="text-[9px] text-[#73582D] italic font-cormorant">
-              ✦ Click card to flip · Click button for Archetypes ✦
-            </span>
+                <div className="shrink-0 text-right ml-2">
+                  {row.badge ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F4E6D0] border border-[#D5BA88] font-serif font-bold text-[9px] sm:text-[10px] text-[#221710] shadow-2xs">
+                      {row.glyph && <span className="text-xs leading-none">{row.glyph}</span>}
+                      <span>{row.value}</span>
+                    </span>
+                  ) : (
+                    <span className="font-serif font-bold text-[9.5px] sm:text-[10.5px] text-[#221710]">
+                      {row.value}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Action Button & Celestial Motif (Exact Image 4) */}
+          <div className="pt-1 z-20 flex flex-col items-center space-y-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenDetail?.(card);
+              }}
+              className="w-full max-w-[270px] py-1.5 sm:py-2 px-3 rounded-full bg-gradient-to-r from-[#44230D] via-[#2F1706] to-[#44230D] border-2 border-[#D4AF37] hover:border-[#F2D794] text-[#FAF4E8] font-cinzel font-bold text-[9.5px] sm:text-[10.5px] tracking-wider shadow-[0_4px_14px_rgba(68,35,13,0.35)] hover:shadow-[0_6px_18px_rgba(212,175,55,0.4)] flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer group"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#F5D88E] transition-transform group-hover:rotate-12 shrink-0" />
+              <span className="whitespace-nowrap font-bold">DEEP READING & ARCHETYPE LENSES</span>
+              <span className="text-amber-200 transition-transform group-hover:translate-x-0.5 leading-none">➔</span>
+            </button>
+
+            {/* Bottom Sun/Moon Phases Motif */}
+            <div className="relative text-center pb-0.5 select-none flex items-center justify-center gap-2 text-[#C5A059] opacity-90 text-[10px]">
+              <span>······</span>
+              <span>☾</span>
+              <span className="text-[9px]">☼</span>
+              <span>☽</span>
+              <span>······</span>
+            </div>
           </div>
         </div>
       </div>

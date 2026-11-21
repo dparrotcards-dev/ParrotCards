@@ -179,20 +179,7 @@ export const DeckPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Archetype & Deep Reading Action Pill */}
-      {selectedCard.isUnlocked && (
-        <div className="flex items-center justify-center py-1 z-20 shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveModalCard(selectedCard)}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FAF5EE]/95 hover:bg-[#F2ECE1] border border-[#8C6D3B]/45 text-[#73582D] hover:text-[#1A1817] font-cinzel text-xs font-bold tracking-wider shadow-xs hover:shadow-sm transition-all active:scale-95 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#8C6D3B]" />
-            <span>Open {selectedCard.label} Archetype & Energy Code</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-sm bg-[#8C6D3B]/15 text-[#8C6D3B] font-mono">EN | हिंदी</span>
-          </button>
-        </div>
-      )}
+
 
       {/* Hand Fan Carousel (Fanned Poker Spread Matching Reference Image) */}
       <div className="shrink-0 pt-0.5 pb-0.5 relative z-20">
