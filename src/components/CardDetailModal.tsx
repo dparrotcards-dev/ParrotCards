@@ -87,6 +87,21 @@ function buildDefaultInterpretation(card: ICard): ICardInterpretationData {
     titleHindi = 'चेतना-उद्भव';
     bija = 'AUM';
     powerColor = 'Prismatic White & Gold';
+  } else if (keyLower.includes('yogi') && !keyLower.includes('avayogi')) {
+    title = 'The Catalyst of Fortune';
+    titleHindi = 'सौभाग्य उत्प्रेरक';
+    bija = 'SHREEM';
+    powerColor = 'Radiant Gold & Saffron';
+  } else if (keyLower.includes('avayogi')) {
+    title = 'The Crucible of Trial';
+    titleHindi = 'कठोर परीक्षा केंद्र';
+    bija = 'HUM';
+    powerColor = 'Iron Grey & Obsidian';
+  } else if (keyLower.includes('sphuta')) {
+    title = 'The Fatal Point Vector';
+    titleHindi = 'सूक्ष्म बिंदु संकेतक';
+    bija = 'AUM';
+    powerColor = 'Celestial Indigo & Silver';
   }
 
   const sign = astro.signName || 'Cosmic Sign';
