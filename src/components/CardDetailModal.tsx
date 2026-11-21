@@ -28,11 +28,107 @@ interface CardDetailModalProps {
 
 type LensTabKey = 'superpower' | 'challenges' | 'shadow' | 'purpose' | 'reading';
 
+function buildDefaultInterpretation(card: ICard): ICardInterpretationData {
+  const astro = card.astronomicalPlacement || {};
+  const keyLower = card.key.toLowerCase();
+
+  let title = `${card.title} Archetype`;
+  let titleHindi = 'संप्रभु ऊर्जा-प्रतीक';
+  let bija = 'AUM';
+  let powerColor = 'Solar Gold & Obsidian';
+
+  if (keyLower.includes('sun')) {
+    title = 'The Solar Sovereign';
+    titleHindi = 'सूर्य प्रभुत्व';
+    bija = 'HRAAM';
+    powerColor = 'Solar Gold & Crimson';
+  } else if (keyLower.includes('moon')) {
+    title = 'The Cosmic Oracle';
+    titleHindi = 'चंद्र अंतर्दृष्टि';
+    bija = 'SHRAAM';
+    powerColor = 'Silver & Pearl White';
+  } else if (keyLower.includes('mars')) {
+    title = 'The Royal Sentinel';
+    titleHindi = 'दुर्ग-रक्षक / सेनापति';
+    bija = 'KRAAM';
+    powerColor = 'Crimson & Copper';
+  } else if (keyLower.includes('mercury')) {
+    title = 'The Kinetic Architect';
+    titleHindi = 'गतिमान निर्माता';
+    bija = 'BRAAM';
+    powerColor = 'Emerald & Mercury Green';
+  } else if (keyLower.includes('jupiter')) {
+    title = 'The Master Tactician';
+    titleHindi = 'दिव्य रणनीतिकार';
+    bija = 'GRAAM';
+    powerColor = 'Golden Topaz & Amber';
+  } else if (keyLower.includes('venus')) {
+    title = 'The Sovereign Crucible';
+    titleHindi = 'परम रस-साधक';
+    bija = 'DRAAM';
+    powerColor = 'Rose Quartz & Diamond White';
+  } else if (keyLower.includes('saturn')) {
+    title = 'The Timeless Commander';
+    titleHindi = 'काल-विजेता';
+    bija = 'PRAAM';
+    powerColor = 'Obsidian & Midnight Blue';
+  } else if (keyLower.includes('rahu')) {
+    title = 'The Eclipse Catalyst';
+    titleHindi = 'माया-भंजक';
+    bija = 'BHRAAM';
+    powerColor = 'Smoky Quartz & Violet';
+  } else if (keyLower.includes('ketu')) {
+    title = 'The Void Alchemist';
+    titleHindi = 'मोक्ष-संकेतक';
+    bija = 'SRAAM';
+    powerColor = 'Sacred Ash & Indigo';
+  } else if (keyLower.includes('lagna')) {
+    title = 'The Inception Vanguard';
+    titleHindi = 'चेतना-उद्भव';
+    bija = 'AUM';
+    powerColor = 'Prismatic White & Gold';
+  }
+
+  const sign = astro.signName || 'Cosmic Sign';
+  const house = astro.house ? `${astro.house}th House` : 'Ascendant';
+  const cosmicVector = `${astro.signName ? astro.signName.slice(0, 3).toUpperCase() : 'VEC'}-${astro.deg != null ? astro.deg.toFixed(2) : '10'}° // ${astro.nak ? astro.nak.slice(0, 3).toUpperCase() : 'NAK'}-${astro.pada || 1}`;
+
+  return {
+    sovereignAvatarPhrase: `The Awakened Flame of ${sign}`,
+    deeperExplanation: card.detailedInterpretation || `In your natal chart, ${card.title} is anchored in ${sign} in ${house}. This placement guides your capacity to align with higher purpose.`,
+    reflectionPrompt: card.reflectionQuestion || 'How can you honor both your natural impulse and the higher sovereign duty calling you forward?',
+    dharmaConnection: 'Directly anchors your Purushartha alignment by transmuting personal experience into enduring, honorable contribution.',
+    practicalAction: 'Take five minutes today to align your actions with your innermost conviction.',
+    superpower: `Magnifies your instinctive authority and capacity to establish equilibrium even amidst chaotic external tides.`,
+    challenges: `Guarding against fatigue from absorbing ungrounded friction, and maintaining strict discernment over what merits your sacred attention.`,
+    shadowSelf: `Suppression of authentic vulnerability, masking internal unease behind rigid composure or intellectual detachment.`,
+    soulPurpose: `To anchor sovereign balance in this world, proving that true power arises not from domination, but from absolute spiritual alignment.`,
+    energyCode: {
+      title,
+      titleHindi,
+      cosmicVector,
+      bijaTrigger: bija,
+      affirmation: 'I stand centered in my sovereign truth, turning every circumstance into an altar of conscious elevation.',
+      affirmationHindi: 'मैं अपने आत्म-सत्य में सुदृढ़ खड़ा हूँ और प्रत्येक परिस्थिति को आत्म-विकास का माध्यम बनाता हूँ।',
+      powerColor,
+    },
+    synergy: `Harmonizes with your ${astro.houseLord || 'ruler'} and directs evolutionary prana through your Navamsha (${astro.navamshaSignName || 'D9'}).`,
+    hindiInterpretation: {
+      title: titleHindi,
+      superpower: 'अडिग आत्मविश्वास और विषम से विषम परिस्थिति में भी संतुलन व दिशा स्थापित करने की स्वाभाविक योग्यता।',
+      challenges: 'दूसरों की नकारात्मक ऊर्जा से स्वयं को सुरक्षित रखना और सही समय पर सीमाएं निर्धारित करना।',
+      shadowSelf: 'कठिनाइयों में अपनी कोमलता को छिपा लेना और अत्यधिक कठोरता का मुखौटा ओढ़ना।',
+      soulPurpose: 'यह सिद्ध करना कि सच्ची संप्रभुता बाहरी नियंत्रण में नहीं, बल्कि आंतरिक अनुशासन और आत्म-समर्पण में निहित है।',
+    },
+    isAiGenerated: false,
+    demographicLens: 'Adult (Integrated)',
+  };
+}
+
 export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose, onUnlock }) => {
   const { profile, deck } = useDeck();
   const [loading, setLoading] = useState<boolean>(true);
   const [interpretation, setInterpretation] = useState<ICardInterpretationData | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [selectedLang, setSelectedLang] = useState<'EN' | 'HI'>('EN');
   const [activeLens, setActiveLens] = useState<LensTabKey>('superpower');
   const cardPrice = 2;
@@ -47,7 +143,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
 
     let isMounted = true;
     setLoading(true);
-    setError(null);
 
     deckService
       .getCardInterpretation(card.key, deck?._id, profile?.name || 'Seeker')
@@ -57,8 +152,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
         }
       })
       .catch((err) => {
+        console.warn('Using client-side fallback interpretation:', err?.message);
         if (isMounted) {
-          setError(err.message);
+          setInterpretation(buildDefaultInterpretation(card));
         }
       })
       .finally(() => {
@@ -74,11 +170,23 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
 
   if (!card) return null;
 
+  const defaultInterp = buildDefaultInterpretation(card);
+  const activeInterp: ICardInterpretationData = {
+    ...defaultInterp,
+    ...(interpretation || {}),
+    energyCode: interpretation?.energyCode || defaultInterp.energyCode,
+    hindiInterpretation: interpretation?.hindiInterpretation || defaultInterp.hindiInterpretation,
+    superpower: interpretation?.superpower || defaultInterp.superpower,
+    challenges: interpretation?.challenges || defaultInterp.challenges,
+    shadowSelf: interpretation?.shadowSelf || defaultInterp.shadowSelf,
+    soulPurpose: interpretation?.soulPurpose || defaultInterp.soulPurpose,
+  };
+
   const suitMeta = SUIT_METADATA[card.suit] || SUIT_METADATA.Dharma;
   const astro = card.astronomicalPlacement || {};
   const isHindi = selectedLang === 'HI';
-  const energy = interpretation?.energyCode;
-  const hindi = interpretation?.hindiInterpretation;
+  const energy = activeInterp.energyCode;
+  const hindi = activeInterp.hindiInterpretation;
 
   return createPortal(
     <div
@@ -163,10 +271,6 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
           <div className="py-12 text-center space-y-3">
             <div className="w-10 h-10 border-2 border-[#8C6D3B] border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-sm font-cinzel text-[#8C6D3B] font-semibold">Consulting the Gemini cosmic oracle…</p>
-          </div>
-        ) : error ? (
-          <div className="p-4 rounded-xl bg-red-100 border border-red-300 text-xs text-red-800">
-            Could not fetch detailed interpretation: {error}
           </div>
         ) : (
           /* Interpretation Sections */
@@ -292,7 +396,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                     <span>{isHindi ? 'अलौकिक सामर्थ्य व दिव्य प्रतिभा' : 'The Innate Soul Superpower'}</span>
                   </div>
                   <p className="text-[#2C241D] leading-relaxed text-sm sm:text-base font-serif">
-                    {isHindi && hindi?.superpower ? hindi.superpower : interpretation?.superpower}
+                    {isHindi && hindi?.superpower ? hindi.superpower : activeInterp.superpower}
                   </p>
                 </div>
               )}
@@ -305,7 +409,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                     <span>{isHindi ? 'कर्म बंधन व जीवन की मुख्य चुनौतियाँ' : 'Karmic Challenges & Friction Points'}</span>
                   </div>
                   <p className="text-[#2C241D] leading-relaxed text-sm sm:text-base font-serif">
-                    {isHindi && hindi?.challenges ? hindi.challenges : interpretation?.challenges}
+                    {isHindi && hindi?.challenges ? hindi.challenges : activeInterp.challenges}
                   </p>
                 </div>
               )}
@@ -318,7 +422,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                     <span>{isHindi ? 'छाया स्वरूप व गुप्त आदतें (Blindspots)' : 'Shadow Self & Subconscious Blindspots'}</span>
                   </div>
                   <p className="text-[#2C241D] leading-relaxed text-sm sm:text-base font-serif">
-                    {isHindi && hindi?.shadowSelf ? hindi.shadowSelf : interpretation?.shadowSelf}
+                    {isHindi && hindi?.shadowSelf ? hindi.shadowSelf : activeInterp.shadowSelf}
                   </p>
                 </div>
               )}
@@ -331,7 +435,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                     <span>{isHindi ? 'आत्मा का परम ध्येय व आध्यात्मिक मिशन' : 'The Soul Purpose & Divine Mission'}</span>
                   </div>
                   <p className="text-[#2C241D] leading-relaxed text-sm sm:text-base font-serif">
-                    {isHindi && hindi?.soulPurpose ? hindi.soulPurpose : interpretation?.soulPurpose}
+                    {isHindi && hindi?.soulPurpose ? hindi.soulPurpose : activeInterp.soulPurpose}
                   </p>
                 </div>
               )}
@@ -346,45 +450,45 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                       <span>{isHindi ? 'कॉस्मिक सामंजस्य व संपूर्ण पठन' : 'Cosmic Alignment & Deep Reading'}</span>
                     </div>
                     <p className="text-[#3D3833] leading-relaxed whitespace-pre-line text-sm font-serif">
-                      {interpretation?.deeperExplanation || card.shortSummary}
+                      {activeInterp.deeperExplanation || card.shortSummary}
                     </p>
                   </div>
 
                   {/* Reflection Prompt */}
-                  {interpretation?.reflectionPrompt && (
+                  {activeInterp.reflectionPrompt && (
                     <div className="p-4 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 space-y-2">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#8C6D3B] font-cinzel">
                         <Lightbulb className="w-4 h-4 text-[#8C6D3B]" />
                         <span>{isHindi ? 'आत्म-मंथन का प्रश्न' : 'Soul Reflection Inquiry'}</span>
                       </div>
                       <p className="font-cormorant italic text-base sm:text-lg text-[#1A1817]">
-                        "{interpretation.reflectionPrompt}"
+                        "{activeInterp.reflectionPrompt}"
                       </p>
                     </div>
                   )}
 
                   {/* Purushartha Dharma Connection */}
-                  {interpretation?.dharmaConnection && (
+                  {activeInterp.dharmaConnection && (
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#2E5A36] font-cinzel">
                         <Compass className="w-4 h-4" />
                         <span>{isHindi ? 'पुरुषार्थ व धर्म संबंध' : 'Purushartha & Evolutionary Vector'}</span>
                       </div>
                       <p className="text-[#5C5650] text-xs sm:text-sm leading-relaxed font-serif">
-                        {interpretation.dharmaConnection}
+                        {activeInterp.dharmaConnection}
                       </p>
                     </div>
                   )}
 
                   {/* Practical Action */}
-                  {interpretation?.practicalAction && (
+                  {activeInterp.practicalAction && (
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#8C6D3B] font-cinzel">
                         <Target className="w-4 h-4" />
                         <span>{isHindi ? 'आज का व्यावहारिक कर्म' : 'Grounded Action for Today'}</span>
                       </div>
                       <p className="text-[#5C5650] text-xs sm:text-sm leading-relaxed font-serif">
-                        {interpretation.practicalAction}
+                        {activeInterp.practicalAction}
                       </p>
                     </div>
                   )}
@@ -393,7 +497,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
             </div>
 
             {/* ═══ 4. CARD SYNERGIES / FUSION INSIGHT ═══ */}
-            {interpretation?.synergy && (
+            {activeInterp.synergy && (
               <div className="p-3.5 rounded-2xl bg-[#FAF5EE] border border-[#8C6D3B]/30 flex items-start gap-2.5">
                 <Layers className="w-4 h-4 text-[#8C6D3B] mt-0.5 shrink-0" />
                 <div>
@@ -401,7 +505,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                     ✦ {isHindi ? 'कार्ड सह-संबंध / कॉम्बिनेशन' : 'Card Synergy & Resonance'}
                   </span>
                   <p className="text-xs text-[#4A4035] font-serif leading-relaxed mt-0.5">
-                    {interpretation.synergy}
+                    {activeInterp.synergy}
                   </p>
                 </div>
               </div>
