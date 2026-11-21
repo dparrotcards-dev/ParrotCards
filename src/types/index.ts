@@ -111,3 +111,39 @@ export interface ILocationResult {
   timezone: number;
   ianaTimezone?: string;
 }
+
+export interface IEnergyCode {
+  title: string;
+  titleHindi?: string;
+  cosmicVector: string;
+  bijaTrigger: string;
+  affirmation: string;
+  affirmationHindi?: string;
+  powerColor: string;
+}
+
+export interface IHindiInterpretation {
+  title?: string;
+  superpower?: string;
+  challenges?: string;
+  shadowSelf?: string;
+  soulPurpose?: string;
+  affirmation?: string;
+}
+
+export interface ICardInterpretationData {
+  sovereignAvatarPhrase?: string;
+  deeperExplanation: string;
+  reflectionPrompt: string;
+  dharmaConnection: string;
+  practicalAction: string;
+  isAiGenerated: boolean;
+  demographicLens?: string;
+  superpower?: string;
+  challenges?: string;
+  shadowSelf?: string;
+  soulPurpose?: string;
+  energyCode?: IEnergyCode;
+  synergy?: string;
+  hindiInterpretation?: IHindiInterpretation;
+}
