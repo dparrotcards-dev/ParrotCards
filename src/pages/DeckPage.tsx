@@ -56,6 +56,7 @@ export const DeckPage: React.FC = () => {
 
   // Keyboard navigation
   useEffect(() => {
+    if (currentSuitCards.length === 0) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
         const next = (selectedCardIndex + 1) % currentSuitCards.length;
@@ -68,14 +69,16 @@ export const DeckPage: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCardIndex, currentSuitCards, setSelectedCardIndex]);
+  }, [selectedCardIndex, currentSuitCards.length, setSelectedCardIndex]);
 
   const handleNext = () => {
+    if (currentSuitCards.length === 0) return;
     const next = (selectedCardIndex + 1) % currentSuitCards.length;
     setSelectedCardIndex(next);
   };
 
   const handlePrev = () => {
+    if (currentSuitCards.length === 0) return;
     const prev = (selectedCardIndex - 1 + currentSuitCards.length) % currentSuitCards.length;
     setSelectedCardIndex(prev);
   };
