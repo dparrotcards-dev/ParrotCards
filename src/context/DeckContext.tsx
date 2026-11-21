@@ -26,6 +26,36 @@ interface DeckContextType {
 
 const DeckContext = createContext<DeckContextType | undefined>(undefined);
 
+export function mapDynamicPurusharthaSuit(card: ICard): ICard {
+  if (card.suit === 'MasterKey') {
+    return { ...card, suit: 'MasterKey', suitSymbol: '✦' };
+  }
+  const house = card.astronomicalPlacement?.house;
+  if (typeof house !== 'number' || house < 1 || house > 12) {
+    const sym = card.suit === 'Dharma' ? '♣' : card.suit === 'Moksha' ? '♠' : card.suitSymbol;
+    return { ...card, suitSymbol: sym };
+  }
+
+  let suit: CardSuit = card.suit;
+  let suitSymbol = card.suitSymbol;
+
+  if (house === 1 || house === 5 || house === 9) {
+    suit = 'Dharma';
+    suitSymbol = '♣';
+  } else if (house === 2 || house === 6 || house === 10) {
+    suit = 'Artha';
+    suitSymbol = '♦';
+  } else if (house === 3 || house === 7 || house === 11) {
+    suit = 'Kama';
+    suitSymbol = '♥';
+  } else if (house === 4 || house === 8 || house === 12) {
+    suit = 'Moksha';
+    suitSymbol = '♠';
+  }
+
+  return { ...card, suit, suitSymbol };
+}
+
 export const DeckProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
@@ -41,7 +71,17 @@ export const DeckProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [cards, setCards] = useState<ICard[]>(() => {
     const saved = localStorage.getItem('pc_cards');
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.map(mapDynamicPurusharthaSuit);
+        }
+      } catch {
+        return [];
+      }
+    }
+    return [];
   });
 
   const [entitlements, setEntitlements] = useState<IEntitlementStatus | null>(() => {
@@ -88,20 +128,21 @@ export const DeckProvider: React.FC<{ children: React.ReactNode }> = ({ children
     newCards: ICard[],
     newEntitlements: IEntitlementStatus
   ) => {
+    const mapped = newCards.map(mapDynamicPurusharthaSuit);
     setProfile(newProfile);
     setDeck(newDeck);
-    setCards(newCards);
+    setCards(mapped);
     setEntitlements(newEntitlements);
     setSelectedSuitState('Dharma');
     setSelectedCardIndexState(0);
 
     localStorage.setItem('pc_profile', JSON.stringify(newProfile));
     localStorage.setItem('pc_deck', JSON.stringify(newDeck));
-    localStorage.setItem('pc_cards', JSON.stringify(newCards));
+    localStorage.setItem('pc_cards', JSON.stringify(mapped));
     localStorage.setItem('pc_entitlements', JSON.stringify(newEntitlements));
 
-    if (newCards.length > 0) {
-      markRevealed(newCards[0].key);
+    if (mapped.length > 0) {
+      markRevealed(mapped[0].key);
     }
   };
 
@@ -110,9 +151,10 @@ export const DeckProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const data = await deckService.getDeckCards(deck._id);
-      setCards(data.cards);
+      const mapped = (data.cards || []).map(mapDynamicPurusharthaSuit);
+      setCards(mapped);
       setEntitlements(data.entitlements);
-      localStorage.setItem('pc_cards', JSON.stringify(data.cards));
+      localStorage.setItem('pc_cards', JSON.stringify(mapped));
       localStorage.setItem('pc_entitlements', JSON.stringify(data.entitlements));
     } catch (err) {
       console.error('Failed to refresh deck:', err);
@@ -130,9 +172,10 @@ export const DeckProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .getDeckCards(deck._id)
         .then((data) => {
           if (data?.cards && data.cards.length > 0) {
-            setCards(data.cards);
+            const mapped = data.cards.map(mapDynamicPurusharthaSuit);
+            setCards(mapped);
             setEntitlements(data.entitlements);
-            localStorage.setItem('pc_cards', JSON.stringify(data.cards));
+            localStorage.setItem('pc_cards', JSON.stringify(mapped));
             localStorage.setItem('pc_entitlements', JSON.stringify(data.entitlements));
           }
         })
