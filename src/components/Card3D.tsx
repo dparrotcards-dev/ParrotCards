@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, Sparkles, BookOpen } from 'lucide-react';
 import { ICard } from '../types';
 import { SUIT_METADATA } from './SuitTabs';
 
@@ -216,6 +216,22 @@ export const Card3D: React.FC<Card3DProps> = ({
                 {formatSign().split(' • ')[0]} {fmtDeg(astro.deg)} · {astro.nak || '—'} {astro.pada ? `P${astro.pada}` : ''}
               </div>
             )}
+
+            {/* Archetype Lenses Button (Opens Modal) */}
+            {isCardActuallyUnlocked && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenDetail?.(card);
+                }}
+                className="mt-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#8C6D3B] to-[#73582D] hover:from-[#73582D] hover:to-[#5C4522] text-[#FAF7F2] font-cinzel font-bold text-[9px] sm:text-[9.5px] tracking-wider inline-flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer z-20"
+                title="View 6 Archetype Lenses, Energy Code & Reading"
+              >
+                <Sparkles className="w-3 h-3 text-amber-200" />
+                <span>Deep Reading (EN / हिंदी) ➔</span>
+              </button>
+            )}
           </div>
 
           {/* Bottom-Right Inverted Corner Index */}
@@ -341,13 +357,26 @@ export const Card3D: React.FC<Card3DProps> = ({
 
           {/* Bottom Celestial Sun/Moon Motif Matching Image 2 */}
           <div className="pt-1 border-t border-[#8C6D3B]/20 text-center flex flex-col items-center z-10">
+            {isCardActuallyUnlocked && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenDetail?.(card);
+                }}
+                className="w-full mb-1 py-1 px-2.5 rounded-lg bg-gradient-to-r from-[#8C6D3B] to-[#73582D] hover:from-[#73582D] hover:to-[#5C4522] text-[#FAF7F2] font-cinzel font-bold text-[9px] sm:text-[9.5px] uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+              >
+                <Sparkles className="w-3 h-3 text-amber-200" />
+                <span>Deep Reading & Archetype Lenses</span>
+              </button>
+            )}
             <img
               src="/card_motif_moon.png"
               alt="Celestial Phases"
-              className="w-24 sm:w-28 object-contain my-0.5 select-none pointer-events-none"
+              className="w-20 sm:w-24 object-contain my-0.5 select-none pointer-events-none"
             />
-            <span className="text-[9.5px] sm:text-[10px] text-[#73582D] italic font-cormorant">
-              ✦ Placement in your birth sky ✦
+            <span className="text-[9px] text-[#73582D] italic font-cormorant">
+              ✦ Click card to flip · Click button for Archetypes ✦
             </span>
           </div>
         </div>
