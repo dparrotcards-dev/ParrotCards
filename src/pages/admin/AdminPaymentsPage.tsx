@@ -238,7 +238,6 @@ export const AdminPaymentsPage: React.FC = () => {
   const metrics = useMemo(() => {
     let successCount = 0;
     let failedCount = 0;
-    let refundedCount = 0;
     let totalAmount = 0;
 
     for (const t of transactions) {
@@ -247,8 +246,6 @@ export const AdminPaymentsPage: React.FC = () => {
         totalAmount += t.amountRupees;
       } else if (t.status === 'Failed') {
         failedCount++;
-      } else if (t.status === 'Refunded') {
-        refundedCount++;
       }
     }
 
@@ -256,7 +253,6 @@ export const AdminPaymentsPage: React.FC = () => {
       total: transactions.length,
       success: successCount,
       failed: failedCount,
-      refunded: refundedCount,
       totalAmount,
     };
   }, [transactions]);
@@ -352,7 +348,7 @@ export const AdminPaymentsPage: React.FC = () => {
       )}
 
       {/* 1. Metric Stat Cards Strip with Dynamic Real Data */}
-      <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <section className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Total Transactions */}
         <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
           <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#8C6D3B]">
@@ -388,19 +384,6 @@ export const AdminPaymentsPage: React.FC = () => {
             <div className="text-xs font-medium text-[#7A6A58]">Failed</div>
             <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
               {metrics.failed.toLocaleString('en-IN')}
-            </div>
-          </div>
-        </div>
-
-        {/* Refunded */}
-        <div className="bg-[#FFFDF9] border border-[#EBDCCB] rounded-2xl p-4 shadow-[0_2px_8px_rgba(44,32,22,0.04)] flex items-center gap-3.5 hover:shadow-md transition-shadow">
-          <div className="w-10 h-10 rounded-xl bg-[#FAF5EE] border border-[#E5D7C6]/60 flex items-center justify-center shrink-0 text-[#71449B]">
-            <RotateCcw className="w-5 h-5" strokeWidth={1.75} />
-          </div>
-          <div>
-            <div className="text-xs font-medium text-[#7A6A58]">Refunded</div>
-            <div className="text-2xl font-bold font-serif text-[#2C2016] leading-tight">
-              {metrics.refunded.toLocaleString('en-IN')}
             </div>
           </div>
         </div>

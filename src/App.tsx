@@ -1,49 +1,58 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { DeckProvider } from './context/DeckContext';
 import { RootLayout } from './layouts/RootLayout';
 
-import { BirthEntryPage } from './pages/BirthEntryPage';
-import { DeckPage } from './pages/DeckPage';
-import { SovereignAvatarPage } from './pages/SovereignAvatarPage';
-import { AstronomicalProfilePage } from './pages/AstronomicalProfilePage';
-import { PricingCheckoutPage } from './pages/PricingCheckoutPage';
-import { PaymentResultPage } from './pages/PaymentResultPage';
-import { UserProfilePage } from './pages/UserProfilePage';
-import { SavedDeckPage } from './pages/SavedDeckPage';
-import { PurchasedCardsPage } from './pages/PurchasedCardsPage';
-import { PaymentHistoryPage } from './pages/PaymentHistoryPage';
-import { MyOrdersPage } from './pages/MyOrdersPage';
-import { AboutPage } from './pages/AboutPage';
-import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
-import { TermsPage } from './pages/TermsPage';
-import { SupportPage } from './pages/SupportPage';
-import { AuthPage } from './pages/AuthPage';
-import { AdminLoginPage } from './pages/AdminLoginPage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { SeoManager } from './components/SeoManager';
 
-// Super Admin Suite
-import { AdminShell } from './pages/admin/AdminShell';
-import { AdminOverviewPage } from './pages/admin/AdminOverviewPage';
-import { AdminUsersPage } from './pages/admin/AdminUsersPage';
-import { AdminDecksPage } from './pages/admin/AdminDecksPage';
-import { AdminCardsPage } from './pages/admin/AdminCardsPage';
-import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage';
-import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
-import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
-import { AdminSystemPage } from './pages/admin/AdminSystemPage';
-import { AdminChangePasswordPage } from './pages/admin/AdminChangePasswordPage';
-import { CosmicStorePage } from './pages/CosmicStorePage';
-import { CartPage } from './pages/CartPage';
-import { AdminAddProductPage } from './pages/admin/AdminAddProductPage';
-import { AdminProductsPage } from './pages/admin/AdminProductsPage';
+const BirthEntryPage = lazy(() => import('./pages/BirthEntryPage').then((m) => ({ default: m.BirthEntryPage })));
+const DeckPage = lazy(() => import('./pages/DeckPage').then((m) => ({ default: m.DeckPage })));
+const SovereignAvatarPage = lazy(() => import('./pages/SovereignAvatarPage').then((m) => ({ default: m.SovereignAvatarPage })));
+const AstronomicalProfilePage = lazy(() => import('./pages/AstronomicalProfilePage').then((m) => ({ default: m.AstronomicalProfilePage })));
+const PricingCheckoutPage = lazy(() => import('./pages/PricingCheckoutPage').then((m) => ({ default: m.PricingCheckoutPage })));
+const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage').then((m) => ({ default: m.PaymentResultPage })));
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then((m) => ({ default: m.UserProfilePage })));
+const SavedDeckPage = lazy(() => import('./pages/SavedDeckPage').then((m) => ({ default: m.SavedDeckPage })));
+const PurchasedCardsPage = lazy(() => import('./pages/PurchasedCardsPage').then((m) => ({ default: m.PurchasedCardsPage })));
+const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage').then((m) => ({ default: m.PaymentHistoryPage })));
+const MyOrdersPage = lazy(() => import('./pages/MyOrdersPage').then((m) => ({ default: m.MyOrdersPage })));
+const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
+const TermsPage = lazy(() => import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })));
+const SupportPage = lazy(() => import('./pages/SupportPage').then((m) => ({ default: m.SupportPage })));
+const AuthPage = lazy(() => import('./pages/AuthPage').then((m) => ({ default: m.AuthPage })));
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage').then((m) => ({ default: m.AdminLoginPage })));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })));
+const AdminShell = lazy(() => import('./pages/admin/AdminShell').then((m) => ({ default: m.AdminShell })));
+const AdminOverviewPage = lazy(() => import('./pages/admin/AdminOverviewPage').then((m) => ({ default: m.AdminOverviewPage })));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })));
+const AdminDecksPage = lazy(() => import('./pages/admin/AdminDecksPage').then((m) => ({ default: m.AdminDecksPage })));
+const AdminCardsPage = lazy(() => import('./pages/admin/AdminCardsPage').then((m) => ({ default: m.AdminCardsPage })));
+const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage').then((m) => ({ default: m.AdminPaymentsPage })));
+const AdminOrdersPage = lazy(() => import('./pages/admin/AdminOrdersPage').then((m) => ({ default: m.AdminOrdersPage })));
+const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage').then((m) => ({ default: m.AdminMessagesPage })));
+const AdminSystemPage = lazy(() => import('./pages/admin/AdminSystemPage').then((m) => ({ default: m.AdminSystemPage })));
+const AdminChangePasswordPage = lazy(() => import('./pages/admin/AdminChangePasswordPage').then((m) => ({ default: m.AdminChangePasswordPage })));
+const CosmicStorePage = lazy(() => import('./pages/CosmicStorePage').then((m) => ({ default: m.CosmicStorePage })));
+const CartPage = lazy(() => import('./pages/CartPage').then((m) => ({ default: m.CartPage })));
+const AdminAddProductPage = lazy(() => import('./pages/admin/AdminAddProductPage').then((m) => ({ default: m.AdminAddProductPage })));
+const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage').then((m) => ({ default: m.AdminProductsPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
+      <SeoManager />
       <AuthProvider>
         <DeckProvider>
+          <React.Suspense
+            fallback={
+              <div role="status" className="flex min-h-[50vh] items-center justify-center text-sm text-[#6B635B]">
+                Loading Parrot Cards…
+              </div>
+            }
+          >
           <Routes>
             {/* Super Admin Dashboard Suite (Rendered in dedicated executive AdminShell) */}
             <Route path="/admin" element={<AdminShell />}>
@@ -95,9 +104,10 @@ export const App: React.FC = () => {
               <Route path="admin/login" element={<AdminLoginPage />} />
               <Route path="admin/reset-password" element={<ResetPasswordPage isAdminFlow />} />
               <Route path="reset-password" element={<ResetPasswordPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
+          </React.Suspense>
         </DeckProvider>
       </AuthProvider>
     </BrowserRouter>

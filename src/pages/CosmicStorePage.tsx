@@ -403,9 +403,9 @@ export const CosmicStorePage: React.FC = () => {
     const hasRating = product.rating > 0 && product.ratingCount > 0;
 
     return (
-      <div className="group relative flex w-full max-w-none flex-col overflow-hidden rounded-xl border border-[#E8E2D8] bg-white shadow-[0_2px_8px_rgba(70,50,20,0.04)] transition-all duration-200 hover:shadow-[0_6px_22px_rgba(70,50,20,0.10)] active:translate-y-px sm:max-w-[360px] sm:rounded-2xl lg:max-w-[420px]">
+      <div className="group relative flex w-full max-w-none flex-col overflow-hidden rounded-2xl border border-[#E8E2D8] bg-white shadow-[0_2px_10px_rgba(70,50,20,0.08)] transition-all duration-200 hover:shadow-[0_6px_22px_rgba(70,50,20,0.10)] active:translate-y-px sm:max-w-[360px] lg:max-w-[420px]">
         {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-[#F4EEE4] sm:aspect-[4/3.2]">
+        <div className="relative aspect-[4/3.2] overflow-hidden bg-[#F4EEE4]">
           <img
             src={product.imageUrl}
             alt={product.name}
@@ -432,7 +432,7 @@ export const CosmicStorePage: React.FC = () => {
               toggleWishlist(product.id);
             }}
             title={isWished ? 'Remove from Wishlist' : 'Add to Wishlist'}
-            className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-xs transition-colors hover:bg-white active:scale-95 cursor-pointer sm:right-2.5 sm:top-2.5 sm:h-10 sm:w-10"
+            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors hover:bg-white active:scale-95 cursor-pointer sm:right-2.5 sm:top-2.5"
           >
             <Heart
               className={`h-3.5 w-3.5 transition-colors ${
@@ -443,20 +443,20 @@ export const CosmicStorePage: React.FC = () => {
         </div>
 
         {/* Info */}
-        <div className="flex flex-1 flex-col justify-between p-2.5 sm:p-4">
+        <div className="flex flex-1 flex-col justify-between p-4 sm:p-4">
           <div>
             <h3
               title={product.name}
-              className="line-clamp-2 min-h-[2.5em] text-[13px] font-bold leading-[1.25] text-[#1A1817] first-letter:uppercase sm:min-h-0 sm:text-base"
+              className="line-clamp-2 min-h-0 text-[18px] font-bold leading-[1.25] text-[#1A1817] first-letter:uppercase sm:text-base"
             >
               {product.name}
             </h3>
-            <p className="mt-1 min-h-[3em] line-clamp-2 text-[11px] leading-[1.35] text-[#6B635B] sm:mt-1.5 sm:min-h-[3.5em] sm:line-clamp-3 sm:text-xs">
+            <p className="mt-2 line-clamp-2 min-h-0 text-[14px] leading-[1.5] text-[#6B635B] sm:mt-1.5 sm:min-h-[3.5em] sm:line-clamp-3 sm:text-xs">
               {product.shortDescription}
             </p>
 
             <div className="mt-1.5 flex min-h-4 items-center justify-between gap-1 sm:mt-2.5 sm:min-h-5 sm:gap-2">
-              <span className="truncate text-[8.5px] font-semibold uppercase tracking-wide text-[#8C6D3B] sm:text-[10px]">
+              <span className="truncate text-[12px] font-semibold uppercase tracking-wide text-[#8C6D3B] sm:text-[10px]">
                 {product.category}
               </span>
               {hasRating && (
@@ -470,15 +470,15 @@ export const CosmicStorePage: React.FC = () => {
 
             {/* Price */}
             <div className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-1 sm:mt-2.5 sm:gap-x-2">
-              <span className="text-[15px] font-bold text-[#1A1817] sm:text-lg">
+              <span className="text-[20px] font-bold text-[#1A1817] sm:text-lg">
                 ₹{formatPrice(product.priceRupees)}
               </span>
               {product.mrpRupees > product.priceRupees && (
                 <>
-                  <span className="hidden text-xs text-[#8B8178] line-through sm:inline">
+                  <span className="text-[16px] text-[#8B8178] line-through sm:text-xs">
                     ₹{formatPrice(product.mrpRupees)}
                   </span>
-                  <span className="rounded-full bg-[#E8F3EB] px-1.5 py-0.5 text-[10px] font-bold text-[#2E6B43]">
+                  <span className="rounded-full bg-[#E8F3EB] px-2 py-1 text-[12px] font-bold text-[#2E6B43]">
                     -{product.discountPercent}%
                   </span>
                 </>
@@ -489,7 +489,7 @@ export const CosmicStorePage: React.FC = () => {
           {/* Add to Cart */}
           <button
             onClick={() => addToCart(product)}
-            className={`mt-2 flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg px-1.5 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C6D3B] focus-visible:ring-offset-2 cursor-pointer sm:mt-3 sm:min-h-11 sm:rounded-xl sm:px-3 sm:text-[13px] ${
+            className={`mt-4 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-3 text-[16px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C6D3B] focus-visible:ring-offset-2 cursor-pointer sm:mt-3 sm:min-h-11 sm:text-[13px] ${
               !product.inStock
                 ? 'cursor-not-allowed bg-[#E8E2D8] text-[#746B60]'
                 : 'bg-[#7A5B28] text-white shadow-sm hover:bg-[#65491F] active:scale-[0.99]'
@@ -667,7 +667,7 @@ export const CosmicStorePage: React.FC = () => {
 
             {/* Loading Skeleton Cards (instant visual feedback on cold load) */}
             {loading && products.length === 0 && (
-              <div className="store-product-grid grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
+              <div className="store-product-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
@@ -727,7 +727,7 @@ export const CosmicStorePage: React.FC = () => {
 
             {/* Product Grid (renders immediately from cache/memory with 0ms delay) */}
             {displayProducts.length > 0 && (
-              <div className="store-product-grid grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
+              <div className="store-product-grid grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
                 {displayProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

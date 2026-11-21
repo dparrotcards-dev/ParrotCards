@@ -290,7 +290,7 @@ export const BirthEntryPage: React.FC = () => {
             Draw the deck your birth sky dealt you.
           </p>
           <p className="birth-intro-copy mx-auto max-w-[300px] pt-0.5 text-[11px] leading-relaxed text-[#6B635B] sm:text-xs">
-            Add your birth details to create your personal deck.
+            Create a personalized 55-card deck from your Vedic birth chart details.
           </p>
         </div>
 

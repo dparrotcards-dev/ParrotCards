@@ -9,8 +9,176 @@
       "destination": "https://parrot-cards-backend.vercel.app/api/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/dashboard",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/users",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/decks",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/cards",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/store",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/store/products",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/store/add-product",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/orders",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/payments",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/transactions",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/contact-messages",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/messages",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/ai-monitoring",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/astronomy",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/analytics",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/system",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/admins",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/audit-logs",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/change-password",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/login",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/reset-password",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/deck",
+      "destination": "/deck/index.html"
+    },
+    {
+      "source": "/avatar",
+      "destination": "/avatar/index.html"
+    },
+    {
+      "source": "/profile/astronomy",
+      "destination": "/profile/astronomy/index.html"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/pricing/index.html"
+    },
+    {
+      "source": "/services",
       "destination": "/index.html"
+    },
+    {
+      "source": "/cosmic-store",
+      "destination": "/cosmic-store/index.html"
+    },
+    {
+      "source": "/cart",
+      "destination": "/cart/index.html"
+    },
+    {
+      "source": "/payment/result",
+      "destination": "/payment/result/index.html"
+    },
+    {
+      "source": "/account",
+      "destination": "/account/index.html"
+    },
+    {
+      "source": "/my-orders",
+      "destination": "/my-orders/index.html"
+    },
+    {
+      "source": "/orders",
+      "destination": "/orders/index.html"
+    },
+    {
+      "source": "/saved-deck",
+      "destination": "/saved-deck/index.html"
+    },
+    {
+      "source": "/purchased-cards",
+      "destination": "/purchased-cards/index.html"
+    },
+    {
+      "source": "/payments/history",
+      "destination": "/payments/history/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms/index.html"
+    },
+    {
+      "source": "/support",
+      "destination": "/support/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login/index.html"
+    },
+    {
+      "source": "/register",
+      "destination": "/register/index.html"
+    },
+    {
+      "source": "/reset-password",
+      "destination": "/reset-password/index.html"
     }
   ]
 }

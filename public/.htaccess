@@ -1,0 +1,11 @@
+RewriteEngine On
+ErrorDocument 404 /404.html
+
+RewriteRule ^(about|cosmic-store|pricing|support|privacy|terms)/?$ $1/index.html [L]
+RewriteRule ^(deck|avatar|cart|account|my-orders|orders|saved-deck|purchased-cards|login|register|reset-password)/?$ $1/index.html [L]
+RewriteRule ^profile/astronomy/?$ profile/astronomy/index.html [L]
+RewriteRule ^payment/result/?$ payment/result/index.html [L]
+RewriteRule ^payments/history/?$ payments/history/index.html [L]
+RewriteRule ^admin/?$ admin/index.html [L]
+RewriteRule ^admin/(dashboard|users|decks|cards|store|store/products|store/add-product|orders|payments|transactions|contact-messages|messages|ai-monitoring|astronomy|analytics|system|admins|audit-logs|change-password|login|reset-password)/?$ admin/index.html [L]
+RewriteRule ^services/?$ index.html [L]
