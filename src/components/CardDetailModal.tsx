@@ -587,7 +587,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
         ) : loading ? (
           <div className="py-12 text-center space-y-3">
             <div className="w-10 h-10 border-2 border-[#8C6D3B] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-sm font-cinzel text-[#8C6D3B] font-semibold">Consulting the Gemini cosmic oracle…</p>
+            <p className="text-sm font-cinzel text-[#8C6D3B] font-semibold tracking-wide">
+              {isHindi ? 'आपकी कॉस्मिक रीडिंग तैयार की जा रही है...' : 'Preparing Your Cosmic Reading...'}
+            </p>
           </div>
         ) : (
           /* Interpretation Sections */
