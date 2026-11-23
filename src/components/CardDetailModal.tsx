@@ -134,6 +134,10 @@ function buildDefaultInterpretation(card: ICard): ICardInterpretationData {
       challenges: 'दूसरों की नकारात्मक ऊर्जा से स्वयं को सुरक्षित रखना और सही समय पर सीमाएं निर्धारित करना।',
       shadowSelf: 'कठिनाइयों में अपनी कोमलता को छिपा लेना और अत्यधिक कठोरता का मुखौटा ओढ़ना।',
       soulPurpose: 'यह सिद्ध करना कि सच्ची संप्रभुता बाहरी नियंत्रण में नहीं, बल्कि आंतरिक अनुशासन और आत्म-समर्पण में निहित है।',
+      deeperExplanation: card.detailedInterpretation || `आपकी जन्म कुंडली में ${card.title} (${sign}) उच्च चेतना और संप्रभु जीवन उद्देश्य का मुख्य आधार है।`,
+      reflectionPrompt: card.reflectionQuestion || 'आप अपनी आंतरिक शक्ति और जीवन के उच्च उद्देश्य में कैसे सामंजस्य स्थापित कर सकते हैं?',
+      dharmaConnection: 'आपके पुरुषार्थ और कर्म-पथ को शुद्ध चेतना के साथ जोड़ता है।',
+      practicalAction: 'आज के दिन कुछ समय शांत बैठकर अपने आत्म-सत्य का स्मरण करें और सजग निर्णय लें।',
     },
     isAiGenerated: false,
     demographicLens: 'Adult (Integrated)',
@@ -212,18 +216,35 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-2xl bg-[#FAF7F2] border-2 border-[#8C6D3B]/40 rounded-3xl p-5 sm:p-8 shadow-2xl text-[#1A1817] space-y-5 sm:space-y-6 my-auto max-h-[92vh] overflow-y-auto no-scrollbar"
       >
-        {/* Top Control Bar: Language Toggle & Close Button */}
-        <div className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 z-20">
-          {/* Language Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setSelectedLang(isHindi ? 'EN' : 'HI')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F2ECE1] hover:bg-[#EAE1D2] text-[#8C6D3B] border border-[#8C6D3B]/30 font-cinzel text-xs font-bold transition-all shadow-xs cursor-pointer"
-            title="Toggle English / Hindi reading"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>{isHindi ? 'हिंदी' : 'EN'}</span>
-          </button>
+        {/* Top Control Bar: Language Switch & Close Button */}
+        <div className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 flex items-center gap-2 z-20">
+          {/* Segmented Language Switcher */}
+          <div className="flex items-center rounded-full bg-[#F2ECE1] p-0.5 border border-[#8C6D3B]/35 shadow-xs">
+            <button
+              type="button"
+              onClick={() => setSelectedLang('EN')}
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-xs font-cinzel font-bold transition-all cursor-pointer ${
+                !isHindi
+                  ? 'bg-[#8C6D3B] text-white shadow-xs'
+                  : 'text-[#6B635B] hover:text-[#1A1817]'
+              }`}
+              title="Read in English"
+            >
+              <span>English</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedLang('HI')}
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-xs font-cinzel font-bold transition-all cursor-pointer ${
+                isHindi
+                  ? 'bg-[#8C6D3B] text-white shadow-xs'
+                  : 'text-[#6B635B] hover:text-[#1A1817]'
+              }`}
+              title="हिंदी में पढ़ें"
+            >
+              <span>हिंदी</span>
+            </button>
+          </div>
 
           {/* Close Button */}
           <button
@@ -332,71 +353,71 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
             )}
 
             {/* ═══ 2. INTERACTIVE LENS TABS ═══ */}
-            <div className="border-b border-[#8C6D3B]/25 pb-1">
-              <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-1">
+            <div className="border-b border-[#8C6D3B]/25 pb-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => setActiveLens('superpower')}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
                     activeLens === 'superpower'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>{isHindi ? 'अलौकिक शक्ति' : 'Superpower'}</span>
+                  <Zap className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{isHindi ? 'अलौकिक शक्ति' : 'Superpower'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('challenges')}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
                     activeLens === 'challenges'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  <span>{isHindi ? 'चुनौतियाँ' : 'Challenges'}</span>
+                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{isHindi ? 'चुनौतियाँ' : 'Challenges'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('shadow')}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
                     activeLens === 'shadow'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
-                  <Moon className="w-3.5 h-3.5" />
-                  <span>{isHindi ? 'छाया स्वरूप' : 'Shadow Self'}</span>
+                  <Moon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{isHindi ? 'छाया स्वरूप' : 'Shadow Self'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('purpose')}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
                     activeLens === 'purpose'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
-                  <Crown className="w-3.5 h-3.5" />
-                  <span>{isHindi ? 'आत्मा का ध्येय' : 'Soul Purpose'}</span>
+                  <Crown className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{isHindi ? 'आत्म-ध्येय' : 'Soul Purpose'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('reading')}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`w-full col-span-2 sm:col-span-1 flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
                     activeLens === 'reading'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>{isHindi ? 'गहन व्याख्या' : 'Deep Reading'}</span>
+                  <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{isHindi ? 'गहन शोध' : 'Deep Research'}</span>
                 </button>
               </div>
             </div>
@@ -455,55 +476,57 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                 </div>
               )}
 
-              {/* LENS: DEEP READING & DHARMA */}
+              {/* LENS: DEEP RESEARCH & DHARMA */}
               {activeLens === 'reading' && (
                 <div className="space-y-4">
-                  {/* Deeper Explanation */}
-                  <div className="space-y-2">
+                  {/* Deeper Explanation / Deep Research */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/25 space-y-2.5 shadow-xs">
                     <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#8C6D3B] font-cinzel">
-                      <BookOpen className="w-4 h-4" />
-                      <span>{isHindi ? 'कॉस्मिक सामंजस्य व संपूर्ण पठन' : 'Cosmic Alignment & Deep Reading'}</span>
+                      <BookOpen className="w-4 h-4 text-[#8C6D3B]" />
+                      <span>{isHindi ? 'कॉस्मिक सामंजस्य व गहन शोध' : 'Cosmic Alignment & Deep Research'}</span>
                     </div>
-                    <p className="text-[#3D3833] leading-relaxed whitespace-pre-line text-sm font-serif">
-                      {activeInterp.deeperExplanation || card.shortSummary}
+                    <p className="text-[#2C241D] leading-relaxed whitespace-pre-line text-sm sm:text-base font-serif">
+                      {isHindi && hindi?.deeperExplanation
+                        ? hindi.deeperExplanation
+                        : (activeInterp.deeperExplanation || card.detailedInterpretation || card.shortSummary)}
                     </p>
                   </div>
 
-                  {/* Reflection Prompt */}
-                  {activeInterp.reflectionPrompt && (
+                  {/* Reflection Prompt / Soul Inquiry */}
+                  {(activeInterp.reflectionPrompt || card.reflectionQuestion) && (
                     <div className="p-4 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 space-y-2">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#8C6D3B] font-cinzel">
                         <Lightbulb className="w-4 h-4 text-[#8C6D3B]" />
-                        <span>{isHindi ? 'आत्म-मंथन का प्रश्न' : 'Soul Reflection Inquiry'}</span>
+                        <span>{isHindi ? 'आत्म-मंथन व चिंतन' : 'Soul Reflection Inquiry'}</span>
                       </div>
-                      <p className="font-cormorant italic text-base sm:text-lg text-[#1A1817]">
-                        "{activeInterp.reflectionPrompt}"
+                      <p className="font-serif italic text-sm sm:text-base text-[#1A1817] leading-relaxed">
+                        "{isHindi && hindi?.reflectionPrompt ? hindi.reflectionPrompt : (activeInterp.reflectionPrompt || card.reflectionQuestion)}"
                       </p>
                     </div>
                   )}
 
                   {/* Purushartha Dharma Connection */}
                   {activeInterp.dharmaConnection && (
-                    <div className="space-y-1">
+                    <div className="p-4 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/25 space-y-1.5">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#2E5A36] font-cinzel">
                         <Compass className="w-4 h-4" />
-                        <span>{isHindi ? 'पुरुषार्थ व धर्म संबंध' : 'Purushartha & Evolutionary Vector'}</span>
+                        <span>{isHindi ? 'पुरुषार्थ व कर्म दिशा' : 'Purushartha & Evolutionary Vector'}</span>
                       </div>
-                      <p className="text-[#5C5650] text-xs sm:text-sm leading-relaxed font-serif">
-                        {activeInterp.dharmaConnection}
+                      <p className="text-[#3D3833] text-xs sm:text-sm leading-relaxed font-serif">
+                        {isHindi && hindi?.dharmaConnection ? hindi.dharmaConnection : activeInterp.dharmaConnection}
                       </p>
                     </div>
                   )}
 
                   {/* Practical Action */}
                   {activeInterp.practicalAction && (
-                    <div className="space-y-1">
+                    <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#8C6D3B]/30 space-y-1.5">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#8C6D3B] font-cinzel">
                         <Target className="w-4 h-4" />
-                        <span>{isHindi ? 'आज का व्यावहारिक कर्म' : 'Grounded Action for Today'}</span>
+                        <span>{isHindi ? 'आज का व्यावहारिक कर्म' : 'Grounded Daily Action'}</span>
                       </div>
-                      <p className="text-[#5C5650] text-xs sm:text-sm leading-relaxed font-serif">
-                        {activeInterp.practicalAction}
+                      <p className="text-[#3D3833] text-xs sm:text-sm leading-relaxed font-serif">
+                        {isHindi && hindi?.practicalAction ? hindi.practicalAction : activeInterp.practicalAction}
                       </p>
                     </div>
                   )}

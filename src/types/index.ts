@@ -129,6 +129,10 @@ export interface IHindiInterpretation {
   shadowSelf?: string;
   soulPurpose?: string;
   affirmation?: string;
+  deeperExplanation?: string;
+  reflectionPrompt?: string;
+  dharmaConnection?: string;
+  practicalAction?: string;
 }
 
 export interface ICardInterpretationData {
