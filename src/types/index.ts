@@ -133,6 +133,7 @@ export interface IHindiInterpretation {
   reflectionPrompt?: string;
   dharmaConnection?: string;
   practicalAction?: string;
+  synergy?: string;
 }
 
 export interface ICardInterpretationData {

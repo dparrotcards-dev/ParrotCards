@@ -144,6 +144,161 @@ function formatUserFriendlyPlacement(astro: any, rawVector: string | undefined, 
   return resultParts.join(' · ') || rawVector || '';
 }
 
+const HINDI_HOUSE_NAMES: Record<number, string> = {
+  1: 'प्रथम भाव',
+  2: 'द्वितीय भाव',
+  3: 'तृतीय भाव',
+  4: 'चतुर्थ भाव',
+  5: 'पंचम भाव',
+  6: 'षष्ठ भाव',
+  7: 'सप्तम भाव',
+  8: 'अष्टम भाव',
+  9: 'नवम भाव',
+  10: 'दशम भाव',
+  11: 'एकादश भाव',
+  12: 'द्वादश भाव',
+};
+
+const PLANET_HINDI_MAP: Record<string, string> = {
+  sun: 'सूर्य',
+  moon: 'चंद्र',
+  mars: 'मंगल',
+  mercury: 'बुध',
+  jupiter: 'गुरु',
+  venus: 'शुक्र',
+  saturn: 'शनि',
+  rahu: 'राहु',
+  ketu: 'केतु',
+  ascendant: 'लग्न',
+  lagna: 'लग्न',
+};
+
+function getOrdinalHouse(houseNum: number | null | undefined): string {
+  if (!houseNum) return '—';
+  const j = houseNum % 10,
+    k = houseNum % 100;
+  if (j === 1 && k !== 11) return `${houseNum}st House`;
+  if (j === 2 && k !== 12) return `${houseNum}nd House`;
+  if (j === 3 && k !== 13) return `${houseNum}rd House`;
+  return `${houseNum}th House`;
+}
+
+function formatHouse(houseNum: number | null | undefined, isHindi: boolean): string {
+  if (!houseNum) return '—';
+  if (isHindi) {
+    return HINDI_HOUSE_NAMES[houseNum] || `${houseNum}वां भाव`;
+  }
+  return getOrdinalHouse(houseNum);
+}
+
+function formatPlanet(planetName: string | null | undefined, isHindi: boolean): string {
+  if (!planetName) return '—';
+  if (!isHindi) return planetName;
+  const clean = planetName.trim();
+  const lower = clean.toLowerCase();
+  for (const [key, val] of Object.entries(PLANET_HINDI_MAP)) {
+    if (lower.includes(key)) {
+      return val;
+    }
+  }
+  return clean;
+}
+
+function formatSignName(signIdx: number | null | undefined, signName: string | null | undefined, isHindi: boolean): string {
+  if (signIdx != null && signIdx >= 0 && signIdx < 12) {
+    return isHindi ? HINDI_SIGN_NAMES[signIdx] : ENGLISH_SIGN_NAMES[signIdx];
+  }
+  if (!signName) return '—';
+  const clean = signName.split(' • ')[0].trim();
+  const foundIdx = ENGLISH_SIGN_NAMES.findIndex((s) => clean.toLowerCase().includes(s.toLowerCase()));
+  if (foundIdx !== -1) {
+    return isHindi ? HINDI_SIGN_NAMES[foundIdx] : ENGLISH_SIGN_NAMES[foundIdx];
+  }
+  return clean;
+}
+
+function formatNavamshaName(navIdx: number | null | undefined, navName: string | null | undefined, isHindi: boolean): string {
+  if (navIdx != null && navIdx >= 0 && navIdx < 12) {
+    return isHindi ? HINDI_SIGN_NAMES[navIdx] : ENGLISH_SIGN_NAMES[navIdx];
+  }
+  if (!navName) return '—';
+  const clean = navName.replace(/Navamsha/i, '').replace(/Sign/i, '').trim();
+  const foundIdx = ENGLISH_SIGN_NAMES.findIndex((s) => clean.toLowerCase().includes(s.toLowerCase()));
+  if (foundIdx !== -1) {
+    return isHindi ? HINDI_SIGN_NAMES[foundIdx] : ENGLISH_SIGN_NAMES[foundIdx];
+  }
+  return clean || navName;
+}
+
+function formatNakshatraDisplay(nak: string | null | undefined, pada: number | null | undefined, isHindi: boolean): string {
+  if (!nak) return '—';
+  const nakName = isHindi ? NAKSHATRA_HINDI_MAP[nak] || nak : nak;
+  const padaNum = pada ?? 1;
+  const padaText = isHindi ? `पाद ${padaNum}` : `Pada ${padaNum}`;
+  return `${nakName} (${padaText})`;
+}
+
+function getHindiSynergy(card: ICard, astro: any, synergyEn?: string, name: string = 'जातक'): string {
+  const signHindi = formatSignName(astro?.sign, astro?.signName, true);
+  const nakHindi = astro?.nak ? NAKSHATRA_HINDI_MAP[astro.nak] || astro.nak : '';
+  const padaStr = astro?.pada ? `पाद ${astro.pada}` : '';
+  const navHindi = formatNavamshaName(astro?.navamshaSign, astro?.navamshaSignName, true);
+  const houseStr = astro?.house ? HINDI_HOUSE_NAMES[astro.house] || `${astro.house}वां भाव` : 'लग्न भाव';
+  const lordHindi = formatPlanet(astro?.houseLord, true);
+
+  const keyLower = (card.key || card.title || '').toLowerCase();
+
+  if (keyLower.includes('lagna')) {
+    return `${signHindi} लग्न ${nakHindi ? `${nakHindi} नक्षत्र (${padaStr || 'पाद 1'})` : ''} और ${navHindi} नवांश के साथ मिलकर ${name} के प्रारंभिक जीवन में सहज स्थिरता, सौम्य आकर्षण और बौद्धिक अनुकूलनशीलता के बीच एक सुंदर संतुलन स्थापित करता है। यह योग मानसिक शांति और निरंतर आंतरिक विकास को गति प्रदान करता है।`;
+  }
+
+  if (keyLower.includes('sun')) {
+    return `${signHindi} राशि और ${houseStr} में सूर्य की यह स्थिति ${lordHindi !== '—' ? `${lordHindi} के प्रभाव और ` : ''}${navHindi} नवांश के साथ मिलकर ${name} के भीतर स्वाभाविक आत्म-तेज, नेतृत्व क्षमता और अटल आत्म-विश्वास को जाग्रत करती है।`;
+  }
+
+  if (keyLower.includes('moon')) {
+    return `${signHindi} राशि में चंद्र की यह स्थिति ${nakHindi ? `${nakHindi} नक्षत्र` : ''} और ${navHindi} नवांश के साथ मिलकर ${name} के मन, अंतर्ज्ञान और भावनात्मक संतुलन को गहन सुरक्षा और संवेदनशीलता प्रदान करती है।`;
+  }
+
+  if (keyLower.includes('mars')) {
+    return `${signHindi} राशि में मंगल का प्रभाव ${houseStr} और ${navHindi} नवांश के साथ सामंजस्य बनाकर ${name} की ऊर्जा, साहस और कर्म-संकल्प को सही दिशा और रणनीतिक दृढ़ता देता है।`;
+  }
+
+  if (keyLower.includes('mercury')) {
+    return `${signHindi} राशि में बुध का प्रभाव ${nakHindi ? `${nakHindi} नक्षत्र` : ''} और ${navHindi} नवांश के समन्वय से ${name} की बौद्धिक तीक्ष्णता, तर्कशक्ति और अभिव्यक्ति को निखारता है।`;
+  }
+
+  if (keyLower.includes('jupiter')) {
+    return `${signHindi} राशि और ${houseStr} में गुरु की स्थिति ${navHindi} नवांश के साथ मिलकर ${name} के भीतर उच्च विवेक, मार्गदर्शक क्षमता और आध्यात्मिक ज्ञान का विस्तार करती है।`;
+  }
+
+  if (keyLower.includes('venus')) {
+    return `${signHindi} राशि में शुक्र का संयोजन ${nakHindi ? `${nakHindi} नक्षत्र` : ''} और ${navHindi} नवांश के साथ ${name} के जीवन में सौंदर्य-बोध, सामंजस्य और पारस्परिक संबंधों में सौहार्द लाता है।`;
+  }
+
+  if (keyLower.includes('saturn')) {
+    return `${signHindi} राशि और ${houseStr} में शनि की स्थिति ${navHindi} नवांश के साथ मिलकर ${name} के भीतर गहन धैर्य, अनुशासन और दीर्घकालिक कर्म-सिद्धि की नींव रखती है।`;
+  }
+
+  if (keyLower.includes('rahu') || keyLower.includes('ketu')) {
+    return `${signHindi} राशि और ${houseStr} में यह छाया ग्रह बिंदु ${navHindi} नवांश के सूक्ष्म प्रभाव से ${name} को पारंपरिक सीमाओं से परे जाकर गूढ़ चिंतन और आत्म-शोधन की दिशा में प्रेरित करता है।`;
+  }
+
+  if (keyLower.includes('yogi')) {
+    return `${signHindi} राशि और ${houseStr} में यह शुभ योगी बिंदु ${navHindi} नवांश के साथ मिलकर ${name} के जीवन में अप्रत्याशित सौभाग्य, आध्यात्मिक शुचिता और कल्याणकारी अवसरों का द्वार खोलता है।`;
+  }
+
+  const lead = [
+    signHindi !== '—' ? `${signHindi} राशि` : '',
+    nakHindi ? `${nakHindi} नक्षत्र` : '',
+    navHindi !== '—' ? `${navHindi} नवांश` : '',
+  ]
+    .filter(Boolean)
+    .join(' व ');
+
+  return `${lead ? `${lead} का यह खगोलीय संयोजन ` : ''}${lordHindi !== '—' ? `भावेश ${lordHindi} के संरक्षण में ` : ''}${name} के व्यक्तित्व में सहज संतुलन, संप्रभु आत्म-ज्ञान और कर्म-दक्षता का विस्तार करता है।`;
+}
+
 function getHindiDeeperExplanation(card: ICard, astro: any, name: string): string {
   const sign = astro.signName || 'इस राशि';
   const house = astro.house ? `${astro.house}वें भाव` : 'लग्न भाव';
@@ -263,6 +418,7 @@ function buildDefaultInterpretation(card: ICard): ICardInterpretationData {
       reflectionPrompt: card.reflectionQuestion || 'आप अपनी आंतरिक शक्ति और जीवन के उच्च उद्देश्य में कैसे सामंजस्य स्थापित कर सकते हैं?',
       dharmaConnection: 'आपके पुरुषार्थ और कर्म-पथ को शुद्ध चेतना के साथ जोड़ता है।',
       practicalAction: 'आज के दिन कुछ समय शांत बैठकर अपने आत्म-सत्य का स्मरण करें और सजग निर्णय लें।',
+      synergy: getHindiSynergy(card, astro, undefined, 'जातक'),
     },
     isAiGenerated: false,
     demographicLens: 'Adult (Integrated)',
@@ -461,10 +617,10 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8C6D3B] text-white font-cinzel text-[11px] font-bold tracking-wider">
                     <Sparkles className="w-3 h-3 text-amber-200" />
-                    <span>BIJA: {energy.bijaTrigger}</span>
+                    <span>{isHindi ? 'बीज' : 'BIJA'}: {energy.bijaTrigger}</span>
                   </span>
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 border border-[#8C6D3B]/30 text-[#6B5A40] text-[11px] font-serif font-semibold">
-                    <span>Power: {energy.powerColor}</span>
+                    <span>{isHindi ? 'शक्ति रंग' : 'Power'}: {energy.powerColor}</span>
                   </span>
                 </div>
 
@@ -674,7 +830,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                     ✦ {isHindi ? 'कार्ड सह-संबंध / कॉम्बिनेशन' : 'Card Synergy & Resonance'}
                   </span>
                   <p className="text-xs text-[#4A4035] font-serif leading-relaxed mt-0.5">
-                    {activeInterp.synergy}
+                    {isHindi
+                      ? (hindi?.synergy || getHindiSynergy(card, astro, activeInterp.synergy, profile?.name || 'जातक'))
+                      : activeInterp.synergy}
                   </p>
                 </div>
               </div>
@@ -687,33 +845,51 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                 <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
-                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">Sign</span>
-                  <span className="font-bold text-[#1A1817] font-serif">{astro.signName || '—'}</span>
+                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">
+                    {isHindi ? 'राशि' : 'Sign'}
+                  </span>
+                  <span className="font-bold text-[#1A1817] font-serif">
+                    {formatSignName(astro.sign, astro.signName, isHindi)}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
-                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">Degree</span>
+                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">
+                    {isHindi ? 'अंश' : 'Degree'}
+                  </span>
                   <span className="font-bold text-[#1A1817] font-mono">
                     {astro.deg != null ? `${astro.deg.toFixed(2)}°` : '—'}
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
-                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">House</span>
-                  <span className="font-bold text-[#1A1817] font-serif">{astro.house ? `${astro.house}th House` : '—'}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
-                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">House Lord</span>
-                  <span className="font-bold text-[#1A1817] font-serif">{astro.houseLord || '—'}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
-                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">Navamsha (D9)</span>
+                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">
+                    {isHindi ? 'भाव' : 'House'}
+                  </span>
                   <span className="font-bold text-[#1A1817] font-serif">
-                    {astro.navamshaSignName || (astro.navamshaSign != null ? `Sign ${astro.navamshaSign + 1}` : '—')}
+                    {formatHouse(astro.house, isHindi)}
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
-                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">Nakshatra</span>
+                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">
+                    {isHindi ? 'भाव स्वामी' : 'House Lord'}
+                  </span>
                   <span className="font-bold text-[#1A1817] font-serif">
-                    {astro.nak ? `${astro.nak} (Pada ${astro.pada ?? 1})` : '—'}
+                    {formatPlanet(astro.houseLord, isHindi)}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
+                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">
+                    {isHindi ? 'नवांश (D9)' : 'Navamsha (D9)'}
+                  </span>
+                  <span className="font-bold text-[#1A1817] font-serif">
+                    {formatNavamshaName(astro.navamshaSign, astro.navamshaSignName, isHindi)}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
+                  <span className="text-[10px] text-[#6B635B] block uppercase font-cinzel">
+                    {isHindi ? 'नक्षत्र' : 'Nakshatra'}
+                  </span>
+                  <span className="font-bold text-[#1A1817] font-serif">
+                    {formatNakshatraDisplay(astro.nak, astro.pada, isHindi)}
                   </span>
                 </div>
               </div>
