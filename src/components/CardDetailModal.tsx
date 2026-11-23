@@ -613,14 +613,13 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                   </span>
                 </div>
 
-                {/* Badges: Bija Trigger & Power Colors */}
+                {/* Badges: Bija Trigger & Power Colors (Non-clickable informative badges) */}
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8C6D3B] text-white font-cinzel text-[11px] font-bold tracking-wider">
-                    <Sparkles className="w-3 h-3 text-amber-200" />
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 border border-[#8C6D3B]/30 text-[#6B5A40] text-[11px] font-serif font-semibold uppercase tracking-wider cursor-default select-none pointer-events-none">
                     <span>{isHindi ? 'बीज' : 'BIJA'}: {energy.bijaTrigger}</span>
                   </span>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 border border-[#8C6D3B]/30 text-[#6B5A40] text-[11px] font-serif font-semibold">
-                    <span>{isHindi ? 'शक्ति रंग' : 'Power'}: {energy.powerColor}</span>
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 border border-[#8C6D3B]/30 text-[#6B5A40] text-[11px] font-serif font-semibold uppercase tracking-wider cursor-default select-none pointer-events-none">
+                    <span>{isHindi ? 'शक्ति रंग' : 'POWER'}: {energy.powerColor}</span>
                   </span>
                 </div>
 
