@@ -500,7 +500,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
         className="relative w-full max-w-3xl bg-[#FAF7F2] border-2 border-[#8C6D3B]/40 rounded-3xl p-5 sm:p-7 shadow-2xl text-[#1A1817] space-y-5 sm:space-y-6 my-auto max-h-[92vh] overflow-y-auto no-scrollbar"
       >
         {/* Top Control Bar: Language Switch & Close Button */}
-        <div className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 flex items-center gap-2 z-20">
+        <div className="flex items-center justify-end gap-2 pb-1 sm:pb-0 sm:absolute sm:top-5 sm:right-5 z-20">
           {/* Segmented Language Switcher */}
           <div className="flex items-center rounded-full bg-[#F2ECE1] p-0.5 border border-[#8C6D3B]/35 shadow-xs">
             <button
@@ -540,7 +540,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
         </div>
 
         {/* Modal Header */}
-        <div className="flex items-start sm:items-center gap-3 pr-24">
+        <div className="flex items-start sm:items-center gap-3 sm:pr-48">
           <span
             style={{ color: suitMeta.color }}
             className="w-12 h-12 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 flex items-center justify-center font-serif text-2xl font-bold shadow-xs shrink-0"
