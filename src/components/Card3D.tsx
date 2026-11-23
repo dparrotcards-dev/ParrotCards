@@ -216,22 +216,6 @@ export const Card3D: React.FC<Card3DProps> = ({
                 {formatSign().split(' • ')[0]} {fmtDeg(astro.deg)} · {astro.nak || '—'} {astro.pada ? `P${astro.pada}` : ''}
               </div>
             )}
-
-            {/* Archetype Lenses Button (Opens Modal) */}
-            {isCardActuallyUnlocked && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenDetail?.(card);
-                }}
-                className="mt-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#8C6D3B] to-[#73582D] hover:from-[#73582D] hover:to-[#5C4522] text-[#FAF7F2] font-cinzel font-bold text-[9px] sm:text-[9.5px] tracking-wider inline-flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer z-20"
-                title="View 6 Archetype Lenses, Energy Code & Reading"
-              >
-                <Sparkles className="w-3 h-3 text-amber-200" />
-                <span>Deep Research (English / हिंदी) ➔</span>
-              </button>
-            )}
           </div>
 
           {/* Bottom-Right Inverted Corner Index */}
