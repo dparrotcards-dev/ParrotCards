@@ -214,7 +214,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl bg-[#FAF7F2] border-2 border-[#8C6D3B]/40 rounded-3xl p-5 sm:p-8 shadow-2xl text-[#1A1817] space-y-5 sm:space-y-6 my-auto max-h-[92vh] overflow-y-auto no-scrollbar"
+        className="relative w-full max-w-3xl bg-[#FAF7F2] border-2 border-[#8C6D3B]/40 rounded-3xl p-5 sm:p-7 shadow-2xl text-[#1A1817] space-y-5 sm:space-y-6 my-auto max-h-[92vh] overflow-y-auto no-scrollbar"
       >
         {/* Top Control Bar: Language Switch & Close Button */}
         <div className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 flex items-center gap-2 z-20">
@@ -354,70 +354,70 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
 
             {/* ═══ 2. INTERACTIVE LENS TABS ═══ */}
             <div className="border-b border-[#8C6D3B]/25 pb-2">
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 justify-start sm:justify-between">
                 <button
                   type="button"
                   onClick={() => setActiveLens('superpower')}
-                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     activeLens === 'superpower'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
                   <Zap className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{isHindi ? 'अलौकिक शक्ति' : 'Superpower'}</span>
+                  <span>{isHindi ? 'अलौकिक शक्ति' : 'Superpower'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('challenges')}
-                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     activeLens === 'challenges'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
                   <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{isHindi ? 'चुनौतियाँ' : 'Challenges'}</span>
+                  <span>{isHindi ? 'चुनौतियाँ' : 'Challenges'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('shadow')}
-                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     activeLens === 'shadow'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
                   <Moon className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{isHindi ? 'छाया स्वरूप' : 'Shadow Self'}</span>
+                  <span>{isHindi ? 'छाया स्वरूप' : 'Shadow Self'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('purpose')}
-                  className={`w-full flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     activeLens === 'purpose'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
                   <Crown className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{isHindi ? 'आत्म-ध्येय' : 'Soul Purpose'}</span>
+                  <span>{isHindi ? 'आत्मा का ध्येय' : 'Soul Purpose'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveLens('reading')}
-                  className={`w-full col-span-2 sm:col-span-1 flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-2 rounded-xl text-[10.5px] sm:text-xs font-cinzel font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-cinzel font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     activeLens === 'reading'
                       ? 'bg-[#8C6D3B] text-white shadow-xs'
                       : 'bg-[#F2ECE1] text-[#6B635B] hover:text-[#1A1817] hover:bg-[#EAE1D2]'
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{isHindi ? 'गहन शोध' : 'Deep Research'}</span>
+                  <span>{isHindi ? 'गहन शोध' : 'Deep Research'}</span>
                 </button>
               </div>
             </div>
