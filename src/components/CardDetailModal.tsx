@@ -28,6 +28,15 @@ interface CardDetailModalProps {
 
 type LensTabKey = 'superpower' | 'challenges' | 'shadow' | 'purpose' | 'reading';
 
+function getHindiDeeperExplanation(card: ICard, astro: any, name: string): string {
+  const sign = astro.signName || 'इस राशि';
+  const house = astro.house ? `${astro.house}वें भाव` : 'लग्न भाव';
+  const nak = astro.nak ? `नक्षत्र ${astro.nak}` : '';
+  const pada = astro.pada ? `(चरण ${astro.pada})` : '';
+
+  return `${name} की जन्म कुंडली में ${card.title} (${card.label}) का यह स्थान ${sign} और ${house} में स्थित है। ${nak ? `यह ${nak} ${pada} के प्रभाव क्षेत्र में संचालित होता है। ` : ''}यह खगोलीय स्थिति आपके भीतर स्वाभाविक अंतर्दृष्टि, संप्रभु आत्म-विश्वास और सामूहिक सामंजस्य का संचार करती है। यह बिंदु आपको बाहरी दबावों से अप्रभावित रहकर अपने उच्चतम जीवन उद्देश्य और धर्म के मार्ग पर अडिग रहने का सामर्थ्य प्रदान करता है।`;
+}
+
 function buildDefaultInterpretation(card: ICard): ICardInterpretationData {
   const astro = card.astronomicalPlacement || {};
   const keyLower = card.key.toLowerCase();
@@ -486,47 +495,53 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                       <span>{isHindi ? 'कॉस्मिक सामंजस्य व गहन शोध' : 'Cosmic Alignment & Deep Research'}</span>
                     </div>
                     <p className="text-[#2C241D] leading-relaxed whitespace-pre-line text-sm sm:text-base font-serif">
-                      {isHindi && hindi?.deeperExplanation
-                        ? hindi.deeperExplanation
+                      {isHindi
+                        ? (hindi?.deeperExplanation || getHindiDeeperExplanation(card, astro, profile?.name || 'जातक'))
                         : (activeInterp.deeperExplanation || card.detailedInterpretation || card.shortSummary)}
                     </p>
                   </div>
 
                   {/* Reflection Prompt / Soul Inquiry */}
-                  {(activeInterp.reflectionPrompt || card.reflectionQuestion) && (
+                  {(activeInterp.reflectionPrompt || card.reflectionQuestion || isHindi) && (
                     <div className="p-4 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/30 space-y-2">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#8C6D3B] font-cinzel">
                         <Lightbulb className="w-4 h-4 text-[#8C6D3B]" />
                         <span>{isHindi ? 'आत्म-मंथन व चिंतन' : 'Soul Reflection Inquiry'}</span>
                       </div>
                       <p className="font-serif italic text-sm sm:text-base text-[#1A1817] leading-relaxed">
-                        "{isHindi && hindi?.reflectionPrompt ? hindi.reflectionPrompt : (activeInterp.reflectionPrompt || card.reflectionQuestion)}"
+                        "{isHindi
+                          ? (hindi?.reflectionPrompt || 'आप अपने आंतरिक सत्य और बाह्य जिम्मेदारियों के मध्य किस प्रकार पूर्ण संतुलन स्थापित कर सकते हैं?')
+                          : (activeInterp.reflectionPrompt || card.reflectionQuestion)}"
                       </p>
                     </div>
                   )}
 
                   {/* Purushartha Dharma Connection */}
-                  {activeInterp.dharmaConnection && (
+                  {(activeInterp.dharmaConnection || isHindi) && (
                     <div className="p-4 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/25 space-y-1.5">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#2E5A36] font-cinzel">
                         <Compass className="w-4 h-4" />
                         <span>{isHindi ? 'पुरुषार्थ व कर्म दिशा' : 'Purushartha & Evolutionary Vector'}</span>
                       </div>
                       <p className="text-[#3D3833] text-xs sm:text-sm leading-relaxed font-serif">
-                        {isHindi && hindi?.dharmaConnection ? hindi.dharmaConnection : activeInterp.dharmaConnection}
+                        {isHindi
+                          ? (hindi?.dharmaConnection || 'यह खगोलीय स्थिति आपके पुरुषार्थ और कर्म-पथ को उच्च आध्यात्मिक चेतना और नैतिक कर्तव्य के साथ जोड़ती है।')
+                          : activeInterp.dharmaConnection}
                       </p>
                     </div>
                   )}
 
                   {/* Practical Action */}
-                  {activeInterp.practicalAction && (
+                  {(activeInterp.practicalAction || isHindi) && (
                     <div className="p-4 rounded-2xl bg-[#FAF5EE] border border-[#8C6D3B]/30 space-y-1.5">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-[#8C6D3B] font-cinzel">
                         <Target className="w-4 h-4" />
                         <span>{isHindi ? 'आज का व्यावहारिक कर्म' : 'Grounded Daily Action'}</span>
                       </div>
                       <p className="text-[#3D3833] text-xs sm:text-sm leading-relaxed font-serif">
-                        {isHindi && hindi?.practicalAction ? hindi.practicalAction : activeInterp.practicalAction}
+                        {isHindi
+                          ? (hindi?.practicalAction || 'आज के दिन कुछ समय शांत बैठकर अपने आत्म-ध्येय का स्मरण करें और एक सजग व कल्याणकारी निर्णय लें।')
+                          : activeInterp.practicalAction}
                       </p>
                     </div>
                   )}
