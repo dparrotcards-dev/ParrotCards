@@ -26,35 +26,39 @@ interface DeckContextType {
 
 const DeckContext = createContext<DeckContextType | undefined>(undefined);
 
-export function mapDynamicPurusharthaSuit(card: ICard): ICard {
-  if (card.suit === 'MasterKey') {
-    return { ...card, suit: 'MasterKey', suitSymbol: '✦' };
-  }
-  const house = card.astronomicalPlacement?.house;
-  if (typeof house !== 'number' || house < 1 || house > 12) {
-    const sym = card.suit === 'Dharma' ? '♣' : card.suit === 'Moksha' ? '♠' : card.suitSymbol;
-    return { ...card, suitSymbol: sym };
-  }
-
+export function normalizeCardSuit(card: ICard): ICard {
   let suit: CardSuit = card.suit;
   let suitSymbol = card.suitSymbol;
 
-  if (house === 1 || house === 5 || house === 9) {
-    suit = 'Dharma';
-    suitSymbol = '♣';
-  } else if (house === 2 || house === 6 || house === 10) {
-    suit = 'Artha';
-    suitSymbol = '♦';
-  } else if (house === 3 || house === 7 || house === 11) {
-    suit = 'Kama';
-    suitSymbol = '♥';
-  } else if (house === 4 || house === 8 || house === 12) {
-    suit = 'Moksha';
-    suitSymbol = '♠';
+  if (typeof card.position === 'number') {
+    if (card.position >= 1 && card.position <= 13) {
+      suit = 'Dharma';
+      suitSymbol = '♠';
+    } else if (card.position >= 14 && card.position <= 26) {
+      suit = 'Artha';
+      suitSymbol = '♦';
+    } else if (card.position >= 27 && card.position <= 39) {
+      suit = 'Kama';
+      suitSymbol = '♥';
+    } else if (card.position >= 40 && card.position <= 52) {
+      suit = 'Moksha';
+      suitSymbol = '♣';
+    } else if (card.position >= 53 && card.position <= 55) {
+      suit = 'MasterKey';
+      suitSymbol = '✦';
+    }
+  } else {
+    if (suit === 'Dharma') suitSymbol = '♠';
+    else if (suit === 'Artha') suitSymbol = '♦';
+    else if (suit === 'Kama') suitSymbol = '♥';
+    else if (suit === 'Moksha') suitSymbol = '♣';
+    else if (suit === 'MasterKey') suitSymbol = '✦';
   }
 
   return { ...card, suit, suitSymbol };
 }
+
+export const mapDynamicPurusharthaSuit = normalizeCardSuit;
 
 export const DeckProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();

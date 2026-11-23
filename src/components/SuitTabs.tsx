@@ -6,10 +6,10 @@ export const SUIT_METADATA: Record<
   CardSuit,
   { name: string; subtitle: string; symbol: string; color: string; red: boolean }
 > = {
-  Dharma: { name: 'DHARMA', subtitle: 'PURPOSE', symbol: '♣', color: '#2B2927', red: false },
+  Dharma: { name: 'DHARMA', subtitle: 'PURPOSE', symbol: '♠', color: '#2B2927', red: false },
   Artha: { name: 'ARTHA', subtitle: 'POWER', symbol: '♦', color: '#7A1C1C', red: true },
   Kama: { name: 'KAMA', subtitle: 'FEELING', symbol: '♥', color: '#7A1C1C', red: true },
-  Moksha: { name: 'MOKSHA', subtitle: 'FREEDOM', symbol: '♠', color: '#2B2927', red: false },
+  Moksha: { name: 'MOKSHA', subtitle: 'FREEDOM', symbol: '♣', color: '#2B2927', red: false },
   MasterKey: { name: 'MASTER KEYS', subtitle: 'SOVEREIGN', symbol: '✦', color: '#8C6D3B', red: false },
 };
 
