@@ -128,14 +128,6 @@ export const DeckPage: React.FC = () => {
             {profile?.name ? profile.name.toUpperCase() : 'VARUN MENARIYA'}
           </span>
         </div>
-
-        <div className="flex items-center text-xs shrink-0">
-          <div className="flex items-center gap-1 font-cinzel text-[#1A1817]">
-            <span className="font-bold text-[#1A1817]">{selectedCardIndex + 1}</span>
-            <span className="text-[#8C6D3B]/70">/</span>
-            <span className="font-bold text-[#1A1817]">55</span>
-          </div>
-        </div>
       </div>
 
       {/* Suit / Category Navigation Tabs */}
