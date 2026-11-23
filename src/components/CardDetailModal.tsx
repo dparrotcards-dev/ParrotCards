@@ -28,6 +28,122 @@ interface CardDetailModalProps {
 
 type LensTabKey = 'superpower' | 'challenges' | 'shadow' | 'purpose' | 'reading';
 
+const HINDI_SIGN_NAMES = [
+  'मेष', 'वृषभ', 'मिथुन', 'कर्क', 'सिंह', 'कन्या',
+  'तुला', 'वृश्चिक', 'धनु', 'मकर', 'कुंभ', 'मीन'
+];
+
+const ENGLISH_SIGN_NAMES = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+];
+
+const SIGN_CODE_MAP: Record<string, number> = {
+  ARI: 0, TAU: 1, GEM: 2, GE: 2, CAN: 3, CNC: 3, LEO: 4, LE: 4, VIR: 5, VI: 5,
+  LIB: 6, LI: 6, SCO: 7, SC: 7, SAG: 8, SGR: 8, CAP: 9, CP: 9, AQU: 10, AQ: 10, PIS: 11, PI: 11
+};
+
+const NAKSHATRA_CODE_MAP: Record<string, string> = {
+  ASH: 'Ashwini', BHA: 'Bharani', KRI: 'Krittika', ROH: 'Rohini', MRI: 'Mrigashira',
+  ARD: 'Ardra', PUN: 'Punarvasu', PUS: 'Pushya', ASL: 'Ashlesha', MAG: 'Magha',
+  PPH: 'Purva Phalguni', UPH: 'Uttara Phalguni', HAS: 'Hasta', CHI: 'Chitra', SWA: 'Swati',
+  VIS: 'Vishakha', ANU: 'Anuradha', JYE: 'Jyeshtha', MUL: 'Mula', PAS: 'Purva Ashadha',
+  UAS: 'Uttara Ashadha', SHR: 'Shravana', DHA: 'Dhanishta', SHA: 'Shatabhisha',
+  PBH: 'Purva Bhadrapada', UBH: 'Uttara Bhadrapada', UTT: 'Uttara Bhadrapada', REV: 'Revati'
+};
+
+const NAKSHATRA_HINDI_MAP: Record<string, string> = {
+  Ashwini: 'अश्विनी', Bharani: 'भरणी', Krittika: 'कृत्तिका', Rohini: 'रोहिणी',
+  Mrigashira: 'मृगशिरा', Ardra: 'आर्द्रा', Punarvasu: 'पुनर्वसु', Pushya: 'पुष्य',
+  Ashlesha: 'आश्लेषा', Magha: 'मघा', 'Purva Phalguni': 'पूर्वाफाल्गुनी',
+  'Uttara Phalguni': 'उत्तराफाल्गुनी', Hasta: 'हस्त', Chitra: 'चित्रा', Swati: 'स्वाति',
+  Vishakha: 'विशाखा', Anuradha: 'अनुराधा', Jyeshtha: 'ज्येष्ठा', Mula: 'मूल',
+  'Purva Ashadha': 'पूर्वाषाढ़ा', 'Uttara Ashadha': 'उत्तराषाढ़ा', Shravana: 'श्रवण',
+  Dhanishta: 'धनिष्ठा', Shatabhisha: 'शतभिषा', 'Purva Bhadrapada': 'पूर्वभाद्रपद',
+  'Uttara Bhadrapada': 'उत्तरभाद्रपद', Revati: 'रेवती'
+};
+
+function formatUserFriendlyPlacement(astro: any, rawVector: string | undefined, isHindi: boolean): string {
+  let signIdx = astro?.sign;
+  let deg = astro?.deg;
+  let nak = astro?.nak;
+  let pada = astro?.pada;
+  let navIdx = astro?.navamshaSign;
+
+  // If astro missing details, parse rawVector (e.g. TAU-18.54° // ROH-3 // GE-D9)
+  if (rawVector && (signIdx == null || deg == null || !nak || navIdx == null)) {
+    const parts = rawVector.split(/\/\/|\//).map((s) => s.trim());
+    if (parts.length >= 1) {
+      const p0 = parts[0].match(/([A-Z]+)[-_]?([0-9.]+)/i);
+      if (p0) {
+        if (signIdx == null) signIdx = SIGN_CODE_MAP[p0[1].toUpperCase()];
+        if (deg == null) deg = parseFloat(p0[2]);
+      }
+    }
+    if (parts.length >= 2) {
+      const p1 = parts[1].match(/([A-Z]+)[-_]?([1-4])/i);
+      if (p1) {
+        if (!nak) nak = NAKSHATRA_CODE_MAP[p1[1].toUpperCase()] || p1[1];
+        if (pada == null) pada = parseInt(p1[2]);
+      }
+    }
+    if (parts.length >= 3) {
+      const p2 = parts[2].match(/([A-Z]+)[-_]?(?:D9)?/i);
+      if (p2) {
+        if (navIdx == null) navIdx = SIGN_CODE_MAP[p2[1].toUpperCase()];
+      }
+    }
+  }
+
+  // Fallback sign resolution from signName
+  if ((signIdx == null || signIdx < 0 || signIdx > 11) && astro?.signName) {
+    const idx = ENGLISH_SIGN_NAMES.findIndex((s) => astro.signName.toLowerCase().includes(s.toLowerCase()));
+    if (idx !== -1) signIdx = idx;
+    else {
+      const hIdx = HINDI_SIGN_NAMES.findIndex((s) => astro.signName.includes(s));
+      if (hIdx !== -1) signIdx = hIdx;
+    }
+  }
+
+  const signStr =
+    signIdx != null && signIdx >= 0 && signIdx < 12
+      ? isHindi
+        ? HINDI_SIGN_NAMES[signIdx]
+        : ENGLISH_SIGN_NAMES[signIdx]
+      : astro?.signName?.split(' • ')[0] || '';
+
+  const degStr = deg != null ? `${deg.toFixed(2)}°` : '';
+
+  let nakStr = '';
+  if (nak) {
+    const nakName = isHindi ? NAKSHATRA_HINDI_MAP[nak] || nak : nak;
+    const padaStr = pada ? (isHindi ? `पाद ${pada}` : `Pada ${pada}`) : '';
+    nakStr = padaStr ? `${nakName} ${padaStr}` : nakName;
+  }
+
+  // Navamsha resolution
+  if ((navIdx == null || navIdx < 0 || navIdx > 11) && astro?.navamshaSignName) {
+    const idx = ENGLISH_SIGN_NAMES.findIndex((s) => astro.navamshaSignName.toLowerCase().includes(s.toLowerCase()));
+    if (idx !== -1) navIdx = idx;
+  }
+  let navStr = '';
+  if (navIdx != null && navIdx >= 0 && navIdx < 12) {
+    navStr = isHindi ? `${HINDI_SIGN_NAMES[navIdx]} नवांश` : `${ENGLISH_SIGN_NAMES[navIdx]} Navamsha`;
+  } else if (astro?.navamshaSignName) {
+    navStr = isHindi ? `${astro.navamshaSignName} नवांश` : `${astro.navamshaSignName} Navamsha`;
+  }
+
+  const resultParts = [];
+  if (signStr && degStr) resultParts.push(`${signStr} ${degStr}`);
+  else if (signStr) resultParts.push(signStr);
+  else if (degStr) resultParts.push(degStr);
+
+  if (nakStr) resultParts.push(nakStr);
+  if (navStr) resultParts.push(navStr);
+
+  return resultParts.join(' · ') || rawVector || '';
+}
+
 function getHindiDeeperExplanation(card: ICard, astro: any, name: string): string {
   const sign = astro.signName || 'इस राशि';
   const house = astro.house ? `${astro.house}वें भाव` : 'लग्न भाव';
@@ -115,7 +231,7 @@ function buildDefaultInterpretation(card: ICard): ICardInterpretationData {
 
   const sign = astro.signName || 'Cosmic Sign';
   const house = astro.house ? `${astro.house}th House` : 'Ascendant';
-  const cosmicVector = `${astro.signName ? astro.signName.slice(0, 3).toUpperCase() : 'VEC'}-${astro.deg != null ? astro.deg.toFixed(2) : '10'}° // ${astro.nak ? astro.nak.slice(0, 3).toUpperCase() : 'NAK'}-${astro.pada || 1}`;
+  const cosmicVector = formatUserFriendlyPlacement(astro, undefined, false);
 
   return {
     sovereignAvatarPhrase: `The Awakened Flame of ${sign}`,
@@ -335,9 +451,9 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
                     </h3>
                   </div>
 
-                  {/* Cosmic Vector Badge */}
-                  <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#8C6D3B]/10 border border-[#8C6D3B]/25 text-[#735520]">
-                    {energy.cosmicVector}
+                  {/* User-Friendly Astronomical Placement Badge */}
+                  <span className="font-serif text-[11px] sm:text-xs font-semibold px-3 py-1 rounded-lg bg-[#8C6D3B]/10 border border-[#8C6D3B]/30 text-[#735520] tracking-wide shadow-2xs">
+                    {formatUserFriendlyPlacement(astro, energy.cosmicVector, isHindi)}
                   </span>
                 </div>
 
