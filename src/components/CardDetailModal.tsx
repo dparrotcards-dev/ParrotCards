@@ -682,9 +682,8 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
 
             {/* ═══ 5. ASTRONOMICAL PLACEMENT TABLE ═══ */}
             <div className="pt-4 border-t border-[#8C6D3B]/20 space-y-3">
-              <div className="text-xs uppercase tracking-wider font-bold text-[#6B635B] font-cinzel flex items-center justify-between">
+              <div className="text-xs uppercase tracking-wider font-bold text-[#6B635B] font-cinzel">
                 <span>{isHindi ? 'प्रमाणित खगोलीय निर्देशांक' : 'Verified Astronomical Data'}</span>
-                <span className="text-[10px] font-mono font-normal text-[#8C6D3B]">Swiss Ephemeris Telemetry</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                 <div className="p-2.5 rounded-xl bg-[#F2ECE1] border border-[#8C6D3B]/20">
