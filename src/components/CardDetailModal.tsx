@@ -19,6 +19,7 @@ import { ICard, ICardInterpretationData } from '../types';
 import { deckService } from '../services/deckService';
 import { useDeck } from '../context/DeckContext';
 import { SUIT_METADATA } from './SuitTabs';
+import { getCardHindiInfo } from '../data/cardHindiData';
 
 interface CardDetailModalProps {
   card: ICard | null;
@@ -485,6 +486,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
   const suitMeta = SUIT_METADATA[card.suit] || SUIT_METADATA.Dharma;
   const astro = card.astronomicalPlacement || {};
   const isHindi = selectedLang === 'HI';
+  const cardHindi = getCardHindiInfo(card);
   const energy = activeInterp.energyCode;
   const hindi = activeInterp.hindiInterpretation;
 
@@ -547,10 +549,10 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
           </span>
           <div>
             <div className="text-[11px] sm:text-xs uppercase tracking-widest font-bold font-cinzel" style={{ color: suitMeta.color }}>
-              {card.suit} · {card.label} ({card.rank})
+              {isHindi ? cardHindi.suit : card.suit} · {isHindi ? cardHindi.label : card.label} ({card.rank})
             </div>
             <h2 className="font-cinzel text-xl sm:text-2xl font-bold text-[#8C6D3B] leading-tight">
-              {card.title}
+              {isHindi ? cardHindi.title : card.title}
             </h2>
           </div>
         </div>
@@ -558,7 +560,7 @@ export const CardDetailModal: React.FC<CardDetailModalProps> = ({ card, onClose,
         {/* Card Line Quote */}
         {card.line && (
           <div className="p-3.5 sm:p-4 rounded-2xl bg-[#F2ECE1] border-l-4 border-[#8C6D3B] font-serif italic text-sm sm:text-base text-[#1A1817]">
-            "{card.line}"
+            "{isHindi ? cardHindi.line : card.line}"
           </div>
         )}
 
