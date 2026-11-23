@@ -351,7 +351,7 @@ export const Card3D: React.FC<Card3DProps> = ({
                 className="w-full mb-1 py-1 px-2.5 rounded-lg bg-gradient-to-r from-[#8C6D3B] to-[#73582D] hover:from-[#73582D] hover:to-[#5C4522] text-[#FAF7F2] font-cinzel font-bold text-[9px] sm:text-[9.5px] uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
               >
                 <Sparkles className="w-3 h-3 text-amber-200" />
-                <span>Deep Research & Archetype Lenses</span>
+                <span>Explore Archetype Lenses</span>
               </button>
             )}
             <img
