@@ -1,212 +1,272 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-  User,
-  Shield,
-  Calendar,
-  MapPin,
-  Clock,
-  LogOut,
-  Crown,
+  ArrowRight,
+  BookOpen,
+  CircleHelp,
   CreditCard,
   History,
-  Phone,
+  LayoutGrid,
+  LogOut,
   Package,
+  Shield,
+  ShoppingBag,
+  Sparkles,
+  UserRound,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDeck } from '../context/DeckContext';
 import { api } from '../services/api';
+import { IEntitlementStatus, IBirthProfile } from '../types';
+
+interface AccountData {
+  entitlements?: IEntitlementStatus;
+  profiles?: IBirthProfile[];
+  activeDeckData?: { profile?: IBirthProfile | null };
+}
+
+const serviceCards = [
+  {
+    title: 'Personalized Parrot Cards',
+    description: 'Explore your personal 55-card archetype deck and readings.',
+    action: 'Open my deck',
+    href: '/deck',
+    Icon: BookOpen,
+  },
+  {
+    title: '30-Day Deck Pass',
+    description: 'Unlock all 55 cards and their readings for 30 days.',
+    action: 'Explore access',
+    href: '/pricing',
+    Icon: Shield,
+  },
+];
 
 export const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const { profile, entitlements, clearSession } = useDeck();
-  const [accountData, setAccountData] = useState<any>(null);
+  const [accountData, setAccountData] = useState<AccountData | null>(null);
+  const [accountError, setAccountError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (loading) return;
+    if (authLoading) return;
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { replace: true, state: { from: '/account' } });
       return;
     }
 
-    api
-      .get('/account')
-      .then((res) => {
-        setAccountData(res.data?.data || null);
+    let active = true;
+    api.get('/account')
+      .then((response) => {
+        if (active) setAccountData(response.data?.data || null);
       })
-      .catch((err) => console.error(err));
-  }, [isAuthenticated, loading, navigate]);
+      .catch((error: Error) => {
+        if (active) setAccountError(error.message || 'Your account details could not be loaded.');
+      });
 
-  if (loading) {
+    return () => {
+      active = false;
+    };
+  }, [authLoading, isAuthenticated, navigate]);
+
+  const currentProfile = accountData?.activeDeckData?.profile || accountData?.profiles?.[0] || profile;
+  const currentEntitlements = accountData?.entitlements || entitlements;
+  const unlockedCardCount = useMemo(() => {
+    if (!currentEntitlements) return null;
+    if (currentEntitlements.isDeckPassActive) return 55;
+    return new Set([
+      ...(currentEntitlements.freeCardKeys || []),
+      ...(currentEntitlements.unlockedCardKeys || []),
+    ]).size;
+  }, [currentEntitlements]);
+
+  if (authLoading || !isAuthenticated) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <div className="w-8 h-8 border-2 border-[#8C6D3B] border-t-transparent rounded-full animate-spin" />
+      <div role="status" className="flex min-h-[50vh] flex-1 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#8C6D3B] border-t-transparent" />
       </div>
     );
   }
 
-  if (!isAuthenticated) return null;
+  const signOut = async () => {
+    clearSession();
+    await logout();
+    navigate('/');
+  };
+
+  const sidebarLinks = [
+    { label: 'Products & Services', href: '/account', Icon: LayoutGrid, active: true },
+    { label: currentEntitlements?.isDeckPassActive ? 'Premium Pass Active' : 'Standard Access', href: '/pricing', Icon: Shield },
+    { label: 'My Orders', href: '/my-orders', Icon: Package },
+    { label: 'Transactions', href: '/payments/history', Icon: History },
+    {
+      label: 'Unlocked Cards',
+      href: '/purchased-cards',
+      Icon: CreditCard,
+      count: unlockedCardCount === null ? undefined : `${unlockedCardCount} / 55`,
+    },
+    { label: 'Birth Profile', href: '/profile/astronomy', Icon: UserRound },
+    { label: 'Contact Us', href: '/support', Icon: CircleHelp },
+  ];
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
-      {/* Profile Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#1A1817]/10">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/40 flex items-center justify-center text-[#8C6D3B] font-serif text-xl sm:text-2xl font-bold shadow-sm shrink-0">
-            {user?.name?.[0]?.toUpperCase() || 'P'}
+    <div className="mx-auto grid w-full max-w-[1380px] flex-1 grid-cols-1 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-6">
+      <aside className="flex h-fit flex-col rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9]/95 p-4 shadow-[0_6px_20px_rgba(70,50,20,0.07)] sm:p-5 lg:sticky lg:top-24">
+        <div className="flex items-center gap-3 border-b border-[#8C6D3B]/15 pb-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#B8934E]/40 bg-[#F5EBDD] font-cinzel text-xl font-bold text-[#8C6D3B]">
+            {user?.name?.trim().charAt(0).toUpperCase() || <UserRound className="h-5 w-5" />}
           </div>
           <div className="min-w-0">
-            <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-[#1A1817] truncate">{user?.name}</h1>
-            <p className="text-xs text-[#8C6D3B] font-mono truncate">{user?.email}</p>
+            <h1 className="font-cinzel text-sm font-bold uppercase leading-tight tracking-wide text-[#1A1817]">
+              {user?.name || 'My Profile'}
+            </h1>
+            <p className="mt-1 truncate text-[11px] text-[#8C6D3B]">{user?.email}</p>
           </div>
         </div>
+
+        <nav aria-label="Account navigation" className="mt-3 grid gap-1">
+          {sidebarLinks.map(({ label, href, Icon, active, count }) => (
+            <Link
+              key={label}
+              to={href}
+              aria-current={active ? 'page' : undefined}
+              className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                active
+                  ? 'bg-[#76531F] text-white shadow-sm'
+                  : 'text-[#514536] hover:bg-[#F3EBDD] hover:text-[#73582D]'
+              }`}
+            >
+              <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[#F7E5C5]' : 'text-[#9A7130]'}`} />
+              <span className="min-w-0 flex-1">{label}</span>
+              {count && (
+                <span className={`rounded-full px-2 py-0.5 text-[10px] ${active ? 'bg-white/15' : 'bg-[#F4E4C3] text-[#76531F]'}`}>
+                  {count}
+                </span>
+              )}
+            </Link>
+          ))}
+        </nav>
 
         <button
-          onClick={async () => {
-            clearSession();
-            await logout();
-            navigate('/');
-          }}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F2ECE1] hover:bg-[#7A1C1C]/15 border border-[#8C6D3B]/20 text-[#1A1817] hover:text-[#7A1C1C] text-xs font-semibold transition-colors shadow-sm shrink-0 cursor-pointer"
+          type="button"
+          onClick={signOut}
+          className="mt-4 flex min-h-10 items-center justify-center gap-2 rounded-xl border border-[#B8934E]/35 bg-[#F8F1E7] px-3 text-xs font-bold text-[#342D24] transition-colors hover:bg-[#EFE2CF]"
         >
-          <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span>Sign Out</span>
+          <LogOut className="h-4 w-4" />
+          Sign Out
         </button>
-      </div>
+      </aside>
 
-      {/* Grid Status Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {/* Pass Status */}
-        <div className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 shadow-md space-y-2">
-          <span className="text-[10px] uppercase tracking-widest font-bold text-[#8C6D3B] block">
-            Entitlement Status
-          </span>
-          <div className="flex items-center gap-2">
-            {entitlements?.isDeckPassActive ? (
-              <>
-                <Crown className="w-5 h-5 text-emerald-600" />
-                <span className="font-serif text-lg font-bold text-emerald-800">30-Day Pass Active</span>
-              </>
-            ) : (
-              <>
-                <Shield className="w-5 h-5 text-[#8C6D3B]" />
-                <span className="font-serif text-lg font-bold text-[#1A1817]">Standard Access</span>
-              </>
-            )}
+      <main className="min-w-0 space-y-5">
+        <section className="relative overflow-hidden rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9]/90 px-5 py-5 shadow-[0_4px_16px_rgba(70,50,20,0.05)] sm:px-8 sm:py-6">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-3 -top-14 h-44 w-44 rounded-full border border-[#B8934E]/20 sm:right-6 sm:h-52 sm:w-52">
+            <div className="absolute inset-4 rounded-full border border-[#B8934E]/20" />
+            <Sparkles className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 text-[#B8934E]/40" />
           </div>
-          {entitlements?.deckPassExpiresAt && (
-            <p className="text-[11px] font-mono text-[#1A1817]/70">
-              Expires: {new Date(entitlements.deckPassExpiresAt).toLocaleDateString()}
+          <div className="relative">
+            <div className="flex items-center gap-2 text-[#9A7130]">
+              <Sparkles className="h-4 w-4" />
+              <span className="font-cinzel text-[10px] font-bold uppercase tracking-[0.18em]">Your account</span>
+            </div>
+            <h2 className="mt-2 font-cinzel text-xl font-bold uppercase tracking-wide text-[#1A1817] sm:text-2xl">
+              Products &amp; Services
+            </h2>
+            <p className="mt-1 max-w-xl text-xs text-[#6B635B] sm:text-sm">
+              Explore Parrot Cards offerings, your Jyotish tools, and cosmic store products.
             </p>
-          )}
-        </div>
+          </div>
+        </section>
 
-        {/* My Orders Card -> Navigates to dedicated /my-orders page */}
-        <Link
-          to="/my-orders"
-          className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 hover:border-[#8C6D3B] shadow-md hover:shadow-lg space-y-2 transition-all block group text-left cursor-pointer"
-        >
-          <span className="text-[10px] uppercase tracking-widest font-bold text-[#8C6D3B] block">
-            Store Orders
-          </span>
-          <div className="flex items-center justify-between">
-            <span className="font-serif text-2xl font-bold text-[#1A1817]">
-              My Orders
+        {accountError && (
+          <div role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-2.5 text-xs text-red-800">
+            {accountError}
+          </div>
+        )}
+
+        <section aria-labelledby="cosmic-store-heading">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="cosmic-store-heading" className="font-cinzel text-lg font-bold text-[#211B14] sm:text-xl">
+              Cosmic Store
+            </h2>
+          </div>
+          <Link
+            to="/cosmic-store"
+            className="group relative flex flex-col gap-5 overflow-hidden rounded-2xl border border-[#E8DFD1] bg-gradient-to-br from-[#FFFDF9] via-[#FBF5EA] to-[#F2E6D2] p-5 shadow-[0_4px_16px_rgba(70,50,20,0.06)] transition-all hover:-translate-y-0.5 hover:border-[#B8934E]/60 hover:shadow-[0_8px_24px_rgba(70,50,20,0.12)] sm:flex-row sm:items-center sm:justify-between sm:p-7"
+          >
+            <div className="flex items-center gap-4 sm:gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#B8934E]/25 bg-[#F7EFE3] text-[#8C6D3B] sm:h-16 sm:w-16">
+                <ShoppingBag className="h-7 w-7" />
+              </div>
+              <div>
+                <h3 className="font-cinzel text-base font-bold text-[#211B14] sm:text-lg">Explore the Cosmic Store</h3>
+                <p className="mt-1 max-w-2xl text-xs leading-relaxed text-[#6B635B] sm:text-sm">
+                  Discover the current collection of cosmic and spiritual products, with details and availability in the store.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex shrink-0 items-center justify-center gap-2 self-end rounded-full bg-[#76531F] px-4 py-2.5 text-xs font-bold text-white transition-colors group-hover:bg-[#5F4219] sm:self-auto">
+              Visit Cosmic Store
+              <ArrowRight className="h-4 w-4" />
             </span>
-            <Package className="w-5 h-5 text-[#8C6D3B]/60 group-hover:text-[#8C6D3B] transition-colors" />
-          </div>
-          <span className="text-[11px] text-[#8C6D3B] font-semibold">Track Delivery & Items →</span>
-        </Link>
+          </Link>
+        </section>
 
-        {/* Unlocked Cards */}
-        <Link
-          to="/purchased-cards"
-          className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 hover:border-[#8C6D3B] shadow-md hover:shadow-lg space-y-2 transition-all block group"
-        >
-          <span className="text-[10px] uppercase tracking-widest font-bold text-[#8C6D3B] block">
-            Unlocked Cards
-          </span>
-          <div className="flex items-center justify-between">
-            <span className="font-serif text-2xl font-bold text-[#1A1817]">
-              {entitlements?.isDeckPassActive ? '55 / 55' : `${(entitlements?.unlockedCardKeys?.length || 0) + 3} / 55`}
-            </span>
-            <CreditCard className="w-5 h-5 text-[#8C6D3B]/60 group-hover:text-[#8C6D3B] transition-colors" />
-          </div>
-          <span className="text-[11px] text-[#8C6D3B] font-semibold">View Unlocked Archetypes →</span>
-        </Link>
-
-        {/* Payment History */}
-        <Link
-          to="/payments/history"
-          className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 hover:border-[#8C6D3B] shadow-md hover:shadow-lg space-y-2 transition-all block group"
-        >
-          <span className="text-[10px] uppercase tracking-widest font-bold text-[#8C6D3B] block">
-            Transactions
-          </span>
-          <div className="flex items-center justify-between">
-            <span className="font-serif text-2xl font-bold text-[#1A1817]">Invoices</span>
-            <History className="w-5 h-5 text-[#8C6D3B]/60 group-hover:text-[#8C6D3B] transition-colors" />
-          </div>
-          <span className="text-[11px] text-[#8C6D3B] font-semibold">View Payment Receipts →</span>
-        </Link>
-
-        {/* Support */}
-        <Link
-          to="/support"
-          className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 hover:border-[#8C6D3B] shadow-md hover:shadow-lg space-y-2 transition-all block group"
-        >
-          <span className="text-[10px] uppercase tracking-widest font-bold text-[#8C6D3B] block">
-            Support
-          </span>
-          <div className="flex items-center justify-between">
-            <span className="font-serif text-2xl font-bold text-[#1A1817]">Contact Us</span>
-            <Phone className="w-5 h-5 text-[#8C6D3B]/60 group-hover:text-[#8C6D3B] transition-colors" />
-          </div>
-          <span className="text-[11px] text-[#8C6D3B] font-semibold">Get help from our team →</span>
-        </Link>
-      </div>
-
-      {/* Active Birth Profile Details */}
-      {profile && (
-        <div className="bg-[#FFFDF9] border border-[#8C6D3B]/25 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1A1817]/10">
-            <h2 className="font-serif text-xl font-bold text-[#1A1817]">Active Birth Profile</h2>
-            <Link
-              to="/deck"
-              className="text-xs text-[#8C6D3B] hover:underline font-semibold"
-            >
-              Go to Deck →
+        <section aria-labelledby="services-heading">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="services-heading" className="font-cinzel text-lg font-bold text-[#211B14] sm:text-xl">
+              Our Services
+            </h2>
+            <Link to="/pricing" className="text-[11px] font-bold text-[#8C6D3B] hover:underline sm:text-xs">
+              Pricing details <ArrowRight className="ml-1 inline h-3.5 w-3.5" />
             </Link>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div className="p-3.5 rounded-xl bg-[#F2ECE1]/60 border border-[#8C6D3B]/20">
-              <span className="text-[#8C6D3B] text-[10px] uppercase font-bold tracking-wider block mb-1">Birth Date</span>
-              <span className="font-bold text-[#1A1817] flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#8C6D3B]" />
-                <span>{profile.dateOfBirth}</span>
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-[#F2ECE1]/60 border border-[#8C6D3B]/20">
-              <span className="text-[#8C6D3B] text-[10px] uppercase font-bold tracking-wider block mb-1">Birth Time</span>
-              <span className="font-bold text-[#1A1817] flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#8C6D3B]" />
-                <span>{profile.timeOfBirth}</span>
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-[#F2ECE1]/60 border border-[#8C6D3B]/20 sm:col-span-2">
-              <span className="text-[#8C6D3B] text-[10px] uppercase font-bold tracking-wider block mb-1">Birth Place</span>
-              <span className="font-bold text-[#1A1817] flex items-center gap-1.5 truncate">
-                <MapPin className="w-3.5 h-3.5 text-[#7A1C1C] flex-shrink-0" />
-                <span className="truncate">{profile.place}</span>
-              </span>
-            </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {serviceCards.map(({ title, description, action, href, Icon }) => {
+              const isPass = title === '30-Day Deck Pass';
+              const passIsActive = Boolean(isPass && currentEntitlements?.isDeckPassActive);
+              const isPersonalService = title !== '30-Day Deck Pass';
+              const serviceHref = isPersonalService && !currentProfile
+                ? '/birth-details'
+                : passIsActive ? '/deck' : href;
+              const serviceAction = isPersonalService && !currentProfile
+                ? 'Enter birth details'
+                : passIsActive ? 'View my deck' : action;
+              return (
+                <article key={title} className="flex min-h-[174px] flex-col rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9] p-4 shadow-[0_3px_10px_rgba(70,50,20,0.06)] sm:p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#F7EFE3] text-[#9A7130]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-serif text-sm font-bold text-[#211B14]">{title}</h3>
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-[#6B635B]">
+                        {isPersonalService && !currentProfile
+                          ? 'Save your birth details to generate your personalized Jyotish chart and Parrot Cards deck.'
+                          : description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-4">
+                    {isPass && (
+                      <span className="rounded-full bg-[#F7E9C9] px-3 py-1 text-[10px] font-bold text-[#73582D]">
+                        {passIsActive
+                          ? `Active${currentEntitlements?.deckPassExpiresAt ? ` · until ${new Date(currentEntitlements.deckPassExpiresAt).toLocaleDateString()}` : ''}`
+                          : '₹25 · 30 days'}
+                      </span>
+                    )}
+                    <Link to={serviceHref} className="ml-auto inline-flex items-center gap-1 rounded-full bg-[#76531F] px-3.5 py-2 text-[10px] font-bold text-white transition-colors hover:bg-[#5F4219]">
+                      {serviceAction}
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-        </div>
-      )}
+        </section>
+
+      </main>
     </div>
   );
 };

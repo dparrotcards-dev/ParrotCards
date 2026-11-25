@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   Sparkles,
   Store,
+  Sun,
   User as UserIcon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -113,20 +114,14 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
         {/* ═══ BRAND LOGO ═══ */}
         <div className="flex items-center shrink-0">
           <Link to="/" className="group flex items-center gap-1.5 sm:gap-2 select-none cursor-pointer outline-none caret-transparent">
-            <span
-              aria-hidden="true"
-              className="shrink-0 select-none text-[18px] sm:text-[20px] leading-none text-[#9A7130] transition-transform duration-200 group-hover:scale-110"
-            >
-              {'\u2726'}
-            </span>
+            <img
+              src="/parrot-cards-logo.jpg"
+              alt=""
+              className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-[#E5DDD0] transition-transform duration-200 group-hover:scale-105 sm:h-9 sm:w-9"
+            />
             <div className="flex flex-col select-none pointer-events-none">
               <span className="font-cinzel text-[15px] max-[359px]:text-[14px] sm:text-[17px] font-bold uppercase leading-none tracking-[0.08em] sm:tracking-[0.09em] text-[#171512] transition-colors group-hover:text-[#8C6D3B]">
-                Parrot Cards
-              </span>
-              <span className="hidden sm:flex font-cinzel text-[7.5px] sm:text-[8px] font-semibold uppercase tracking-[0.13em] text-[#635B50] items-center gap-1 leading-none mt-0.5">
-                <span>DRAW THE DECK</span>
-                <span className="text-[#9A7130] text-[7px]">{'\u2726'}</span>
-                <span>REMEMBER THE SELF</span>
+                Kul Purohit
               </span>
             </div>
           </Link>
@@ -145,6 +140,20 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
             <Info aria-hidden="true" className="h-4 w-4 stroke-[1.8] text-[#9A7130] pointer-events-none" />
             <span className="pointer-events-none select-none">About</span>
             {isCurrent('/about') && (
+              <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#8C6D3B] rounded-full pointer-events-none" />
+            )}
+          </Link>
+
+          {/* DAILY RITUALS */}
+          <Link
+            to="/daily-rituals"
+            className={`relative flex items-center gap-1.5 font-cinzel text-[11px] xl:text-[11.5px] font-bold uppercase tracking-[0.06em] select-none cursor-pointer outline-none caret-transparent transition-colors pb-1 px-1 ${
+              isCurrent('/daily-rituals') ? 'text-[#8C6D3B]' : 'text-[#1A1817] hover:text-[#8C6D3B]'
+            }`}
+          >
+            <Sun aria-hidden="true" className="h-4 w-4 stroke-[1.8] text-[#9A7130] pointer-events-none" />
+            <span className="pointer-events-none select-none">Daily Rituals</span>
+            {isCurrent('/daily-rituals') && (
               <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#8C6D3B] rounded-full pointer-events-none" />
             )}
           </Link>
@@ -218,6 +227,20 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
 
           {/* Mobile Wishlist & Cart icons (visible on < lg) */}
           <div className="flex items-center gap-1 sm:gap-1.5 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setWishlistDrawerOpen(true)}
+              title={`Wishlist (${wishlistCount})`}
+              aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ''}`}
+              className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#9A7130] transition-colors hover:bg-[#8C6D3B]/10 cursor-pointer"
+            >
+              <Heart aria-hidden="true" className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px] stroke-[1.8]" />
+              {wishlistCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#A34335] px-0.5 text-[8.5px] font-bold text-white shadow-xs">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
             <Link
               to={isAuthenticated ? '/cart' : '/login'}
               state={!isAuthenticated ? { from: '/cart' } : undefined}

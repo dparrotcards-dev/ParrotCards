@@ -1,67 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Info, Store, ShoppingCart, Heart, User as UserIcon } from 'lucide-react';
+import { Home, Info, Store, Sun, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
 
-  const [wishlistCount, setWishlistCount] = useState<number>(() => {
-    try {
-      const stored = localStorage.getItem('pc_wishlist');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.length;
-      }
-    } catch {
-      // ignore
-    }
-    return 0;
-  });
-
-  const [cartCount, setCartCount] = useState<number>(() => {
-    try {
-      const stored = localStorage.getItem('pc_cart');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.length;
-      }
-    } catch {
-      // ignore
-    }
-    return 0;
-  });
-
-  useEffect(() => {
-    const handleSync = () => {
-      try {
-        const w = localStorage.getItem('pc_wishlist');
-        setWishlistCount(w ? (JSON.parse(w) || []).length : 0);
-        const c = localStorage.getItem('pc_cart');
-        setCartCount(c ? (JSON.parse(c) || []).length : 0);
-      } catch {
-        // ignore
-      }
-    };
-
-    window.addEventListener('storage', handleSync);
-    window.addEventListener('pc_store_updated', handleSync);
-    return () => {
-      window.removeEventListener('storage', handleSync);
-      window.removeEventListener('pc_store_updated', handleSync);
-    };
-  }, []);
-
   const isCurrent = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
     if (path === '/cosmic-store' && (location.pathname.startsWith('/cosmic-store') || location.pathname === '/cart')) return true;
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
-  };
-
-  const handleOpenWishlist = () => {
-    window.dispatchEvent(new Event('pc_open_wishlist'));
   };
 
   return (
@@ -136,26 +86,24 @@ export const MobileBottomNav: React.FC = () => {
             </Link>
           </div>
 
-          {/* 4. WISHLIST */}
-          <button
-            type="button"
-            onClick={handleOpenWishlist}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center py-1 text-[#5C4E3D] transition-all active:scale-95 hover:text-[#1A1817]"
+          {/* DAILY RITUALS */}
+          <Link
+            to="/daily-rituals"
+            aria-label="Daily Rituals"
+            aria-current={isCurrent('/daily-rituals') ? 'page' : undefined}
+            className={`flex min-w-0 flex-1 flex-col items-center justify-center py-1 transition-all active:scale-95 ${
+              isCurrent('/daily-rituals') ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
+            }`}
           >
-            <div className="relative">
-              <Heart className="h-5 w-5 stroke-[1.8] text-[#5C4E3D]" />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#A34335] px-1 text-[9px] font-bold text-white shadow-xs">
-                  {wishlistCount}
-                </span>
-              )}
-            </div>
-            <span className="mt-1 font-cinzel text-[9px] font-bold uppercase tracking-[0.08em] text-[#5C4E3D] min-[360px]:text-[10px]">
-              Wishlist
+            <Sun className="h-5 w-5 stroke-[1.8]" />
+            <span className={`mt-1 font-cinzel text-[8px] font-bold uppercase tracking-[0.02em] min-[360px]:text-[9px] ${
+              isCurrent('/daily-rituals') ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
+            }`}>
+              Daily Rituals
             </span>
-          </button>
+          </Link>
 
-          {/* 5. PROFILE */}
+          {/* 4. PROFILE */}
           <Link
             to={isAuthenticated ? '/account' : '/login'}
             className={`flex min-w-0 flex-1 flex-col items-center justify-center py-1 transition-all active:scale-95 ${

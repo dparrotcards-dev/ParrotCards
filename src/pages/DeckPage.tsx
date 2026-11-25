@@ -121,13 +121,19 @@ export const DeckPage: React.FC = () => {
 
   return (
     <div className="flex-1 w-full flex flex-col justify-between select-none overflow-hidden pb-0.5 min-h-0">
-      {/* Top Status & Controls Bar Matching Reference Image */}
-      <div className="w-full flex items-center justify-between px-3 sm:px-6 md:px-12 py-1 border-b border-[#8C6D3B]/20 bg-[#FAF7F2]/40 backdrop-blur-xs shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-cinzel text-xs sm:text-base text-[#1A1817] font-bold tracking-[0.14em] uppercase truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
-            {profile?.name ? profile.name.toUpperCase() : 'VARUN MENARIYA'}
+      {/* Brand and seeker name banner */}
+      <div className="flex min-h-[56px] w-full shrink-0 items-center justify-between gap-3 border-y border-[#8C6D3B]/20 bg-[#FAF7F2]/40 px-4 backdrop-blur-xs sm:px-8 md:min-h-[60px] md:px-14">
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate font-cinzel text-sm font-bold uppercase leading-tight tracking-[0.1em] text-[#1A1817] sm:text-base sm:tracking-[0.14em]">
+            Parrot Cards
+          </span>
+          <span className="truncate font-cinzel text-[7px] font-semibold uppercase leading-tight tracking-[0.1em] text-[#635B50] sm:text-[8px] sm:tracking-[0.13em]">
+            Draw the Deck <span className="text-[#9A7130]">✦</span> Remember the Self
           </span>
         </div>
+        <span className="max-w-[52%] shrink-0 truncate text-right font-cinzel text-xs font-bold uppercase tracking-[0.08em] text-[#1A1817] sm:text-base sm:tracking-[0.12em] md:text-lg">
+          {profile?.name ? profile.name.toUpperCase() : 'VARUN MENARIYA'}
+        </span>
       </div>
 
       {/* Suit / Category Navigation Tabs */}

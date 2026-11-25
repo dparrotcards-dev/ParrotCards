@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, Crown, ScrollText, Shield } from 'lucide-react';
+import { AtSign, ChevronDown, Crown, Mail, MapPin, Phone, Play, ScrollText, Shield } from 'lucide-react';
 
 export const AboutPage: React.FC = () => {
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
@@ -129,6 +129,73 @@ export const AboutPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Contact Details */}
+      <section aria-labelledby="about-contact-heading" className="rounded-2xl border border-[#8C6D3B]/30 bg-[#FFFDF9] p-4 shadow-md sm:p-6">
+        <div className="mb-4 text-center">
+          <h2 id="about-contact-heading" className="font-cinzel text-sm font-bold uppercase tracking-wider text-[#1A1817] sm:text-base">
+            Contact Details
+          </h2>
+          <p className="mt-1 text-[11px] text-[#6B635B] sm:text-xs">
+            Reach Parrot Cards through these contact channels.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <a
+            href="tel:+917014309481"
+            className="flex items-center gap-3 rounded-xl border border-[#8C6D3B]/20 bg-[#F8F4EC] p-3.5 text-[#73582D] transition-colors hover:bg-[#F2ECE1]"
+          >
+            <Phone className="h-5 w-5 shrink-0" />
+            <span className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider">Mobile</span>
+              <span className="mt-0.5 block truncate text-xs font-semibold text-[#1A1817]">7014309481</span>
+            </span>
+          </a>
+          <a
+            href="mailto:dparrotcards@gmail.com"
+            className="flex items-center gap-3 rounded-xl border border-[#8C6D3B]/20 bg-[#F8F4EC] p-3.5 text-[#73582D] transition-colors hover:bg-[#F2ECE1]"
+          >
+            <Mail className="h-5 w-5 shrink-0" />
+            <span className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider">Email</span>
+              <span className="mt-0.5 block truncate text-xs font-semibold text-[#1A1817]">dparrotcards@gmail.com</span>
+            </span>
+          </a>
+          <a
+            href="https://www.instagram.com/kpecosystem/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl border border-[#8C6D3B]/20 bg-[#F8F4EC] p-3.5 text-[#73582D] transition-colors hover:bg-[#F2ECE1]"
+          >
+            <AtSign className="h-5 w-5 shrink-0" />
+            <span className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider">Instagram</span>
+              <span className="mt-0.5 block truncate text-xs font-semibold text-[#1A1817]">@kpecosystem</span>
+            </span>
+          </a>
+          <a
+            href="https://www.youtube.com/@KulPurohit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl border border-[#8C6D3B]/20 bg-[#F8F4EC] p-3.5 text-[#73582D] transition-colors hover:bg-[#F2ECE1]"
+          >
+            <Play className="h-5 w-5 shrink-0 fill-current text-red-600" />
+            <span className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider">YouTube</span>
+              <span className="mt-0.5 block truncate text-xs font-semibold text-[#1A1817]">@KulPurohit</span>
+            </span>
+          </a>
+          <div className="flex items-start gap-3 rounded-xl border border-[#8C6D3B]/20 bg-[#F8F4EC] p-3.5 text-[#73582D] sm:col-span-2 lg:col-span-4">
+            <MapPin className="mt-0.5 h-5 w-5 shrink-0" />
+            <span className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider">Address</span>
+              <span className="mt-0.5 block break-words text-xs font-semibold leading-relaxed text-[#1A1817]">
+                First Floor, Plot No. 5, above Arbuda Electric, behind Celebration Mall, Garh Magri, Pulla Bhuwana, Ratneshwar Colony, Bhuwana, Rajasthan 313001
+              </span>
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* Privacy Policy */}
       <section className="overflow-hidden rounded-2xl border border-[#8C6D3B]/30 bg-[#FFFDF9] shadow-md">
         <h2>
@@ -183,7 +250,7 @@ export const AboutPage: React.FC = () => {
                 <div className="rounded-xl border border-[#8C6D3B]/20 bg-[#F8F4EC] p-3">
                   <h3 className="font-serif font-bold text-[#73582D]">Privacy questions and requests</h3>
                   <p>
-                    Contact us through the <Link to="/support" tabIndex={privacyOpen ? 0 : -1} className="font-semibold text-[#8C6D3B] underline underline-offset-2">Contact Us page</Link>. Its current form is not connected to a message service, so do not include sensitive information. Before launch, replace this notice with a monitored privacy contact: <strong>[Add monitored privacy email or contact method]</strong>.
+                    For privacy questions or requests, email <a href="mailto:dparrotcards@gmail.com" className="font-semibold text-[#8C6D3B] underline underline-offset-2">dparrotcards@gmail.com</a> or call <a href="tel:+917014309481" className="font-semibold text-[#8C6D3B] underline underline-offset-2">7014309481</a>.
                   </p>
                 </div>
               </div>

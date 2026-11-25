@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Crown, Sparkles, Clock, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useDeck } from '../context/DeckContext';
+import { CardDetailModal } from '../components/CardDetailModal';
+import { ICard } from '../types';
 
 export const PurchasedCardsPage: React.FC = () => {
   const { cards, entitlements } = useDeck();
+  const [activeCard, setActiveCard] = useState<ICard | null>(null);
   const unlockedCards = cards.filter((c) => c.isUnlocked);
 
   const isPassActive = entitlements?.isDeckPassActive;
@@ -85,9 +88,12 @@ export const PurchasedCardsPage: React.FC = () => {
             const suitColor = isMaster ? '#8C6D3B' : isRed ? '#7A1C1C' : '#2B2927';
 
             return (
-              <div
+              <button
+                type="button"
                 key={card.cardId}
-                className="p-4 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 hover:border-[#8C6D3B] shadow-sm hover:shadow-md transition-all space-y-2 group"
+                onClick={() => setActiveCard(card)}
+                className="w-full p-4 rounded-2xl bg-[#FFFDF9] border border-[#8C6D3B]/30 hover:border-[#8C6D3B] shadow-sm hover:shadow-md transition-all space-y-2 group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8C6D3B]"
+                aria-label={`Open ${card.title} card`}
               >
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-serif font-bold text-base" style={{ color: suitColor }}>
@@ -106,11 +112,18 @@ export const PurchasedCardsPage: React.FC = () => {
                 <p className="text-[11px] text-[#1A1817]/70 line-clamp-2 leading-relaxed">
                   {card.shortSummary}
                 </p>
-              </div>
+              </button>
             );
           })}
         </div>
       </div>
+
+      {activeCard && (
+        <CardDetailModal
+          card={activeCard}
+          onClose={() => setActiveCard(null)}
+        />
+      )}
     </div>
   );
 };

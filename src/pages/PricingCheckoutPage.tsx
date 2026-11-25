@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Shield, CheckCircle2, Crown, Zap, Clock } from 'lucide-react';
+import { Sparkles, CheckCircle2, Crown, Zap, Clock, ArrowLeft } from 'lucide-react';
 import { UnlockModal } from '../components/UnlockModal';
 import { useDeck } from '../context/DeckContext';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,14 @@ export const PricingCheckoutPage: React.FC = () => {
 
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 sm:py-10 space-y-6 sm:space-y-10">
+      <Link
+        to="/account"
+        className="inline-flex items-center gap-1.5 text-xs text-[#8C6D3B] hover:text-[#1A1817] font-medium transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Account</span>
+      </Link>
+
       {/* Page Heading */}
       <div className="text-center space-y-2 max-w-2xl mx-auto">
         <span className="text-[#8C6D3B] text-2xl font-serif">✦</span>
@@ -150,14 +158,6 @@ export const PricingCheckoutPage: React.FC = () => {
             Pick a Card to Unlock
           </Link>
         </div>
-      </div>
-
-      {/* Security Banner */}
-      <div className="max-w-xl mx-auto p-4 rounded-2xl bg-[#F2ECE1] border border-[#8C6D3B]/20 flex items-center justify-center gap-3 text-xs text-[#6B635B] text-center font-serif">
-        <Shield className="w-5 h-5 text-[#8C6D3B] flex-shrink-0" />
-        <span>
-          Payments secured by Razorpay with 256-bit bank-grade encryption. Test mode enabled for development.
-        </span>
       </div>
 
       {modalOpen && (

@@ -9,15 +9,26 @@ export const SOCIAL_IMAGE = `${SITE_URL}/store_hero_parrot.jpg`;
 
 export const PAGE_SEO: Record<string, PageSeo> = {
   '/': {
-    title: 'Parrot Cards | Personalized Vedic Astrology Cards',
+    title: 'Parrot Cards | Discover Your Birth-Sky Card Deck',
     description:
-      'Create a personalized 55-card cosmic deck from your birth details. Explore Vedic astrology and astronomical placements through Parrot Cards.',
+      'Discover Parrot Cards: a personal 55-card journey inspired by your birth sky, Vedic astrology and the four Purusharthas. Begin your reflective card experience.',
     indexable: true,
+  },
+  '/birth-details': {
+    title: 'Create Your Birth-Sky Deck | Parrot Cards',
+    description: 'Enter your birth details to create a personalized Parrot Cards deck.',
+    indexable: false,
   },
   '/about': {
     title: 'About Parrot Cards | The 55-Card Cosmic Deck',
     description:
       'Learn how Parrot Cards turns Vedic astronomical placements into a personalized 55-card deck for reflection, self-inquiry and exploring the four Purusharthas.',
+    indexable: true,
+  },
+  '/daily-rituals': {
+    title: 'Daily Rituals | Parrot Cards',
+    description:
+      'Explore gentle daily rituals for mindful pauses, setting intentions and reflecting on your day.',
     indexable: true,
   },
   '/cosmic-store': {
@@ -138,7 +149,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
 };
 
 export const BREADCRUMB_LABELS: Record<string, string> = {
+  '/birth-details': 'Birth Details',
   '/about': 'About',
+  '/daily-rituals': 'Daily Rituals',
   '/cosmic-store': 'Cosmic Store',
   '/pricing': 'Pricing',
   '/support': 'Contact',
@@ -154,7 +167,7 @@ export function createStructuredData(path: string, page: PageSeo) {
       '@id': `${SITE_URL}/#organization`,
       name: 'Parrot Cards',
       url: `${SITE_URL}/`,
-      logo: `${SITE_URL}/favicon.svg`,
+      logo: `${SITE_URL}/parrot-cards-logo.jpg`,
     },
     {
       '@type': 'WebSite',

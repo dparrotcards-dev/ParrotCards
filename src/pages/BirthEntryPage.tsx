@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Sparkles, MapPin, Clock, Calendar, User, ChevronDown, Users, Check } from 'lucide-react';
+import { AlertTriangle, Sparkles, MapPin, Clock, Calendar, User, ChevronDown, Users, Check } from 'lucide-react';
 import { locationService } from '../services/locationService';
 import { deckService } from '../services/deckService';
 import { useDeck } from '../context/DeckContext';
@@ -97,6 +97,7 @@ export const BirthEntryPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<string>('Finding your birthplace…');
   const [apiError, setApiError] = useState<string | null>(null);
+  const [confirmationDetails, setConfirmationDetails] = useState<BirthFormData | null>(null);
 
   // Autocomplete state
   const [query, setQuery] = useState<string>('');
@@ -200,8 +201,16 @@ export const BirthEntryPage: React.FC = () => {
     setLocationSearchMessage(null);
   };
 
-  const onSubmit = async (data: BirthFormData) => {
+  const onSubmit = (data: BirthFormData) => {
     setApiError(null);
+    setConfirmationDetails(data);
+  };
+
+  const confirmAndCalculate = async () => {
+    if (!confirmationDetails) return;
+
+    const data = confirmationDetails;
+    setConfirmationDetails(null);
     let placeData = selectedPlace;
 
     // Auto-resolve coordinates if user typed their birthplace without clicking dropdown
@@ -222,15 +231,31 @@ export const BirthEntryPage: React.FC = () => {
             }
           }
         } catch {
-          // fallback
+          setApiError('Could not verify this birthplace. Please choose a result from the location list and try again.');
+          return;
         }
       }
     }
 
-    const lat = placeData?.lat ?? data.latitude ?? 28.6139;
-    const lon = placeData?.lon ?? data.longitude ?? 77.2090;
-    const tz = placeData?.timezone ?? data.timezone ?? 5.5;
-    const iana = placeData?.ianaTimezone ?? data.ianaTimezone ?? 'Asia/Kolkata';
+    const lat = placeData?.lat ?? data.latitude;
+    const lon = placeData?.lon ?? data.longitude;
+    if (
+      !placeData ||
+      typeof lat !== 'number' ||
+      !Number.isFinite(lat) ||
+      typeof lon !== 'number' ||
+      !Number.isFinite(lon)
+    ) {
+      setApiError('Please choose your exact birthplace from the location list before calculating your chart.');
+      return;
+    }
+
+    const tz = placeData.timezone ?? data.timezone;
+    const iana = placeData.ianaTimezone ?? data.ianaTimezone;
+    if (typeof tz !== 'number' || !Number.isFinite(tz)) {
+      setApiError('Could not verify the birthplace timezone. Please select your birthplace again.');
+      return;
+    }
 
     setLoading(true);
 
@@ -256,9 +281,9 @@ export const BirthEntryPage: React.FC = () => {
         response.entitlements
       );
 
-      // Smooth transition to deck view
+      // Show the generated cards as the signed-in user's home page.
       setTimeout(() => {
-        navigate('/deck');
+        navigate('/');
       }, 500);
     } catch (err: any) {
       setApiError(err.message || 'Failed to align your birth sky. Please check details.');
@@ -631,6 +656,59 @@ export const BirthEntryPage: React.FC = () => {
           </form>
         </div>
       </div>
+      {confirmationDetails && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#211B14]/55 px-4 py-6 backdrop-blur-[2px]">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="birth-details-confirm-title"
+            className="w-full max-w-md rounded-2xl border border-[#B8934E]/70 bg-[#FFFCF6] p-5 shadow-[0_20px_60px_rgba(25,18,8,0.3)] sm:p-7"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle aria-hidden="true" className="mt-0.5 h-6 w-6 shrink-0 text-[#9A7130]" />
+              <div>
+                <h2 id="birth-details-confirm-title" className="font-cinzel text-lg font-bold text-[#211B14]">
+                  Confirm your birth details
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-[#554A3B]">
+                  After you confirm, these details will be saved permanently and cannot be changed. Please check your name, birth date, time, and birthplace carefully.
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-[#554A3B]">
+                  Jyotish calculations and your Parrot Cards will begin only after you confirm.
+                </p>
+                <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-xl border border-[#8C6D3B]/15 bg-[#F7F0E4] p-3 text-xs">
+                  <dt className="font-semibold text-[#73582D]">Name</dt>
+                  <dd className="text-right text-[#29251F]">{confirmationDetails.name}</dd>
+                  <dt className="font-semibold text-[#73582D]">Gender</dt>
+                  <dd className="text-right text-[#29251F]">{confirmationDetails.gender}</dd>
+                  <dt className="font-semibold text-[#73582D]">Date</dt>
+                  <dd className="text-right text-[#29251F]">{confirmationDetails.date}</dd>
+                  <dt className="font-semibold text-[#73582D]">Time</dt>
+                  <dd className="text-right text-[#29251F]">{confirmationDetails.time}</dd>
+                  <dt className="font-semibold text-[#73582D]">Birthplace</dt>
+                  <dd className="text-right text-[#29251F]">{selectedPlace?.label || confirmationDetails.place}</dd>
+                </dl>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setConfirmationDetails(null)}
+                className="rounded-xl border border-[#8C6D3B]/35 bg-[#F2ECE1] px-4 py-2.5 font-cinzel text-[11px] font-bold uppercase tracking-wider text-[#55452D] transition-colors hover:bg-[#EAE1D2]"
+              >
+                Review details
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmAndCalculate()}
+                className="rounded-xl bg-[#8C6D3B] px-4 py-2.5 font-cinzel text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[#73582D]"
+              >
+                Confirm & calculate
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

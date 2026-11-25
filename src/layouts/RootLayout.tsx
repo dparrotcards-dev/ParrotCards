@@ -10,6 +10,7 @@ export const RootLayout: React.FC = () => {
   const isHome = location.pathname === '/';
   const isDeck = location.pathname === '/deck';
   const isSupport = location.pathname === '/support';
+  const isBirthProfile = location.pathname === '/profile/astronomy';
   const isAdminLogin = location.pathname === '/admin/login';
   const isParchment = isHome || isDeck || isSupport;
 
@@ -22,6 +23,8 @@ export const RootLayout: React.FC = () => {
       className={`relative flex flex-col text-[#1A1817] selection:bg-[#8C6D3B]/20 selection:text-[#8C6D3B] ${
         isParchment
           ? 'bg-[#FAF6EE] bg-cover bg-center bg-no-repeat'
+          : isBirthProfile
+          ? 'bg-[#FBF8F1]'
           : 'bg-[#FAF7F2] bg-parchment-pattern'
       } ${
         isHome || isSupport
@@ -33,7 +36,7 @@ export const RootLayout: React.FC = () => {
       style={bgStyle}
     >
       {/* Dynamic Celestial Sky Background */}
-      {!isParchment && <StarrySky />}
+      {!isParchment && !isBirthProfile && <StarrySky />}
 
       {/* Main Top Navigation */}
       {!isAdminLogin && <Navbar isHome={isHome || isSupport} isDeck={isDeck} />}
