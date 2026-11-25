@@ -244,6 +244,7 @@ export const App: React.FC = () => {
               <Route path="cart" element={<CartPage />} />
               <Route path="payment/result" element={<PaymentResultPage />} />
               <Route path="account" element={<UserProfilePage />} />
+              <Route path="account/products-services" element={<UserProfilePage />} />
               <Route path="my-orders" element={<MyOrdersPage />} />
               <Route path="orders" element={<MyOrdersPage />} />
               <Route path="saved-deck" element={<SavedDeckPage />} />

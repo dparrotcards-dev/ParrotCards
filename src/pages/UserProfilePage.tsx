@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
+  ArrowLeft,
   BookOpen,
   CircleHelp,
   CreditCard,
@@ -43,11 +44,13 @@ const serviceCards = [
 ];
 
 export const UserProfilePage: React.FC = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const { profile, entitlements, clearSession } = useDeck();
   const [accountData, setAccountData] = useState<AccountData | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const isProductsServicesPage = location.pathname === '/account/products-services';
 
   useEffect(() => {
     if (authLoading) return;
@@ -111,8 +114,12 @@ export const UserProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="mx-auto grid w-full max-w-[1380px] flex-1 grid-cols-1 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-6">
-      <aside className="flex h-fit flex-col rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9]/95 p-4 shadow-[0_6px_20px_rgba(70,50,20,0.07)] sm:p-5 lg:sticky lg:top-24">
+    <div className={`mx-auto w-full max-w-[1380px] flex-1 px-3 py-4 sm:px-5 sm:py-6 ${
+      isProductsServicesPage ? 'max-w-[1080px]' : 'grid grid-cols-1 gap-5 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-6'
+    }`}>
+      <aside className={`flex h-fit flex-col rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9]/95 p-4 shadow-[0_6px_20px_rgba(70,50,20,0.07)] sm:p-5 lg:sticky lg:top-24 ${
+        isProductsServicesPage ? 'hidden' : ''
+      }`}>
         <div className="flex items-center gap-3 border-b border-[#8C6D3B]/15 pb-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#B8934E]/40 bg-[#F5EBDD] font-cinzel text-xl font-bold text-[#8C6D3B]">
             {user?.name?.trim().charAt(0).toUpperCase() || <UserRound className="h-5 w-5" />}
@@ -127,24 +134,45 @@ export const UserProfilePage: React.FC = () => {
 
         <nav aria-label="Account navigation" className="mt-3 grid gap-1">
           {sidebarLinks.map(({ label, href, Icon, active, count }) => (
-            <Link
-              key={label}
-              to={href}
-              aria-current={active ? 'page' : undefined}
-              className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
-                active
-                  ? 'bg-[#76531F] text-white shadow-sm'
-                  : 'text-[#514536] hover:bg-[#F3EBDD] hover:text-[#73582D]'
-              }`}
-            >
-              <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-[#F7E5C5]' : 'text-[#9A7130]'}`} />
-              <span className="min-w-0 flex-1">{label}</span>
-              {count && (
-                <span className={`rounded-full px-2 py-0.5 text-[10px] ${active ? 'bg-white/15' : 'bg-[#F4E4C3] text-[#76531F]'}`}>
-                  {count}
-                </span>
-              )}
-            </Link>
+            active ? (
+              <React.Fragment key={label}>
+                <Link
+                  to="/account/products-services"
+                  aria-current={isProductsServicesPage ? 'page' : undefined}
+                  className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors lg:hidden ${
+                    isProductsServicesPage
+                      ? 'bg-[#76531F] text-white shadow-sm'
+                      : 'text-[#514536] hover:bg-[#F3EBDD] hover:text-[#73582D]'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 shrink-0 ${isProductsServicesPage ? 'text-[#F7E5C5]' : 'text-[#9A7130]'}`} />
+                  <span className="min-w-0 flex-1">{label}</span>
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+                <Link
+                  to={href}
+                  aria-current="page"
+                  className="hidden min-h-10 items-center gap-3 rounded-xl bg-[#76531F] px-3 py-2 text-left text-xs font-semibold text-white shadow-sm transition-colors lg:flex"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-[#F7E5C5]" />
+                  <span className="min-w-0 flex-1">{label}</span>
+                </Link>
+              </React.Fragment>
+            ) : (
+              <Link
+                key={label}
+                to={href}
+                className="flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold text-[#514536] transition-colors hover:bg-[#F3EBDD] hover:text-[#73582D]"
+              >
+                <Icon className="h-4 w-4 shrink-0 text-[#9A7130]" />
+                <span className="min-w-0 flex-1">{label}</span>
+                {count && (
+                  <span className="rounded-full bg-[#F4E4C3] px-2 py-0.5 text-[10px] text-[#76531F]">
+                    {count}
+                  </span>
+                )}
+              </Link>
+            )
           ))}
         </nav>
 
@@ -158,7 +186,19 @@ export const UserProfilePage: React.FC = () => {
         </button>
       </aside>
 
-      <main className="min-w-0 space-y-5">
+      <main
+        id="products-services-content"
+        className={`min-w-0 space-y-5 ${isProductsServicesPage ? '' : 'hidden lg:block'}`}
+      >
+        {isProductsServicesPage && (
+          <Link
+            to="/account"
+            className="mb-1 inline-flex items-center gap-2 rounded-full border border-[#E8DFD1] bg-[#FFFDF9] px-4 py-2 text-xs font-bold text-[#76531F] transition-colors hover:bg-[#F3EBDD]"
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+            Back to Account
+          </Link>
+        )}
         <section className="relative overflow-hidden rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9]/90 px-5 py-5 shadow-[0_4px_16px_rgba(70,50,20,0.05)] sm:px-8 sm:py-6">
           <div aria-hidden="true" className="pointer-events-none absolute -right-3 -top-14 h-44 w-44 rounded-full border border-[#B8934E]/20 sm:right-6 sm:h-52 sm:w-52">
             <div className="absolute inset-4 rounded-full border border-[#B8934E]/20" />
