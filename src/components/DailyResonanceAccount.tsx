@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   CalendarDays,
   ChevronLeft,
@@ -11,6 +12,8 @@ import {
   DailyRecording,
   dailyResonanceService,
   DailyResonanceListeningSession,
+  getVersionedAudioUrl,
+  prefetchRecordingAudio,
 } from '../services/dailyResonanceService';
 import { ResonancePlayer, ResonancePlayerHandle } from '../pages/DailyResonancePage';
 
@@ -131,14 +134,35 @@ export const DailyResonanceAccount: React.FC = () => {
     [],
   );
 
+  useEffect(() => {
+    if (sessions.length === 0) return;
+
+    let cancelled = false;
+    const playable = sessions.filter((s) => s.isPublished && s.audioUrl).slice(0, 4);
+    const prefetchSequentially = async () => {
+      for (const session of playable) {
+        if (cancelled || !session.audioUrl) break;
+        await prefetchRecordingAudio(
+          getVersionedAudioUrl(session.audioUrl, session.recordingDate),
+        );
+      }
+    };
+
+    void prefetchSequentially();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessions]);
+
   const playSession = (recordingId: string) => {
     if (replaySessionId === recordingId) {
-      void replayPlayerRef.current?.replay();
+      replayPlayerRef.current?.replay();
       return;
     }
 
     activeAudioRef.current?.pause();
-    setReplaySessionId(recordingId);
+    flushSync(() => setReplaySessionId(recordingId));
+    replayPlayerRef.current?.replay();
   };
 
   const calendarDays = useMemo(() => {
@@ -347,7 +371,7 @@ export const DailyResonanceAccount: React.FC = () => {
                           recordingDate: session.recordingDate,
                           audioUrl: session.audioUrl,
                           status: 'published',
-                          publishedAt: session.lastListenedAt || session.recordingDate,
+                          publishedAt: session.recordingDate,
                           durationSeconds: session.resume?.durationSeconds,
                         }
                       : null;
@@ -392,7 +416,6 @@ export const DailyResonanceAccount: React.FC = () => {
                           ref={replayPlayerRef}
                           recording={recordingForPlayer}
                           isToday={session.recordingDate === today}
-                          autoPlayOnMount
                           resumePoint={null}
                           onAudioPlay={(audio) => {
                             if (activeAudioRef.current && activeAudioRef.current !== audio) {

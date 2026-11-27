@@ -61,6 +61,55 @@ const acceptNotFoundForLegacyFallback = (status: number): boolean =>
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
+const MAX_CACHED_AUDIO_BLOBS = 6;
+const audioBlobCache = new Map<string, string>();
+const inFlightAudioFetches = new Map<string, Promise<string | null>>();
+
+export const getVersionedAudioUrl = (audioUrl: string, versionKey?: string): string => {
+  if (!versionKey) return audioUrl;
+  const separator = audioUrl.includes('?') ? '&' : '?';
+  return `${audioUrl}${separator}v=${encodeURIComponent(versionKey)}`;
+};
+
+export const getCachedAudioSrc = (audioUrl: string): string =>
+  audioBlobCache.get(audioUrl) || audioUrl;
+
+export const prefetchRecordingAudio = (audioUrl: string): Promise<string | null> => {
+  const existing = audioBlobCache.get(audioUrl);
+  if (existing) return Promise.resolve(existing);
+
+  const pending = inFlightAudioFetches.get(audioUrl);
+  if (pending) return pending;
+
+  const task = fetch(audioUrl, { credentials: 'include' })
+    .then(async (response) => {
+      // Never cache partial 206 responses (e.g. a 2-byte Safari probe) as complete audio
+      if (!response.ok || response.status === 206) return null;
+      const blob = await response.blob();
+      if (!blob || blob.size <= 128) return null;
+
+      if (audioBlobCache.size >= MAX_CACHED_AUDIO_BLOBS) {
+        const oldestKey = audioBlobCache.keys().next().value;
+        if (oldestKey) {
+          const oldUrl = audioBlobCache.get(oldestKey);
+          audioBlobCache.delete(oldestKey);
+          if (oldUrl) URL.revokeObjectURL(oldUrl);
+        }
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+      audioBlobCache.set(audioUrl, objectUrl);
+      return objectUrl;
+    })
+    .catch(() => null)
+    .finally(() => {
+      inFlightAudioFetches.delete(audioUrl);
+    });
+
+  inFlightAudioFetches.set(audioUrl, task);
+  return task;
+};
+
 const parseRecording = (value: unknown): DailyRecordingApiItem => {
   if (
     !isObject(value) ||

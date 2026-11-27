@@ -17,6 +17,9 @@ import {
   DailyRecording,
   DailyResonanceListeningSession,
   DailyResonanceResumePoint,
+  getCachedAudioSrc,
+  getVersionedAudioUrl,
+  prefetchRecordingAudio,
 } from '../services/dailyResonanceService';
 import {
   getResonanceStageInfo,
@@ -76,9 +79,9 @@ const sortNewestFirst = (first: DailyRecording, second: DailyRecording): number 
 };
 
 export interface ResonancePlayerHandle {
-  togglePlayPause: () => Promise<void>;
+  togglePlayPause: () => void;
   pause: () => void;
-  replay: () => Promise<void>;
+  replay: () => void;
 }
 
 export interface ResonancePlayerProps {
@@ -119,20 +122,40 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
     const playbackIdRef = useRef<string | null>(resumePoint?.playbackId || null);
     const resumePointRef = useRef(resumePoint);
     const resumeAppliedRef = useRef(!resumePoint);
-    const playRequestPendingRef = useRef(false);
     const playRequestIdRef = useRef(0);
+    const userStartedPlaybackRef = useRef(false);
     const listenedSecondsRef = useRef(resumePoint?.listenedSeconds || 0);
     const lastSavedListenedSecondsRef = useRef(resumePoint?.listenedSeconds || 0);
     const lastAudioTimeRef = useRef<number | null>(null);
     const lastSaveAtRef = useRef(0);
     const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+    const streamUrl = useMemo(
+      () => getVersionedAudioUrl(recording.audioUrl, recording.publishedAt || recording.recordingDate),
+      [recording.audioUrl, recording.publishedAt, recording.recordingDate],
+    );
+    const [audioSrc, setAudioSrc] = useState<string>(() => getCachedAudioSrc(streamUrl));
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isBuffering, setIsBuffering] = useState(false);
     const [isComplete, setIsComplete] = useState(false);
     const [playbackError, setPlaybackError] = useState<string | null>(null);
     const [trackingError, setTrackingError] = useState<string | null>(null);
+
+    useEffect(() => {
+      const cached = getCachedAudioSrc(streamUrl);
+      setAudioSrc(cached);
+      userStartedPlaybackRef.current = false;
+
+      if (cached === streamUrl) {
+        void prefetchRecordingAudio(streamUrl).then((blobUrl) => {
+          if (!blobUrl) return;
+          const audio = audioRef.current;
+          if (audio && !userStartedPlaybackRef.current && audio.paused && audio.currentTime === 0) {
+            setAudioSrc(blobUrl);
+          }
+        });
+      }
+    }, [streamUrl]);
 
     const progress = isComplete
       ? 1
@@ -263,18 +286,31 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
 
     const applyResumePoint = useCallback((audio: HTMLAudioElement) => {
       const point = resumePointRef.current;
-      if (resumeAppliedRef.current || !point || audio.readyState < 1) return;
+      if (resumeAppliedRef.current || !point) return;
+
+      if (point.positionSeconds <= 0) {
+        resumeAppliedRef.current = true;
+        playbackIdRef.current = point.playbackId;
+        listenedSecondsRef.current = point.listenedSeconds;
+        lastSavedListenedSecondsRef.current = point.listenedSeconds;
+        return;
+      }
+
+      if (audio.readyState < 1 || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
 
       resumeAppliedRef.current = true;
       playbackIdRef.current = point.playbackId;
       listenedSecondsRef.current = point.listenedSeconds;
       lastSavedListenedSecondsRef.current = point.listenedSeconds;
-      if (point.positionSeconds <= 0 || !Number.isFinite(audio.duration)) return;
 
       const resumeTime = Math.min(point.positionSeconds, audio.duration);
-      audio.currentTime = resumeTime;
-      lastAudioTimeRef.current = resumeTime;
-      setCurrentTime(resumeTime);
+      try {
+        audio.currentTime = resumeTime;
+        lastAudioTimeRef.current = resumeTime;
+        setCurrentTime(resumeTime);
+      } catch {
+        // Ignore seek error while metadata is settling; next seek/load will honor timing
+      }
     }, []);
 
     useEffect(() => {
@@ -286,111 +322,116 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       listenedSecondsRef.current = resumePoint.listenedSeconds;
       lastSavedListenedSecondsRef.current = resumePoint.listenedSeconds;
       const audio = audioRef.current;
-      if (audio && !playRequestPendingRef.current) {
+      if (audio && audio.paused) {
         applyResumePoint(audio);
       }
     }, [applyResumePoint, recording.id, resumePoint]);
 
-    const playAudio = useCallback(async (fromAutoMount = false) => {
+    const playAudio = useCallback((fromAutoMount = false) => {
       const audio = audioRef.current;
-      if (!audio || playRequestPendingRef.current || !audio.paused) return;
+      if (!audio) return;
 
       setPlaybackError(null);
-      if (audio.readyState >= 1) {
-        applyResumePoint(audio);
-      } else if (!resumeAppliedRef.current) {
-        const point = resumePointRef.current;
-        if (point) {
-          playbackIdRef.current = point.playbackId;
-          listenedSecondsRef.current = point.listenedSeconds;
-          lastSavedListenedSecondsRef.current = point.listenedSeconds;
+      userStartedPlaybackRef.current = true;
+
+      if (audio.error || audio.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+        const readySrc = getCachedAudioSrc(streamUrl);
+        if (audio.src !== readySrc) {
+          audio.src = readySrc;
+          setAudioSrc(readySrc);
         }
-        resumeAppliedRef.current = true;
+        audio.load();
       }
 
       if (isComplete || (duration > 0 && audio.currentTime >= duration - 0.05)) {
-        audio.currentTime = 0;
+        if (audio.readyState >= 1) {
+          try {
+            audio.currentTime = 0;
+          } catch {
+            // Safe fallback if element resets cleanly on load
+          }
+        }
         setCurrentTime(0);
         setIsComplete(false);
         playbackIdRef.current = createPlaybackId();
         listenedSecondsRef.current = 0;
         lastSavedListenedSecondsRef.current = 0;
         lastAudioTimeRef.current = 0;
+      } else {
+        applyResumePoint(audio);
       }
 
       const requestId = ++playRequestIdRef.current;
-      try {
-        playRequestPendingRef.current = true;
-        setIsBuffering(true);
-        await audio.play();
-      } catch (error) {
-        if (requestId !== playRequestIdRef.current) return;
-        if (error instanceof Error && error.name === 'AbortError' && audio.paused) {
-          return;
-        }
-        const isAutoplayBlocked =
-          fromAutoMount && error instanceof DOMException && error.name === 'NotAllowedError';
-        if (!isAutoplayBlocked) {
-          const message = error instanceof Error ? error.message : 'Playback could not start.';
-          setPlaybackError(`Audio playback failed: ${message}`);
-        }
-      } finally {
-        if (requestId === playRequestIdRef.current) {
-          playRequestPendingRef.current = false;
-          if (audio.paused) setIsBuffering(false);
-        }
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.catch((error: unknown) => {
+          if (requestId !== playRequestIdRef.current) return;
+          if (error instanceof Error && error.name === 'AbortError') return;
+          const isAutoplayBlocked =
+            fromAutoMount && error instanceof DOMException && error.name === 'NotAllowedError';
+          if (!isAutoplayBlocked) {
+            const message = error instanceof Error ? error.message : 'Playback could not start.';
+            setPlaybackError(`Audio playback failed: ${message}`);
+          }
+        });
       }
-    }, [applyResumePoint, duration, isComplete]);
+    }, [applyResumePoint, duration, isComplete, streamUrl]);
 
     const pauseAudio = useCallback(() => {
       playRequestIdRef.current += 1;
-      playRequestPendingRef.current = false;
-      setIsBuffering(false);
       audioRef.current?.pause();
     }, []);
 
-    const handleTogglePlayPause = useCallback(async () => {
+    const handleTogglePlayPause = useCallback(() => {
       const audio = audioRef.current;
-      if (!audio || playRequestPendingRef.current) return;
+      if (!audio) return;
       if (!audio.paused) {
         pauseAudio();
         return;
       }
-      await playAudio(false);
+      playAudio(false);
     }, [pauseAudio, playAudio]);
 
-    const handleReplay = useCallback(async () => {
+    const handleReplay = useCallback(() => {
       const audio = audioRef.current;
-      if (!audio || playRequestPendingRef.current) return;
+      if (!audio) return;
 
       setPlaybackError(null);
+      userStartedPlaybackRef.current = true;
+      resumeAppliedRef.current = true;
       setCurrentTime(0);
       setIsComplete(false);
-      audio.currentTime = 0;
       playbackIdRef.current = createPlaybackId();
       listenedSecondsRef.current = 0;
       lastSavedListenedSecondsRef.current = 0;
       lastAudioTimeRef.current = 0;
 
-      const requestId = ++playRequestIdRef.current;
-      try {
-        playRequestPendingRef.current = true;
-        setIsBuffering(true);
-        await audio.play();
-      } catch (error) {
-        if (requestId !== playRequestIdRef.current) return;
-        if (error instanceof Error && error.name === 'AbortError' && audio.paused) {
-          return;
+      const readySrc = getCachedAudioSrc(streamUrl);
+      if (audio.error || (readySrc !== audioSrc && readySrc.startsWith('blob:'))) {
+        audio.src = readySrc;
+        setAudioSrc(readySrc);
+        audio.load();
+      } else if (audio.readyState >= 1) {
+        try {
+          audio.currentTime = 0;
+        } catch {
+          audio.load();
         }
-        const message = error instanceof Error ? error.message : 'Playback could not start.';
-        setPlaybackError(`Audio playback failed: ${message}`);
-      } finally {
-        if (requestId === playRequestIdRef.current) {
-          playRequestPendingRef.current = false;
-          if (audio.paused) setIsBuffering(false);
-        }
+      } else {
+        audio.load();
       }
-    }, []);
+
+      const requestId = ++playRequestIdRef.current;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.catch((error: unknown) => {
+          if (requestId !== playRequestIdRef.current) return;
+          if (error instanceof Error && error.name === 'AbortError') return;
+          const message = error instanceof Error ? error.message : 'Playback could not start.';
+          setPlaybackError(`Audio playback failed: ${message}`);
+        });
+      }
+    }, [audioSrc, streamUrl]);
 
     const handleTimelineSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
       const audio = audioRef.current;
@@ -402,7 +443,11 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
         return;
       }
 
-      audio.currentTime = nextTime;
+      try {
+        audio.currentTime = nextTime;
+      } catch {
+        return;
+      }
       setCurrentTime(nextTime);
       setIsComplete(false);
       setPlaybackError(null);
@@ -420,7 +465,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
 
     useEffect(() => {
       if (!autoPlayOnMount) return;
-      void playAudio(true);
+      playAudio(true);
       // Only trigger once when session opens from user click on a previous recording
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoPlayOnMount, recording.id]);
@@ -581,8 +626,9 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
 
           <audio
             ref={audioRef}
-            src={recording.audioUrl}
+            src={audioSrc}
             preload="auto"
+            playsInline
             aria-hidden={playbackError ? undefined : true}
             tabIndex={playbackError ? 0 : -1}
             controls={Boolean(playbackError)}
@@ -590,9 +636,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
               const actualDuration = event.currentTarget.duration;
               if (Number.isFinite(actualDuration) && actualDuration > 0) {
                 setDuration(actualDuration);
-                if (!playRequestPendingRef.current) {
-                  applyResumePoint(event.currentTarget);
-                }
+                applyResumePoint(event.currentTarget);
               }
             }}
             onDurationChange={(event) => {
@@ -602,13 +646,8 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
               }
             }}
             onTimeUpdate={(event) => syncAudioTime(event.currentTarget)}
-            onWaiting={(event) => {
-              if (!event.currentTarget.paused) setIsBuffering(true);
-            }}
             onPlaying={() => {
               playRequestIdRef.current += 1;
-              playRequestPendingRef.current = false;
-              setIsBuffering(false);
             }}
             onSeeking={(event) => {
               lastAudioTimeRef.current = event.currentTarget.currentTime;
@@ -626,15 +665,12 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
             }}
             onPause={(event) => {
               playRequestIdRef.current += 1;
-              playRequestPendingRef.current = false;
               setIsPlaying(false);
-              setIsBuffering(false);
               syncAudioTime(event.currentTarget, true);
               void persistListeningProgress(event.currentTarget, true);
             }}
             onEnded={(event) => {
               playRequestIdRef.current += 1;
-              playRequestPendingRef.current = false;
               const finalDuration = event.currentTarget.duration;
               syncAudioTime(event.currentTarget, true);
               if (Number.isFinite(finalDuration) && finalDuration > 0) {
@@ -647,9 +683,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
             }}
             onError={() => {
               playRequestIdRef.current += 1;
-              playRequestPendingRef.current = false;
               setIsPlaying(false);
-              setIsBuffering(false);
               setPlaybackError('This recording could not be loaded. Please try again later.');
             }}
             className={
@@ -744,33 +778,22 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
               <>
                 <button
                   type="button"
-                  onClick={() => void handleTogglePlayPause()}
-                  disabled={isBuffering && !isPlaying}
+                  onClick={handleTogglePlayPause}
                   aria-label={
-                    isBuffering
-                      ? 'Loading recording'
-                      : isPlaying
-                        ? 'Pause recording'
-                        : currentTime > 0
-                          ? 'Resume recording'
-                          : 'Play recording'
+                    isPlaying
+                      ? 'Pause recording'
+                      : currentTime > 0
+                        ? 'Resume recording'
+                        : 'Play recording'
                   }
                   className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B89145] to-[#9A7431] px-8 font-cinzel text-xs font-bold uppercase tracking-[0.12em] text-white shadow-[0_6px_18px_rgba(151,112,42,0.24)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] sm:w-auto"
                 >
-                  {isBuffering ? (
-                    <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
-                  ) : isPlaying ? (
+                  {isPlaying ? (
                     <Pause aria-hidden="true" className="h-4 w-4" />
                   ) : (
                     <Play aria-hidden="true" className="h-4 w-4" />
                   )}
-                  {isBuffering
-                    ? 'Loading audio…'
-                    : isPlaying
-                      ? 'Pause'
-                      : currentTime > 0
-                        ? 'Resume'
-                        : 'Play Session'}
+                  {isPlaying ? 'Pause' : currentTime > 0 ? 'Resume' : 'Play Session'}
                 </button>
 
                 {currentTime > 0 && (
@@ -963,15 +986,41 @@ export const DailyResonancePage: React.FC = () => {
     return { featuredRecording: todayRecordings[0] || null, previousRecordings: previous };
   }, [recordings, todayKey]);
 
+  // Preload today's and recent sessions cleanly into memory for instant 0ms play/replay on iOS & Android
+  useEffect(() => {
+    if (recordings.length === 0) return;
+
+    let cancelled = false;
+    const targets = [featuredRecording, ...previousRecordings.slice(0, 4)].filter(
+      (rec): rec is DailyRecording => Boolean(rec),
+    );
+
+    const prefetchSequentially = async () => {
+      for (const rec of targets) {
+        if (cancelled) break;
+        const versionedUrl = getVersionedAudioUrl(
+          rec.audioUrl,
+          rec.publishedAt || rec.recordingDate,
+        );
+        await prefetchRecordingAudio(versionedUrl);
+      }
+    };
+
+    void prefetchSequentially();
+    return () => {
+      cancelled = true;
+    };
+  }, [featuredRecording, previousRecordings, recordings.length]);
+
   const handleSelectPreviousSession = (recordingId: string) => {
     if (selectedPreviousId === recordingId) {
-      void previousPlayerRef.current?.togglePlayPause();
+      previousPlayerRef.current?.togglePlayPause();
       return;
     }
 
     activeAudioRef.current?.pause();
     flushSync(() => setSelectedPreviousId(recordingId));
-    void previousPlayerRef.current?.togglePlayPause();
+    previousPlayerRef.current?.togglePlayPause();
   };
 
   useEffect(() => {
