@@ -25,11 +25,17 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       'Learn how Parrot Cards turns Vedic astronomical placements into a personalized 55-card deck for reflection, self-inquiry and exploring the four Purusharthas.',
     indexable: true,
   },
-  '/daily-rituals': {
+  '/daily-resonance': {
     title: 'Resonance Daily Session | Parrot Cards',
     description:
       'Listen to the daily Resonance session and follow a calming Shadow Discharge visual synchronized to the recording.',
     indexable: true,
+  },
+  '/daily-rituals': {
+    title: 'Resonance Daily Session | Parrot Cards',
+    description:
+      'Listen to the daily Resonance session and follow a calming Shadow Discharge visual synchronized to the recording.',
+    indexable: false,
   },
   '/admin/daily-recordings': {
     title: 'Daily Recordings Admin | Parrot Cards',
@@ -94,6 +100,11 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   '/account': {
     title: 'Your Account | Parrot Cards',
     description: 'Manage your Parrot Cards account and profile.',
+    indexable: false,
+  },
+  '/my-daily-resonance': {
+    title: 'My Daily Resonance | Parrot Cards',
+    description: 'Review your Daily Resonance listening history and session progress.',
     indexable: false,
   },
   '/my-daily-rituals': {
@@ -161,6 +172,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
 export const BREADCRUMB_LABELS: Record<string, string> = {
   '/birth-details': 'Birth Details',
   '/about': 'About',
+  '/daily-resonance': 'Daily Resonance',
   '/daily-rituals': 'Daily Resonance',
   '/cosmic-store': 'Cosmic Store',
   '/pricing': 'Pricing',

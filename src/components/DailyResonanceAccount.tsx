@@ -9,10 +9,10 @@ import {
 } from 'lucide-react';
 import {
   DailyRecording,
-  dailyRitualService,
-  DailyRitualListeningSession,
-} from '../services/dailyRitualService';
-import { ResonancePlayer, ResonancePlayerHandle } from '../pages/DailyRitualsPage';
+  dailyResonanceService,
+  DailyResonanceListeningSession,
+} from '../services/dailyResonanceService';
+import { ResonancePlayer, ResonancePlayerHandle } from '../pages/DailyResonancePage';
 
 type SessionStatus = 'Completed' | 'Missed' | 'In Progress' | 'No Session';
 
@@ -32,7 +32,7 @@ const formatSessionDate = (dateKey: string): string => {
   });
 };
 
-const statusForSession = (session: DailyRitualListeningSession, today: string): SessionStatus => {
+const statusForSession = (session: DailyResonanceListeningSession, today: string): SessionStatus => {
   if (session.completedListens > 0) return 'Completed';
   if (session.isPublished && session.recordingDate < today) return 'Missed';
   if (
@@ -65,9 +65,9 @@ const StatusBadge: React.FC<{ status: SessionStatus }> = ({ status }) => (
   </span>
 );
 
-export const DailyRitualsAccount: React.FC = () => {
+export const DailyResonanceAccount: React.FC = () => {
   const today = toDateKey(new Date());
-  const [sessions, setSessions] = useState<DailyRitualListeningSession[]>([]);
+  const [sessions, setSessions] = useState<DailyResonanceListeningSession[]>([]);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -84,7 +84,7 @@ export const DailyRitualsAccount: React.FC = () => {
     const controller = new AbortController();
     setLoading(true);
     setError(null);
-    dailyRitualService
+    dailyResonanceService
       .getListeningHistory(controller.signal)
       .then(setSessions)
       .catch((cause: unknown) => {
@@ -99,7 +99,7 @@ export const DailyRitualsAccount: React.FC = () => {
   }, [retryCount]);
 
   const sessionByDate = useMemo(() => {
-    const grouped = new Map<string, DailyRitualListeningSession[]>();
+    const grouped = new Map<string, DailyResonanceListeningSession[]>();
     for (const session of sessions) {
       const current = grouped.get(session.recordingDate) || [];
       current.push(session);
@@ -127,7 +127,7 @@ export const DailyRitualsAccount: React.FC = () => {
         listenedSeconds: number;
         completed?: boolean;
       },
-    ) => dailyRitualService.saveListeningProgress(recordingId, progress),
+    ) => dailyResonanceService.saveListeningProgress(recordingId, progress),
     [],
   );
 
@@ -234,9 +234,9 @@ export const DailyRitualsAccount: React.FC = () => {
             ))}
           </section>
 
-          <section aria-labelledby="ritual-calendar-heading" className="rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9] p-4 shadow-[0_4px_16px_rgba(70,50,20,0.05)] sm:p-6">
+          <section aria-labelledby="resonance-calendar-heading" className="rounded-2xl border border-[#E8DFD1] bg-[#FFFDF9] p-4 shadow-[0_4px_16px_rgba(70,50,20,0.05)] sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 id="ritual-calendar-heading" className="flex items-center gap-3 font-cinzel text-base font-bold text-[#211B14] sm:text-lg">
+              <h3 id="resonance-calendar-heading" className="flex items-center gap-3 font-cinzel text-base font-bold text-[#211B14] sm:text-lg">
                 <CalendarDays aria-hidden="true" className="h-6 w-6 shrink-0 text-[#9A7130]" />
                 Listening Calendar
               </h3>
@@ -327,8 +327,8 @@ export const DailyRitualsAccount: React.FC = () => {
             </div>
           </section>
 
-          <section aria-labelledby="ritual-history-heading">
-            <h3 id="ritual-history-heading" className="mb-3 font-cinzel text-lg font-bold text-[#211B14] sm:text-xl">
+          <section aria-labelledby="resonance-history-heading">
+            <h3 id="resonance-history-heading" className="mb-3 font-cinzel text-lg font-bold text-[#211B14] sm:text-xl">
               Recording History
             </h3>
             {sessions.length === 0 ? (

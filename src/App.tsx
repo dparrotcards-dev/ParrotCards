@@ -19,15 +19,17 @@ const AstronomicalProfilePage = lazy(() => import('./pages/AstronomicalProfilePa
 const PricingCheckoutPage = lazy(() => import('./pages/PricingCheckoutPage').then((m) => ({ default: m.PricingCheckoutPage })));
 const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage').then((m) => ({ default: m.PaymentResultPage })));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then((m) => ({ default: m.UserProfilePage })));
-const MyDailyRitualsPage = lazy(() =>
-  import('./pages/MyDailyRitualsPage').then((m) => ({ default: m.MyDailyRitualsPage })),
+const MyDailyResonancePage = lazy(() =>
+  import('./pages/MyDailyResonancePage').then((m) => ({ default: m.MyDailyResonancePage })),
 );
 const SavedDeckPage = lazy(() => import('./pages/SavedDeckPage').then((m) => ({ default: m.SavedDeckPage })));
 const PurchasedCardsPage = lazy(() => import('./pages/PurchasedCardsPage').then((m) => ({ default: m.PurchasedCardsPage })));
 const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage').then((m) => ({ default: m.PaymentHistoryPage })));
 const MyOrdersPage = lazy(() => import('./pages/MyOrdersPage').then((m) => ({ default: m.MyOrdersPage })));
 const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
-const DailyRitualsPage = lazy(() => import('./pages/DailyRitualsPage').then((m) => ({ default: m.DailyRitualsPage })));
+const DailyResonancePage = lazy(() =>
+  import('./pages/DailyResonancePage').then((m) => ({ default: m.DailyResonancePage })),
+);
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })));
 const SupportPage = lazy(() => import('./pages/SupportPage').then((m) => ({ default: m.SupportPage })));
@@ -62,6 +64,16 @@ const HomePage: React.FC = () => {
   }
 
   return <LandingPage />;
+};
+
+const LegacyDailyResonanceRedirect: React.FC<{ to: string }> = ({ to }) => {
+  const location = useLocation();
+  return (
+    <Navigate
+      to={{ pathname: to, search: location.search, hash: location.hash }}
+      replace
+    />
+  );
 };
 
 const AuthenticatedBirthEntryPage: React.FC = () => {
@@ -252,15 +264,18 @@ export const App: React.FC = () => {
               <Route path="payment/result" element={<PaymentResultPage />} />
               <Route path="account" element={<UserProfilePage />} />
               <Route path="account/products-services" element={<UserProfilePage />} />
-              <Route path="account/daily-rituals" element={<Navigate to="/my-daily-rituals" replace />} />
-              <Route path="my-daily-rituals" element={<MyDailyRitualsPage />} />
+              <Route path="account/daily-rituals" element={<LegacyDailyResonanceRedirect to="/my-daily-resonance" />} />
+              <Route path="account/daily-resonance" element={<Navigate to="/my-daily-resonance" replace />} />
+              <Route path="my-daily-resonance" element={<MyDailyResonancePage />} />
+              <Route path="my-daily-rituals" element={<LegacyDailyResonanceRedirect to="/my-daily-resonance" />} />
               <Route path="my-orders" element={<MyOrdersPage />} />
               <Route path="orders" element={<MyOrdersPage />} />
               <Route path="saved-deck" element={<SavedDeckPage />} />
               <Route path="purchased-cards" element={<PurchasedCardsPage />} />
               <Route path="payments/history" element={<PaymentHistoryPage />} />
               <Route path="about" element={<AboutPage />} />
-              <Route path="daily-rituals" element={<DailyRitualsPage />} />
+              <Route path="daily-resonance" element={<DailyResonancePage />} />
+              <Route path="daily-rituals" element={<LegacyDailyResonanceRedirect to="/daily-resonance" />} />
               <Route path="privacy" element={<PrivacyPolicyPage />} />
               <Route path="terms" element={<TermsPage />} />
               <Route path="support" element={<SupportPage />} />

@@ -10,14 +10,14 @@ export interface DailyRecording {
   durationSeconds?: number;
 }
 
-export interface DailyRitualResumePoint {
+export interface DailyResonanceResumePoint {
   playbackId: string;
   positionSeconds: number;
   listenedSeconds: number;
   durationSeconds: number;
 }
 
-export interface DailyRitualListeningSession {
+export interface DailyResonanceListeningSession {
   id: string;
   title: string;
   recordingDate: string;
@@ -26,7 +26,7 @@ export interface DailyRitualListeningSession {
   totalPlays: number;
   completedListens: number;
   lastListenedAt: string | null;
-  resume: DailyRitualResumePoint | null;
+  resume: DailyResonanceResumePoint | null;
 }
 
 interface DailyRecordingApiItem {
@@ -47,13 +47,16 @@ interface DailyRecordingApiResponse {
   };
 }
 
-interface DailyRitualListeningResponse {
+interface DailyResonanceListeningResponse {
   success: boolean;
   message?: string;
   data?: {
     sessions?: unknown;
   };
 }
+
+const acceptNotFoundForLegacyFallback = (status: number): boolean =>
+  (status >= 200 && status < 300) || status === 404;
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -103,7 +106,7 @@ const parseRecording = (value: unknown): DailyRecordingApiItem => {
   };
 };
 
-const parseListeningSession = (value: unknown): DailyRitualListeningSession => {
+const parseListeningSession = (value: unknown): DailyResonanceListeningSession => {
   if (
     !isObject(value) ||
     typeof value.id !== 'string' ||
@@ -116,10 +119,10 @@ const parseListeningSession = (value: unknown): DailyRitualListeningSession => {
     (value.lastListenedAt !== null && typeof value.lastListenedAt !== 'string') ||
     (value.resume !== null && !isObject(value.resume))
   ) {
-    throw new Error('The daily ritual listening API returned an invalid session.');
+    throw new Error('The Daily Resonance listening API returned an invalid session.');
   }
 
-  let resume: DailyRitualResumePoint | null = null;
+  let resume: DailyResonanceResumePoint | null = null;
   if (value.resume !== null) {
     const point = value.resume as Record<string, unknown>;
     if (
@@ -128,7 +131,7 @@ const parseListeningSession = (value: unknown): DailyRitualListeningSession => {
       typeof point.listenedSeconds !== 'number' ||
       typeof point.durationSeconds !== 'number'
     ) {
-      throw new Error('The daily ritual listening API returned an invalid resume point.');
+      throw new Error('The Daily Resonance listening API returned an invalid resume point.');
     }
 
     resume = {
@@ -152,9 +155,22 @@ const parseListeningSession = (value: unknown): DailyRitualListeningSession => {
   };
 };
 
-export const dailyRitualService = {
+export const dailyResonanceService = {
   async getPublishedRecordings(signal?: AbortSignal): Promise<DailyRecording[]> {
-    const response = await api.get<DailyRecordingApiResponse>('/daily-rituals/recordings', { signal });
+    const requestOptions = { signal, validateStatus: acceptNotFoundForLegacyFallback };
+    let response = await api.get<DailyRecordingApiResponse>(
+      '/daily-resonance/recordings',
+      requestOptions,
+    );
+    if (response.status === 404) {
+      response = await api.get<DailyRecordingApiResponse>(
+        '/daily-rituals/recordings',
+        requestOptions,
+      );
+    }
+    if (response.status === 404) {
+      throw new Error('The Daily Resonance recordings endpoint was not found.');
+    }
     const payload = response.data;
 
     if (!payload?.success) {
@@ -170,15 +186,28 @@ export const dailyRitualService = {
       .filter((recording): recording is DailyRecording => recording.status === 'published');
   },
 
-  async getListeningHistory(signal?: AbortSignal): Promise<DailyRitualListeningSession[]> {
-    const response = await api.get<DailyRitualListeningResponse>('/daily-rituals/listening', { signal });
+  async getListeningHistory(signal?: AbortSignal): Promise<DailyResonanceListeningSession[]> {
+    const requestOptions = { signal, validateStatus: acceptNotFoundForLegacyFallback };
+    let response = await api.get<DailyResonanceListeningResponse>(
+      '/daily-resonance/listening',
+      requestOptions,
+    );
+    if (response.status === 404) {
+      response = await api.get<DailyResonanceListeningResponse>(
+        '/daily-rituals/listening',
+        requestOptions,
+      );
+    }
+    if (response.status === 404) {
+      throw new Error('The Daily Resonance listening endpoint was not found.');
+    }
     const payload = response.data;
 
     if (!payload?.success) {
-      throw new Error(payload?.message || 'Your daily ritual history could not be loaded.');
+      throw new Error(payload?.message || 'Your Daily Resonance history could not be loaded.');
     }
     if (!Array.isArray(payload.data?.sessions)) {
-      throw new Error('The daily ritual listening API response did not include sessions.');
+      throw new Error('The Daily Resonance listening API response did not include sessions.');
     }
 
     return payload.data.sessions.map(parseListeningSession);
@@ -194,6 +223,21 @@ export const dailyRitualService = {
       completed?: boolean;
     },
   ): Promise<void> {
-    await api.put(`/daily-rituals/recordings/${recordingId}/listening`, progress);
+    const requestOptions = { validateStatus: acceptNotFoundForLegacyFallback };
+    let response = await api.put(
+      `/daily-resonance/recordings/${recordingId}/listening`,
+      progress,
+      requestOptions,
+    );
+    if (response.status === 404) {
+      response = await api.put(
+        `/daily-rituals/recordings/${recordingId}/listening`,
+        progress,
+        requestOptions,
+      );
+    }
+    if (response.status === 404) {
+      throw new Error('The Daily Resonance recording was not found.');
+    }
   },
 };

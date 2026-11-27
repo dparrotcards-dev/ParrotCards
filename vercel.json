@@ -1,4 +1,21 @@
 {
+  "redirects": [
+    {
+      "source": "/daily-rituals",
+      "destination": "/daily-resonance",
+      "permanent": true
+    },
+    {
+      "source": "/my-daily-rituals",
+      "destination": "/my-daily-resonance",
+      "permanent": true
+    },
+    {
+      "source": "/account/daily-rituals",
+      "destination": "/my-daily-resonance",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/v1/:path*",

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   CalendarDays,
   CheckCircle2,
@@ -12,11 +13,11 @@ import {
   X,
 } from 'lucide-react';
 import {
-  dailyRitualService,
+  dailyResonanceService,
   DailyRecording,
-  DailyRitualListeningSession,
-  DailyRitualResumePoint,
-} from '../services/dailyRitualService';
+  DailyResonanceListeningSession,
+  DailyResonanceResumePoint,
+} from '../services/dailyResonanceService';
 import {
   getResonanceStageInfo,
   RESONANCE_MILESTONES,
@@ -87,7 +88,7 @@ export interface ResonancePlayerProps {
   onAudioPlay: (audio: HTMLAudioElement) => void;
   onPlaybackChange?: (recordingId: string, playing: boolean) => void;
   onClose?: () => void;
-  resumePoint?: DailyRitualResumePoint | null;
+  resumePoint?: DailyResonanceResumePoint | null;
   onListeningProgress?: (
     recordingId: string,
     progress: {
@@ -517,7 +518,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
           <audio
             ref={audioRef}
             src={recording.audioUrl}
-            preload="metadata"
+          preload="auto"
             onLoadedMetadata={(event) => {
               const actualDuration = event.currentTarget.duration;
               if (Number.isFinite(actualDuration) && actualDuration > 0) {
@@ -711,12 +712,12 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
 
 ResonancePlayer.displayName = 'ResonancePlayer';
 
-export const DailyRitualsPage: React.FC = () => {
+export const DailyResonancePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
   const requestedRecordingId = searchParams.get('recordingId');
   const [recordings, setRecordings] = useState<DailyRecording[]>([]);
-  const [listeningSessions, setListeningSessions] = useState<DailyRitualListeningSession[]>([]);
+  const [listeningSessions, setListeningSessions] = useState<DailyResonanceListeningSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -724,7 +725,6 @@ export const DailyRitualsPage: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [selectedPreviousId, setSelectedPreviousId] = useState<string | null>(null);
   const [playingPreviousId, setPlayingPreviousId] = useState<string | null>(null);
-  const [autoPlayPreviousId, setAutoPlayPreviousId] = useState<string | null>(null);
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
   const previousPlayerRef = useRef<ResonancePlayerHandle | null>(null);
   const todayKey = dateKey(new Date());
@@ -748,7 +748,7 @@ export const DailyRitualsPage: React.FC = () => {
       },
     ) => {
       if (isAuthenticated) {
-        await dailyRitualService.saveListeningProgress(recordingId, progress);
+        await dailyResonanceService.saveListeningProgress(recordingId, progress);
       }
     },
     [isAuthenticated],
@@ -766,7 +766,7 @@ export const DailyRitualsPage: React.FC = () => {
     setLoading(true);
     setLoadError(null);
 
-    dailyRitualService
+    dailyResonanceService
       .getPublishedRecordings(controller.signal)
       .then(setRecordings)
       .catch((error: unknown) => {
@@ -792,7 +792,7 @@ export const DailyRitualsPage: React.FC = () => {
     const controller = new AbortController();
     setHistoryLoading(true);
     setHistoryLoadError(null);
-    dailyRitualService
+    dailyResonanceService
       .getListeningHistory(controller.signal)
       .then(setListeningSessions)
       .catch((error: unknown) => {
@@ -816,7 +816,7 @@ export const DailyRitualsPage: React.FC = () => {
       if (document.visibilityState === 'hidden') return;
       activeController?.abort();
       activeController = new AbortController();
-      dailyRitualService
+      dailyResonanceService
         .getPublishedRecordings(activeController.signal)
         .then((latest) => {
           if (!activeController?.signal.aborted) {
@@ -869,8 +869,8 @@ export const DailyRitualsPage: React.FC = () => {
     }
 
     activeAudioRef.current?.pause();
-    setAutoPlayPreviousId(recordingId);
-    setSelectedPreviousId(recordingId);
+    flushSync(() => setSelectedPreviousId(recordingId));
+    void previousPlayerRef.current?.togglePlayPause();
   };
 
   useEffect(() => {
@@ -881,7 +881,6 @@ export const DailyRitualsPage: React.FC = () => {
     }
 
     activeAudioRef.current?.pause();
-    setAutoPlayPreviousId(requestedRecordingId);
     setSelectedPreviousId(requestedRecordingId);
   }, [loading, recordings, requestedRecordingId, todayKey]);
 
@@ -1032,7 +1031,6 @@ export const DailyRitualsPage: React.FC = () => {
                                 onClick={() => {
                                   previousPlayerRef.current?.pause();
                                   setSelectedPreviousId(null);
-                                  setAutoPlayPreviousId(null);
                                 }}
                                 aria-label={`Close ${recording.title}`}
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E6DCCB] bg-[#FAF4EA] text-[#726656] transition hover:bg-[#EFE4D3] hover:text-[#332820] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B]"
@@ -1049,14 +1047,12 @@ export const DailyRitualsPage: React.FC = () => {
                             ref={previousPlayerRef}
                             recording={recording}
                             isToday={false}
-                            autoPlayOnMount={autoPlayPreviousId === recording.id}
                             onAudioPlay={handleAudioPlay}
                             onListeningProgress={isAuthenticated ? handleListeningProgress : undefined}
                             resumePoint={listeningSessions.find((session) => session.id === recording.id)?.resume}
                             onPlaybackChange={handlePreviousPlaybackChange}
                             onClose={() => {
                               setSelectedPreviousId(null);
-                              setAutoPlayPreviousId(null);
                             }}
                           />
                         )}

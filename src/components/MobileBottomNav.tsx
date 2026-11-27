@@ -10,7 +10,7 @@ export const MobileBottomNav: React.FC = () => {
   const isCurrent = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
     if (path === '/cosmic-store' && (location.pathname.startsWith('/cosmic-store') || location.pathname === '/cart')) return true;
-    if (path === '/account' && location.pathname === '/my-daily-rituals') return true;
+    if (path === '/account' && location.pathname === '/my-daily-resonance') return true;
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
   };
@@ -87,20 +87,20 @@ export const MobileBottomNav: React.FC = () => {
             </Link>
           </div>
 
-          {/* DAILY RITUALS */}
+          {/* DAILY RESONANCE */}
           <Link
-            to="/daily-rituals"
+            to="/daily-resonance"
             aria-label="Daily Resonance"
-            aria-current={isCurrent('/daily-rituals') ? 'page' : undefined}
+            aria-current={isCurrent('/daily-resonance') ? 'page' : undefined}
             className={`flex min-w-0 flex-1 flex-col items-center justify-center py-1 transition-all active:scale-95 ${
-              isCurrent('/daily-rituals') ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
+              isCurrent('/daily-resonance') ? 'text-[#8C6D3B]' : 'text-[#5C4E3D] hover:text-[#1A1817]'
             }`}
           >
             <Sun className="h-5 w-5 stroke-[1.8]" />
-            <span className={`mt-1 font-cinzel text-[8px] font-bold uppercase tracking-[0.02em] min-[360px]:text-[9px] ${
-              isCurrent('/daily-rituals') ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
+            <span aria-hidden="true" className={`mt-1 whitespace-nowrap font-cinzel text-[8px] font-bold uppercase tracking-normal min-[360px]:text-[9px] ${
+              isCurrent('/daily-resonance') ? 'text-[#8C6D3B] font-extrabold' : 'text-[#5C4E3D]'
             }`}>
-              Daily Resonance
+              Resonance
             </span>
           </Link>
 

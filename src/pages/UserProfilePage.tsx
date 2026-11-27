@@ -108,7 +108,7 @@ export const UserProfilePage: React.FC = () => {
       selected: isProductsServicesPage,
     },
     { label: currentEntitlements?.isDeckPassActive ? 'Premium Pass Active' : 'Standard Access', href: '/pricing', Icon: Shield },
-    { label: 'My Daily Resonance', href: '/my-daily-rituals', Icon: Headphones },
+    { label: 'My Daily Resonance', href: '/my-daily-resonance', Icon: Headphones },
     { label: 'My Orders', href: '/my-orders', Icon: Package },
     { label: 'Transactions', href: '/payments/history', Icon: History },
     {
