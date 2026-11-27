@@ -26,10 +26,15 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     indexable: true,
   },
   '/daily-rituals': {
-    title: 'Daily Rituals | Parrot Cards',
+    title: 'Resonance Daily Session | Parrot Cards',
     description:
-      'Explore gentle daily rituals for mindful pauses, setting intentions and reflecting on your day.',
+      'Listen to the daily Resonance session and follow a calming Shadow Discharge visual synchronized to the recording.',
     indexable: true,
+  },
+  '/admin/daily-recordings': {
+    title: 'Daily Recordings Admin | Parrot Cards',
+    description: 'Upload and publish the daily Resonance recordings.',
+    indexable: false,
   },
   '/cosmic-store': {
     title: 'Astrology & Spiritual Products | Parrot Cards Store',
@@ -89,6 +94,11 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   '/account': {
     title: 'Your Account | Parrot Cards',
     description: 'Manage your Parrot Cards account and profile.',
+    indexable: false,
+  },
+  '/my-daily-rituals': {
+    title: 'My Daily Resonance | Parrot Cards',
+    description: 'Review your Daily Resonance listening history and session progress.',
     indexable: false,
   },
   '/my-orders': {
@@ -151,7 +161,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
 export const BREADCRUMB_LABELS: Record<string, string> = {
   '/birth-details': 'Birth Details',
   '/about': 'About',
-  '/daily-rituals': 'Daily Rituals',
+  '/daily-rituals': 'Daily Resonance',
   '/cosmic-store': 'Cosmic Store',
   '/pricing': 'Pricing',
   '/support': 'Contact',

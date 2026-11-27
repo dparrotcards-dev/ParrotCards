@@ -84,6 +84,17 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export interface AdminDailyRecording {
+  id: string;
+  title: string;
+  recordingDate: string;
+  isPublished: boolean;
+  publishedAt: string | null;
+  audioSize: number;
+  audioOriginalName: string;
+  createdAt: string;
+}
+
 export const adminService = {
   getStats: async (): Promise<AdminDashboardData> => {
     const res = await api.get('/admin/stats');
@@ -246,6 +257,28 @@ export const adminService = {
 
   toggleProductStock: async (id: string, inStock: boolean) => {
     const res = await api.patch(`/admin/products/${id}/stock`, { inStock });
+    return res.data;
+  },
+
+  getDailyRecordings: async (): Promise<AdminDailyRecording[]> => {
+    const res = await api.get('/admin/daily-recordings');
+    return res.data.data.recordings;
+  },
+
+  uploadDailyRecording: async (formData: FormData) => {
+    const res = await api.post('/admin/daily-recordings', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+
+  updateDailyRecording: async (id: string, data: { title: string; recordingDate: string }) => {
+    const res = await api.put(`/admin/daily-recordings/${id}`, data);
+    return res.data;
+  },
+
+  setDailyRecordingPublished: async (id: string, isPublished: boolean) => {
+    const res = await api.patch(`/admin/daily-recordings/${id}/published`, { isPublished });
     return res.data;
   },
 

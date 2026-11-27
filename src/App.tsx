@@ -19,6 +19,9 @@ const AstronomicalProfilePage = lazy(() => import('./pages/AstronomicalProfilePa
 const PricingCheckoutPage = lazy(() => import('./pages/PricingCheckoutPage').then((m) => ({ default: m.PricingCheckoutPage })));
 const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage').then((m) => ({ default: m.PaymentResultPage })));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then((m) => ({ default: m.UserProfilePage })));
+const MyDailyRitualsPage = lazy(() =>
+  import('./pages/MyDailyRitualsPage').then((m) => ({ default: m.MyDailyRitualsPage })),
+);
 const SavedDeckPage = lazy(() => import('./pages/SavedDeckPage').then((m) => ({ default: m.SavedDeckPage })));
 const PurchasedCardsPage = lazy(() => import('./pages/PurchasedCardsPage').then((m) => ({ default: m.PurchasedCardsPage })));
 const PaymentHistoryPage = lazy(() => import('./pages/PaymentHistoryPage').then((m) => ({ default: m.PaymentHistoryPage })));
@@ -36,6 +39,9 @@ const AdminOverviewPage = lazy(() => import('./pages/admin/AdminOverviewPage').t
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })));
 const AdminDecksPage = lazy(() => import('./pages/admin/AdminDecksPage').then((m) => ({ default: m.AdminDecksPage })));
 const AdminCardsPage = lazy(() => import('./pages/admin/AdminCardsPage').then((m) => ({ default: m.AdminCardsPage })));
+const AdminDailyRecordingsPage = lazy(() =>
+  import('./pages/admin/AdminDailyRecordingsPage').then((m) => ({ default: m.AdminDailyRecordingsPage })),
+);
 const AdminPaymentsPage = lazy(() => import('./pages/admin/AdminPaymentsPage').then((m) => ({ default: m.AdminPaymentsPage })));
 const AdminOrdersPage = lazy(() => import('./pages/admin/AdminOrdersPage').then((m) => ({ default: m.AdminOrdersPage })));
 const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage').then((m) => ({ default: m.AdminMessagesPage })));
@@ -214,6 +220,7 @@ export const App: React.FC = () => {
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="decks" element={<AdminDecksPage />} />
               <Route path="cards" element={<AdminCardsPage />} />
+              <Route path="daily-recordings" element={<AdminDailyRecordingsPage />} />
               <Route path="store" element={<AdminProductsPage />} />
               <Route path="store/products" element={<Navigate to="/admin/store" replace />} />
               <Route path="store/add-product" element={<AdminAddProductPage />} />
@@ -245,6 +252,8 @@ export const App: React.FC = () => {
               <Route path="payment/result" element={<PaymentResultPage />} />
               <Route path="account" element={<UserProfilePage />} />
               <Route path="account/products-services" element={<UserProfilePage />} />
+              <Route path="account/daily-rituals" element={<Navigate to="/my-daily-rituals" replace />} />
+              <Route path="my-daily-rituals" element={<MyDailyRitualsPage />} />
               <Route path="my-orders" element={<MyOrdersPage />} />
               <Route path="orders" element={<MyOrdersPage />} />
               <Route path="saved-deck" element={<SavedDeckPage />} />

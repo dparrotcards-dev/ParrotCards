@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,6 +24,9 @@ export const AuthPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const [googleButtonWidth, setGoogleButtonWidth] = useState(() =>
+    Math.min(340, Math.max(120, window.innerWidth - 80))
+  );
 
   // Forgot Password States
   const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false);
@@ -44,6 +47,14 @@ export const AuthPage: React.FC = () => {
       name: '',
     },
   });
+
+  useEffect(() => {
+    const updateGoogleButtonWidth = () => {
+      setGoogleButtonWidth(Math.min(340, Math.max(120, window.innerWidth - 80)));
+    };
+    window.addEventListener('resize', updateGoogleButtonWidth);
+    return () => window.removeEventListener('resize', updateGoogleButtonWidth);
+  }, []);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -364,7 +375,7 @@ export const AuthPage: React.FC = () => {
                     text="signin_with"
                     shape="pill"
                     theme="outline"
-                    width="340"
+                    width={String(googleButtonWidth)}
                   />
                 </div>
               ) : (

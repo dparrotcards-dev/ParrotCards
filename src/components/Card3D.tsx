@@ -5,6 +5,7 @@ import { SUIT_METADATA } from './SuitTabs';
 
 interface Card3DProps {
   card: ICard;
+  changeDirection?: 'next' | 'previous';
   onOpenDetail?: (card: ICard) => void;
   onUnlock?: (card: ICard) => void;
   onUnlockPass?: () => void;
@@ -42,6 +43,7 @@ const HOUSE_LORDS = [
 
 export const Card3D: React.FC<Card3DProps> = ({
   card,
+  changeDirection = 'next',
   onOpenDetail,
   onUnlock,
   onUnlockPass,
@@ -49,7 +51,7 @@ export const Card3D: React.FC<Card3DProps> = ({
   const [isFlipped, setIsFlipped] = useState(false);
   const cardPrice = 2;
 
-  // Auto-reset flipped state whenever the card changes or if card is locked
+  // Return to the front whenever the selected card changes or becomes locked.
   useEffect(() => {
     setIsFlipped(false);
   }, [card.key, card.cardId, card.isUnlocked]);
@@ -127,11 +129,15 @@ export const Card3D: React.FC<Card3DProps> = ({
 
   return (
     <div
-      className="relative h-[clamp(310px,50vh,415px)] max-h-full max-w-[min(285px,calc(100vw-88px))] mx-auto select-none"
+      className={`perspective-1200 relative h-[clamp(310px,50vh,415px)] max-h-full max-w-[min(285px,calc(100vw-88px))] mx-auto select-none card-change-enter-${changeDirection}`}
       style={{ aspectRatio: '2 / 3' }}
     >
       <div
-        className="w-full h-full relative cursor-pointer"
+        className="transform-style-3d relative h-full w-full cursor-pointer transition-transform duration-700 motion-reduce:transition-none"
+        style={{
+          transform: showBack ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transitionTimingFunction: 'cubic-bezier(0.22, 0.75, 0.25, 1)',
+        }}
         onClick={() => {
           if (isCardActuallyUnlocked) {
             setIsFlipped(!isFlipped);
@@ -142,9 +148,7 @@ export const Card3D: React.FC<Card3DProps> = ({
       >
         {/* ================= FRONT FACE (EXACT VINTAGE VELLUM EMBLEM) ================= */}
         <div
-          className={`absolute inset-0 rounded-2xl border-[1.5px] overflow-hidden flex flex-col justify-between p-2.5 sm:p-3 transition-all duration-300 ${
-            showBack ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          } ${
+          className={`backface-hidden absolute inset-0 flex flex-col justify-between overflow-hidden rounded-2xl border-[1.5px] p-2.5 sm:p-3 ${
             card.isSovereign
               ? 'border-[#8C6D3B] shadow-[0_16px_36px_rgba(140,109,59,0.32),0_0_20px_rgba(140,109,59,0.2)]'
               : 'border-[#8C6D3B]/60 shadow-[0_12px_28px_rgba(80,60,30,0.14)]'
@@ -152,6 +156,7 @@ export const Card3D: React.FC<Card3DProps> = ({
           style={{
             background: '#FAF5EE',
             color: rankColor,
+            transform: 'rotateY(0deg)',
           }}
         >
           <img
@@ -272,9 +277,7 @@ export const Card3D: React.FC<Card3DProps> = ({
 
         {/* ================= BACK FACE (EXACT VINTAGE ASTRO TABLE - IMAGE 2) ================= */}
         <div
-          className={`absolute inset-0 rounded-2xl border-[1.5px] overflow-hidden flex flex-col justify-between p-3.5 sm:p-4 shadow-xl transition-opacity duration-300 ${
-            showBack ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          } ${
+          className={`backface-hidden absolute inset-0 flex flex-col justify-between overflow-hidden rounded-2xl border-[1.5px] p-3.5 shadow-xl sm:p-4 rotate-y-180 ${
             card.isSovereign ? 'border-[#8C6D3B]' : 'border-[#8C6D3B]/60'
           }`}
           style={{

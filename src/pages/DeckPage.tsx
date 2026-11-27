@@ -30,6 +30,7 @@ export const DeckPage: React.FC = () => {
   const [unlockModalOpen, setUnlockModalOpen] = useState<boolean>(false);
   const [unlockTargetCard, setUnlockTargetCard] = useState<ICard | null>(null);
   const [unlockMode, setUnlockMode] = useState<'CARD' | 'PASS'>('CARD');
+  const [cardChangeDirection, setCardChangeDirection] = useState<'next' | 'previous'>('next');
 
   // If no deck generated yet, try to load user's saved deck or guide back to entry
   useEffect(() => {
@@ -60,9 +61,11 @@ export const DeckPage: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
         const next = (selectedCardIndex + 1) % currentSuitCards.length;
+        setCardChangeDirection('next');
         setSelectedCardIndex(next);
       } else if (e.key === 'ArrowLeft') {
         const prev = (selectedCardIndex - 1 + currentSuitCards.length) % currentSuitCards.length;
+        setCardChangeDirection('previous');
         setSelectedCardIndex(prev);
       }
     };
@@ -74,12 +77,14 @@ export const DeckPage: React.FC = () => {
   const handleNext = () => {
     if (currentSuitCards.length === 0) return;
     const next = (selectedCardIndex + 1) % currentSuitCards.length;
+    setCardChangeDirection('next');
     setSelectedCardIndex(next);
   };
 
   const handlePrev = () => {
     if (currentSuitCards.length === 0) return;
     const prev = (selectedCardIndex - 1 + currentSuitCards.length) % currentSuitCards.length;
+    setCardChangeDirection('previous');
     setSelectedCardIndex(prev);
   };
 
@@ -161,6 +166,7 @@ export const DeckPage: React.FC = () => {
           <Card3D
             key={selectedCard._id || selectedCard.key}
             card={selectedCard}
+            changeDirection={cardChangeDirection}
             onOpenDetail={(c) => setActiveModalCard(c)}
             onUnlock={(c) => handleOpenUnlock(c, 'CARD')}
             onUnlockPass={() => handleOpenUnlock(selectedCard, 'PASS')}

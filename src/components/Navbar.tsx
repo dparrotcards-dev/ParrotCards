@@ -101,7 +101,8 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
         location.pathname === '/register' ||
         location.pathname === '/saved-deck' ||
         location.pathname === '/purchased-cards' ||
-        location.pathname === '/payments/history'
+        location.pathname === '/payments/history' ||
+        location.pathname === '/my-daily-rituals'
       );
     }
     return location.pathname === to;
@@ -113,14 +114,14 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
       >
         {/* ═══ BRAND LOGO ═══ */}
         <div className="flex items-center shrink-0">
-          <Link to="/" className="group flex items-center gap-1.5 sm:gap-2 select-none cursor-pointer outline-none caret-transparent">
+          <Link to="/" className="group flex items-center gap-1.5 max-[359px]:gap-1 sm:gap-2 select-none cursor-pointer outline-none caret-transparent">
             <img
               src="/parrot-cards-logo.jpg"
               alt=""
-              className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-[#E5DDD0] transition-transform duration-200 group-hover:scale-105 sm:h-9 sm:w-9"
+              className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-[#E5DDD0] transition-transform duration-200 group-hover:scale-105 max-[359px]:h-6 max-[359px]:w-6 sm:h-9 sm:w-9"
             />
             <div className="flex flex-col select-none pointer-events-none">
-              <span className="font-cinzel text-[15px] max-[359px]:text-[14px] sm:text-[17px] font-bold uppercase leading-none tracking-[0.08em] sm:tracking-[0.09em] text-[#171512] transition-colors group-hover:text-[#8C6D3B]">
+              <span className="font-cinzel text-[15px] max-[359px]:text-[12px] max-[359px]:tracking-[0.02em] sm:text-[17px] font-bold uppercase leading-none tracking-[0.08em] sm:tracking-[0.09em] text-[#171512] transition-colors group-hover:text-[#8C6D3B]">
                 Kul Purohit
               </span>
             </div>
@@ -152,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
             }`}
           >
             <Sun aria-hidden="true" className="h-4 w-4 stroke-[1.8] text-[#9A7130] pointer-events-none" />
-            <span className="pointer-events-none select-none">Daily Rituals</span>
+            <span className="pointer-events-none select-none">Daily Resonance</span>
             {isCurrent('/daily-rituals') && (
               <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#8C6D3B] rounded-full pointer-events-none" />
             )}

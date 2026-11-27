@@ -6,6 +6,7 @@ import {
   BookOpen,
   CircleHelp,
   CreditCard,
+  Headphones,
   History,
   LayoutGrid,
   LogOut,
@@ -99,8 +100,15 @@ export const UserProfilePage: React.FC = () => {
   };
 
   const sidebarLinks = [
-    { label: 'Products & Services', href: '/account', Icon: LayoutGrid, active: true },
+    {
+      label: 'Products & Services',
+      href: '/account',
+      Icon: LayoutGrid,
+      active: true,
+      selected: isProductsServicesPage,
+    },
     { label: currentEntitlements?.isDeckPassActive ? 'Premium Pass Active' : 'Standard Access', href: '/pricing', Icon: Shield },
+    { label: 'My Daily Resonance', href: '/my-daily-rituals', Icon: Headphones },
     { label: 'My Orders', href: '/my-orders', Icon: Package },
     { label: 'Transactions', href: '/payments/history', Icon: History },
     {
@@ -133,7 +141,7 @@ export const UserProfilePage: React.FC = () => {
         </div>
 
         <nav aria-label="Account navigation" className="mt-3 grid gap-1">
-          {sidebarLinks.map(({ label, href, Icon, active, count }) => (
+          {sidebarLinks.map(({ label, href, Icon, active, count, selected }) => (
             active ? (
               <React.Fragment key={label}>
                 <Link
@@ -151,10 +159,14 @@ export const UserProfilePage: React.FC = () => {
                 </Link>
                 <Link
                   to={href}
-                  aria-current="page"
-                  className="hidden min-h-10 items-center gap-3 rounded-xl bg-[#76531F] px-3 py-2 text-left text-xs font-semibold text-white shadow-sm transition-colors lg:flex"
+                  aria-current={selected ? 'page' : undefined}
+                  className={`hidden min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors lg:flex ${
+                    selected
+                      ? 'bg-[#76531F] text-white shadow-sm'
+                      : 'text-[#514536] hover:bg-[#F3EBDD] hover:text-[#73582D]'
+                  }`}
                 >
-                  <Icon className="h-4 w-4 shrink-0 text-[#F7E5C5]" />
+                  <Icon className={`h-4 w-4 shrink-0 ${selected ? 'text-[#F7E5C5]' : 'text-[#9A7130]'}`} />
                   <span className="min-w-0 flex-1">{label}</span>
                 </Link>
               </React.Fragment>
@@ -162,9 +174,14 @@ export const UserProfilePage: React.FC = () => {
               <Link
                 key={label}
                 to={href}
-                className="flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold text-[#514536] transition-colors hover:bg-[#F3EBDD] hover:text-[#73582D]"
+                aria-current={selected ? 'page' : undefined}
+                className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                  selected
+                    ? 'bg-[#76531F] text-white shadow-sm'
+                    : 'text-[#514536] hover:bg-[#F3EBDD] hover:text-[#73582D]'
+                }`}
               >
-                <Icon className="h-4 w-4 shrink-0 text-[#9A7130]" />
+                <Icon className={`h-4 w-4 shrink-0 ${selected ? 'text-[#F7E5C5]' : 'text-[#9A7130]'}`} />
                 <span className="min-w-0 flex-1">{label}</span>
                 {count && (
                   <span className="rounded-full bg-[#F4E4C3] px-2 py-0.5 text-[10px] text-[#76531F]">
@@ -305,7 +322,6 @@ export const UserProfilePage: React.FC = () => {
             })}
           </div>
         </section>
-
       </main>
     </div>
   );

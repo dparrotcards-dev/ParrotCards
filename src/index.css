@@ -160,6 +160,57 @@ select option:checked {
   transform: rotateY(180deg);
 }
 
+@keyframes card-change-enter-next {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translate3d(28px, 8px, 0) rotate(2deg) scale(0.95);
+  }
+  72% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(-3px, 0, 0) rotate(-0.25deg) scale(1.005);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
+  }
+}
+
+@keyframes card-change-enter-previous {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translate3d(-28px, 8px, 0) rotate(-2deg) scale(0.95);
+  }
+  72% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(3px, 0, 0) rotate(0.25deg) scale(1.005);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
+  }
+}
+
+.card-change-enter-next {
+  animation: card-change-enter-next 480ms cubic-bezier(0.22, 0.75, 0.25, 1) both;
+}
+
+.card-change-enter-previous {
+  animation: card-change-enter-previous 480ms cubic-bezier(0.22, 0.75, 0.25, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-change-enter-next,
+  .card-change-enter-previous {
+    animation: none;
+  }
+}
+
 /* Card Depth and Elevation Effects from PDF Specification */
 .card-glow-dharma {
   box-shadow: 0 14px 34px -6px rgba(43, 41, 39, 0.18), 0 0 20px rgba(140, 109, 59, 0.12);
@@ -1309,6 +1360,114 @@ select option:checked {
   .store-product-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Resonance Shadow Discharge Keyframes & Audio Timeline Control */
+@keyframes resonanceSmokeDrift {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+  }
+}
+
+@keyframes resonanceParticleTwinkle {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(0.9);
+  }
+  50% {
+    transform: scale(1.35);
+    filter: brightness(1.35);
+  }
+}
+
+@keyframes resonanceHeartPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.09);
+  }
+}
+
+.resonance-smoke-drift {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: resonanceSmokeDrift 7s ease-in-out infinite;
+}
+
+.resonance-particle-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: resonanceParticleTwinkle 3.8s ease-in-out infinite;
+}
+
+.resonance-heart-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: resonanceHeartPulse 3.6s ease-in-out infinite;
+}
+
+.resonance-timeline-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.resonance-timeline-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.resonance-timeline-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: transparent;
+}
+
+.resonance-timeline-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  border: 2px solid #FFFDF9;
+  background: linear-gradient(135deg, #F4D27B 0%, #9E742F 100%);
+  box-shadow: 0 2px 8px rgba(74, 49, 14, 0.35);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.resonance-timeline-range:not(:disabled):hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+  box-shadow: 0 2px 12px rgba(154, 114, 49, 0.55);
+}
+
+.resonance-timeline-range:focus-visible {
+  outline: none;
+}
+
+.resonance-timeline-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(184, 145, 69, 0.3);
+}
+
+.resonance-timeline-range::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: transparent;
+}
+
+.resonance-timeline-range::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  border: 2px solid #FFFDF9;
+  background: linear-gradient(135deg, #F4D27B 0%, #9E742F 100%);
+  box-shadow: 0 2px 8px rgba(74, 49, 14, 0.35);
+  transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
 /* Reduced Motion */
