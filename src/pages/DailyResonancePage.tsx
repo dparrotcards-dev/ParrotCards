@@ -117,6 +117,9 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
   ) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const playbackIdRef = useRef<string | null>(resumePoint?.playbackId || null);
+    const resumePointRef = useRef(resumePoint);
+    const resumeAppliedRef = useRef(!resumePoint);
+    const playRequestPendingRef = useRef(false);
     const listenedSecondsRef = useRef(resumePoint?.listenedSeconds || 0);
     const lastSavedListenedSecondsRef = useRef(resumePoint?.listenedSeconds || 0);
     const lastAudioTimeRef = useRef<number | null>(null);
@@ -255,20 +258,35 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       onPlaybackChange?.(recording.id, isPlaying);
     }, [isPlaying, onPlaybackChange, recording.id]);
 
+    const applyResumePoint = useCallback((audio: HTMLAudioElement) => {
+      const point = resumePointRef.current;
+      if (resumeAppliedRef.current || !point || audio.readyState < 1) return;
+
+      resumeAppliedRef.current = true;
+      playbackIdRef.current = point.playbackId;
+      listenedSecondsRef.current = point.listenedSeconds;
+      lastSavedListenedSecondsRef.current = point.listenedSeconds;
+      if (point.positionSeconds <= 0 || !Number.isFinite(audio.duration)) return;
+
+      const resumeTime = Math.min(point.positionSeconds, audio.duration);
+      audio.currentTime = resumeTime;
+      lastAudioTimeRef.current = resumeTime;
+      setCurrentTime(resumeTime);
+    }, []);
+
     useEffect(() => {
+      resumePointRef.current = resumePoint;
+      resumeAppliedRef.current = !resumePoint;
       if (!resumePoint) return;
 
       playbackIdRef.current = resumePoint.playbackId;
       listenedSecondsRef.current = resumePoint.listenedSeconds;
       lastSavedListenedSecondsRef.current = resumePoint.listenedSeconds;
       const audio = audioRef.current;
-      if (audio && audio.readyState >= 1 && Number.isFinite(audio.duration)) {
-        const resumeTime = Math.min(resumePoint.positionSeconds, audio.duration);
-        audio.currentTime = resumeTime;
-        lastAudioTimeRef.current = resumeTime;
-        setCurrentTime(resumeTime);
+      if (audio && !playRequestPendingRef.current) {
+        applyResumePoint(audio);
       }
-    }, [recording.id, resumePoint]);
+    }, [applyResumePoint, recording.id, resumePoint]);
 
     const playAudio = useCallback(async (fromAutoMount = false) => {
       const audio = audioRef.current;
@@ -286,16 +304,25 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       }
 
       try {
+        playRequestPendingRef.current = true;
         await audio.play();
       } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError' && audio.paused) {
+          return;
+        }
         const isAutoplayBlocked =
           fromAutoMount && error instanceof DOMException && error.name === 'NotAllowedError';
         if (!isAutoplayBlocked) {
           const message = error instanceof Error ? error.message : 'Playback could not start.';
           setPlaybackError(`Audio playback failed: ${message}`);
         }
+      } finally {
+        playRequestPendingRef.current = false;
+        if (!audio.paused) {
+          applyResumePoint(audio);
+        }
       }
-    }, [duration, isComplete]);
+    }, [applyResumePoint, duration, isComplete]);
 
     const pauseAudio = useCallback(() => {
       audioRef.current?.pause();
@@ -325,6 +352,9 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       try {
         await audio.play();
       } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError' && audio.paused) {
+          return;
+        }
         const message = error instanceof Error ? error.message : 'Playback could not start.';
         setPlaybackError(`Audio playback failed: ${message}`);
       }
@@ -518,16 +548,13 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
           <audio
             ref={audioRef}
             src={recording.audioUrl}
-          preload="auto"
+            preload="auto"
             onLoadedMetadata={(event) => {
               const actualDuration = event.currentTarget.duration;
               if (Number.isFinite(actualDuration) && actualDuration > 0) {
                 setDuration(actualDuration);
-                if (resumePoint) {
-                  const resumeTime = Math.min(resumePoint.positionSeconds, actualDuration);
-                  event.currentTarget.currentTime = resumeTime;
-                  lastAudioTimeRef.current = resumeTime;
-                  setCurrentTime(resumeTime);
+                if (!playRequestPendingRef.current) {
+                  applyResumePoint(event.currentTarget);
                 }
               }
             }}
