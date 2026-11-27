@@ -23,7 +23,6 @@ import {
 } from '../services/dailyResonanceService';
 import {
   getResonanceStageInfo,
-  RESONANCE_MILESTONES,
   ResonanceShadowVisual,
 } from '../components/ResonanceShadowVisual';
 import { useAuth } from '../context/AuthContext';
@@ -88,6 +87,7 @@ export interface ResonancePlayerProps {
   recording: DailyRecording;
   isToday: boolean;
   autoPlayOnMount?: boolean;
+  showCloseButton?: boolean;
   onAudioPlay: (audio: HTMLAudioElement) => void;
   onPlaybackChange?: (recordingId: string, playing: boolean) => void;
   onClose?: () => void;
@@ -110,6 +110,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       recording,
       isToday,
       autoPlayOnMount = false,
+      showCloseButton = true,
       onAudioPlay,
       onPlaybackChange,
       onClose,
@@ -199,16 +200,25 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
         );
         saveQueueRef.current = request.then(
           () => {
-            lastSavedListenedSecondsRef.current = Math.max(
-              lastSavedListenedSecondsRef.current,
-              listenedSeconds,
-            );
+            if (playbackIdRef.current === playbackId) {
+              lastSavedListenedSecondsRef.current = Math.max(
+                lastSavedListenedSecondsRef.current,
+                listenedSeconds,
+              );
+            }
             setTrackingError(null);
           },
           (error: unknown) => {
-            setTrackingError(
-              error instanceof Error ? error.message : 'Listening progress could not be saved.',
-            );
+            const message =
+              error instanceof Error ? error.message : 'Listening progress could not be saved.';
+            // Anti-skip validation rejections shouldn't disrupt a calming session with red banners
+            if (
+              message.includes('cannot advance beyond audio actually played') ||
+              message.includes('does not show a completed playback')
+            ) {
+              return;
+            }
+            setTrackingError(message);
           },
         );
         return saveQueueRef.current;
@@ -220,13 +230,11 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       (audio: HTMLAudioElement, includeFinalDelta = false) => {
         const nextTime = audio.currentTime;
         const previousTime = lastAudioTimeRef.current;
-        if (
-          previousTime !== null &&
-          !audio.seeking &&
-          (!audio.paused || includeFinalDelta) &&
-          nextTime > previousTime
-        ) {
-          listenedSecondsRef.current += nextTime - previousTime;
+        if (previousTime !== null && nextTime > previousTime) {
+          const delta = nextTime - previousTime;
+          if ((!audio.paused || includeFinalDelta) && (!audio.seeking || delta <= 2.5)) {
+            listenedSecondsRef.current += delta;
+          }
         }
         lastAudioTimeRef.current = nextTime;
         setCurrentTime(nextTime);
@@ -470,364 +478,277 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoPlayOnMount, recording.id]);
 
-    const statusBadgeText = isComplete
-      ? 'Released'
-      : isPlaying
-        ? 'Playing'
-        : currentTime > 0
-          ? 'Paused'
-          : 'Ready';
-
-    const statusBadgeClass = isComplete
-      ? 'border-[#D9B664]/45 bg-[#D9B664]/15 text-[#F6DE9D]'
-      : isPlaying
-        ? 'border-[#64C48B]/40 bg-[#175B35]/40 text-[#8AE8AF]'
-        : 'border-white/15 bg-white/5 text-[#CDC7BD]';
+    const remainingTime =
+      displayDuration > 0 ? Math.max(0, displayDuration - currentTime) : 0;
+    const rightTimeLabel =
+      displayDuration > 0
+        ? currentTime > 0 && !isComplete
+          ? `-${formatTime(remainingTime)}`
+          : isComplete
+            ? '0:00'
+            : formatTime(displayDuration)
+        : '—:—';
 
     return (
       <section
-        className="overflow-hidden rounded-[26px] border border-[#E6DCCB] bg-[#FFFDF9] shadow-[0_12px_42px_rgba(54,39,22,0.09)]"
+        className="overflow-hidden rounded-[22px] border border-[#DFCEAF] bg-[#FFFDF9] p-4 shadow-[0_12px_38px_rgba(54,39,22,0.08)] sm:p-6"
         aria-label={isToday ? "Today's resonance session" : `Previous resonance session: ${recording.title}`}
       >
-        {/* Cosmic Charcoal Shadow Form Visual Stage */}
-        <div className="px-3.5 pt-3.5 sm:px-6 sm:pt-6">
-          <div className="relative flex min-h-[340px] flex-col justify-between overflow-hidden rounded-[20px] bg-[#0B0911] px-4 pb-4 pt-4 text-white shadow-inner sm:min-h-[455px] sm:px-7 sm:pb-6 sm:pt-6">
-            {/* Ambient Stage Background Glow */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 transition-opacity duration-300"
-              style={{
-                background:
-                  progress >= 0.72
-                    ? 'radial-gradient(ellipse at 50% 48%, rgba(232,184,86,0.22), rgba(92,58,150,0.10) 45%, transparent 72%)'
-                    : 'radial-gradient(ellipse at 50% 48%, rgba(132,96,216,0.24), transparent 64%)',
-              }}
-            />
-
-            {/* Top Stage Bar */}
-            <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-5 md:grid md:grid-cols-[minmax(0,1fr)_auto_295px] md:items-center md:gap-0 lg:grid-cols-[minmax(0,1fr)_auto_330px]">
+          {/* Left Column (Desktop) / Bottom (Mobile): Controls & Progress */}
+          <div className="order-2 min-w-0 md:order-1 md:pr-6">
+            <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="font-cinzel text-[10px] font-bold tracking-[0.16em] text-[#F2E9D7] sm:text-xs">
-                  RESONANCE / DAILY SESSION
+                <p className="font-cinzel text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#9A783D]">
+                  Resonance / Daily Session
                 </p>
-                <p className="mt-1 text-[11px] text-[#C7BFAF] sm:text-xs">
-                  {formatRecordingDate(recording.recordingDate)}
-                </p>
+                <h2 className="mt-1 break-words font-cormorant text-[22px] font-bold leading-snug text-[#2A2118] sm:text-[26px]">
+                  {recording.title}
+                </h2>
               </div>
 
-              <div className="flex shrink-0 items-center gap-2">
-                <span
-                  className={`rounded-full border px-2.5 py-1 text-[9.5px] font-semibold uppercase tracking-wider sm:text-[10px] ${statusBadgeClass}`}
+              {onClose && showCloseButton && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    pauseAudio();
+                    onClose();
+                  }}
+                  aria-label="Close session player"
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#E6DCCB] bg-[#FAF4EA] text-[#726656] transition hover:bg-[#EFE4D3] hover:text-[#332820] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B]"
                 >
-                  {statusBadgeText}
-                </span>
-                {onClose && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      pauseAudio();
-                      onClose();
-                    }}
-                    aria-label="Close previous session player"
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[#D8D1C7] transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D9B664]"
-                  >
-                    <X aria-hidden="true" className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
+                  <X aria-hidden="true" className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
 
-            {/* Centered Meditative Shadow Form Silhouette */}
-            <div className="relative z-10 mx-auto my-1 h-[225px] w-full max-w-[330px] sm:my-2 sm:h-[330px] sm:max-w-[460px] md:h-[360px]">
-              <ResonanceShadowVisual
-                progress={progress}
-                isPlaying={isPlaying}
-                isComplete={isComplete}
-              />
-            </div>
-
-            {/* Stage Narrative + 5-Stage Audio Sync Journey Strip */}
-            <div className="relative z-10 text-center">
-              <p className="font-cormorant text-xl font-semibold leading-snug text-[#F5EDD9] sm:text-2xl">
-                {stageInfo.headline}
-              </p>
-              <p className="mt-0.5 text-[11px] text-[#ABA399] sm:text-xs">
-                {stageInfo.subtitle}
-              </p>
-
-              {/* Minimal Stage Checkpoint Indicator (Single figure above transitions through these checkpoints) */}
-              <div
-                aria-hidden="true"
-                className="mx-auto mt-3.5 grid max-w-lg grid-cols-5 gap-1.5 border-t border-white/10 pt-3 sm:gap-2"
-              >
-                {RESONANCE_MILESTONES.map((milestone) => {
-                  const isReached = progressPercent >= milestone.percent;
-                  const isGoldStage = milestone.percent >= 75 && isReached;
-                  return (
-                    <div key={milestone.percent} className="flex flex-col items-center text-center">
-                      <span
-                        className={`text-[9.5px] font-semibold tabular-nums transition-colors sm:text-[10.5px] ${
-                          isGoldStage
-                            ? 'text-[#F5D688]'
-                            : isReached
-                              ? 'text-[#D6C6FF]'
-                              : 'text-white/40'
-                        }`}
-                      >
-                        {milestone.percent}%
-                      </span>
-                      <span
-                        className={`mt-0.5 hidden truncate text-[9px] sm:block ${
-                          isReached ? 'text-white/80' : 'text-white/35'
-                        }`}
-                      >
-                        {milestone.label}
-                      </span>
-                      <span
-                        className={`mt-1 h-1 w-full rounded-full transition-colors duration-200 ${
-                          isGoldStage
-                            ? 'bg-gradient-to-r from-[#D9A74A] to-[#F7DE95]'
-                            : isReached
-                              ? 'bg-[#9E84F3]'
-                              : 'bg-white/15'
-                        }`}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cream & Gold Interactive Audio Player Controls */}
-        <div className="px-4 pb-5 pt-4 sm:px-7 sm:pb-6 sm:pt-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <p className="font-cinzel text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#8C6D3B]">
-                {isToday ? "Today's recording" : 'Previous session'}
-              </p>
-              <h2 className="mt-1 break-words font-cormorant text-2xl font-bold leading-tight text-[#2A2118] sm:text-3xl">
-                {recording.title}
-              </h2>
-              <p className="mt-1 flex items-center gap-1.5 text-xs text-[#726656]">
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#6E6356]">
+              <span className="inline-flex items-center gap-1.5">
                 <CalendarDays aria-hidden="true" className="h-3.5 w-3.5 text-[#9A783D]" />
                 <span>{formatRecordingDate(recording.recordingDate)}</span>
+              </span>
+              <span aria-hidden="true" className="text-[#CFC3B0]">|</span>
+              <span className="inline-flex items-center gap-1.5 tabular-nums">
+                <Clock3 aria-hidden="true" className="h-3.5 w-3.5 text-[#9A783D]" />
+                <span>{displayDuration > 0 ? formatTime(displayDuration) : '—:—'}</span>
+              </span>
+            </div>
+
+            <audio
+              ref={audioRef}
+              src={audioSrc}
+              preload="auto"
+              playsInline
+              aria-hidden={playbackError ? undefined : true}
+              tabIndex={playbackError ? 0 : -1}
+              controls={Boolean(playbackError)}
+              onLoadedMetadata={(event) => {
+                const actualDuration = event.currentTarget.duration;
+                if (Number.isFinite(actualDuration) && actualDuration > 0) {
+                  setDuration(actualDuration);
+                  applyResumePoint(event.currentTarget);
+                }
+              }}
+              onDurationChange={(event) => {
+                const actualDuration = event.currentTarget.duration;
+                if (Number.isFinite(actualDuration) && actualDuration > 0) {
+                  setDuration(actualDuration);
+                }
+              }}
+              onTimeUpdate={(event) => syncAudioTime(event.currentTarget)}
+              onPlaying={() => {
+                playRequestIdRef.current += 1;
+              }}
+              onSeeking={(event) => {
+                lastAudioTimeRef.current = event.currentTarget.currentTime;
+              }}
+              onSeeked={(event) => {
+                lastAudioTimeRef.current = event.currentTarget.currentTime;
+                setCurrentTime(event.currentTarget.currentTime);
+              }}
+              onPlay={(event) => {
+                if (audioRef.current) onAudioPlay(audioRef.current);
+                playbackIdRef.current ||= createPlaybackId();
+                lastAudioTimeRef.current = event.currentTarget.currentTime;
+                setIsPlaying(true);
+                setIsComplete(false);
+              }}
+              onPause={(event) => {
+                playRequestIdRef.current += 1;
+                setIsPlaying(false);
+                syncAudioTime(event.currentTarget, true);
+                void persistListeningProgress(event.currentTarget, true);
+              }}
+              onEnded={(event) => {
+                playRequestIdRef.current += 1;
+                const finalDuration = event.currentTarget.duration;
+                syncAudioTime(event.currentTarget, true);
+                if (Number.isFinite(finalDuration) && finalDuration > 0) {
+                  setDuration(finalDuration);
+                  setCurrentTime(finalDuration);
+                }
+                setIsPlaying(false);
+                setIsComplete(true);
+                void persistListeningProgress(event.currentTarget, true, true);
+              }}
+              onError={() => {
+                playRequestIdRef.current += 1;
+                setIsPlaying(false);
+                setPlaybackError('This recording could not be loaded. Please try again later.');
+              }}
+              className={
+                playbackError
+                  ? 'mt-4 w-full rounded-lg'
+                  : 'pointer-events-none absolute h-px w-px overflow-hidden opacity-0'
+              }
+            />
+            {trackingError && (
+              <p className="mt-3 text-xs text-[#9B342C]" role="alert">
+                Listening progress could not be saved: {trackingError}
               </p>
-            </div>
+            )}
 
-            <div className="flex shrink-0 items-center gap-2 self-start rounded-full border border-[#E6DCCB] bg-[#FBF6EE] px-3 py-1.5 text-xs font-medium text-[#6C5E4E] sm:self-center">
-              <Clock3 aria-hidden="true" className="h-3.5 w-3.5 text-[#9A783D]" />
-              <span className="tabular-nums">
-                {displayDuration > 0 ? formatTime(displayDuration) : '—:—'}
-              </span>
-            </div>
-          </div>
-
-          <audio
-            ref={audioRef}
-            src={audioSrc}
-            preload="auto"
-            playsInline
-            aria-hidden={playbackError ? undefined : true}
-            tabIndex={playbackError ? 0 : -1}
-            controls={Boolean(playbackError)}
-            onLoadedMetadata={(event) => {
-              const actualDuration = event.currentTarget.duration;
-              if (Number.isFinite(actualDuration) && actualDuration > 0) {
-                setDuration(actualDuration);
-                applyResumePoint(event.currentTarget);
-              }
-            }}
-            onDurationChange={(event) => {
-              const actualDuration = event.currentTarget.duration;
-              if (Number.isFinite(actualDuration) && actualDuration > 0) {
-                setDuration(actualDuration);
-              }
-            }}
-            onTimeUpdate={(event) => syncAudioTime(event.currentTarget)}
-            onPlaying={() => {
-              playRequestIdRef.current += 1;
-            }}
-            onSeeking={(event) => {
-              lastAudioTimeRef.current = event.currentTarget.currentTime;
-            }}
-            onSeeked={(event) => {
-              lastAudioTimeRef.current = event.currentTarget.currentTime;
-              setCurrentTime(event.currentTarget.currentTime);
-            }}
-            onPlay={(event) => {
-              if (audioRef.current) onAudioPlay(audioRef.current);
-              playbackIdRef.current ||= createPlaybackId();
-              lastAudioTimeRef.current = event.currentTarget.currentTime;
-              setIsPlaying(true);
-              setIsComplete(false);
-            }}
-            onPause={(event) => {
-              playRequestIdRef.current += 1;
-              setIsPlaying(false);
-              syncAudioTime(event.currentTarget, true);
-              void persistListeningProgress(event.currentTarget, true);
-            }}
-            onEnded={(event) => {
-              playRequestIdRef.current += 1;
-              const finalDuration = event.currentTarget.duration;
-              syncAudioTime(event.currentTarget, true);
-              if (Number.isFinite(finalDuration) && finalDuration > 0) {
-                setDuration(finalDuration);
-                setCurrentTime(finalDuration);
-              }
-              setIsPlaying(false);
-              setIsComplete(true);
-              void persistListeningProgress(event.currentTarget, true, true);
-            }}
-            onError={() => {
-              playRequestIdRef.current += 1;
-              setIsPlaying(false);
-              setPlaybackError('This recording could not be loaded. Please try again later.');
-            }}
-            className={
-              playbackError
-                ? 'mt-4 w-full rounded-lg'
-                : 'pointer-events-none absolute h-px w-px overflow-hidden opacity-0'
-            }
-          />
-          {trackingError && (
-            <p className="mt-3 text-center text-sm text-[#9B342C]" role="alert">
-              Listening progress could not be saved: {trackingError}
-            </p>
-          )}
-
-          {/* Progress, Interactive Audio Timeline & Shadow Intensity */}
-          <div className="mt-5 rounded-2xl border border-[#EDE4D4] bg-[#FBF7EF]/75 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-medium text-[#6B6155]">
-                Daily Resonance Progress
-              </span>
-              <span className="inline-flex items-center gap-2 font-cinzel text-xs font-bold tabular-nums text-[#332820]">
-                <span className="rounded-full bg-[#EFE4CF] px-2 py-0.5 text-[9.5px] tracking-wider text-[#725729]">
-                  {stageInfo.label}
-                </span>
-                <span>{progressPercent}%</span>
-              </span>
-            </div>
-
-            {/* Backward-only timeline slider */}
-            <div className="relative mt-3 flex h-6 items-center">
-              <div className="pointer-events-none absolute inset-x-0 h-2 overflow-hidden rounded-full bg-[#E8E0D5]">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${progressPercent}%`,
-                    background:
-                      progressPercent >= 75
-                        ? 'linear-gradient(90deg, #8A6CE0 0%, #C79942 60%, #E7BE61 100%)'
-                        : 'linear-gradient(90deg, #7A5ED9 0%, #AE97F7 100%)',
-                  }}
+            {/* Seekable Timeline Slider */}
+            <div className="mt-4">
+              <div className="relative flex h-6 items-center">
+                <div className="pointer-events-none absolute inset-x-0 h-[7px] overflow-hidden rounded-full bg-[#E8E0D5]">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${progressPercent}%`,
+                      background:
+                        progressPercent >= 75
+                          ? 'linear-gradient(90deg, #8466DC 0%, #C79942 60%, #E7BE61 100%)'
+                          : 'linear-gradient(90deg, #7B5FDA 0%, #A98FF7 100%)',
+                    }}
+                  />
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={displayDuration > 0 ? displayDuration : 100}
+                  step={0.1}
+                  value={duration > 0 ? Math.min(currentTime, duration) : 0}
+                  disabled={!(duration > 0)}
+                  onChange={handleTimelineSeek}
+                  aria-label="Audio timeline (backward seek only)"
+                  aria-valuetext={`${formatTime(currentTime)} of ${formatTime(displayDuration)}`}
+                  className="resonance-timeline-range relative z-10 w-full"
                 />
               </div>
-              <input
-                type="range"
-                min={0}
-                max={displayDuration > 0 ? displayDuration : 100}
-                step={0.1}
-                value={duration > 0 ? Math.min(currentTime, duration) : 0}
-                disabled={!(duration > 0)}
-                onChange={handleTimelineSeek}
-                aria-label="Audio timeline (backward seek only)"
-                aria-valuetext={`${formatTime(currentTime)} of ${formatTime(displayDuration)}`}
-                className="resonance-timeline-range relative z-10 w-full"
-              />
+
+              {/* Elapsed & Remaining Timestamps */}
+              <div className="mt-1 flex items-center justify-between font-mono text-[11px] tabular-nums text-[#6F665B]">
+                <span>{formatTime(currentTime)}</span>
+                <span>{rightTimeLabel}</span>
+              </div>
             </div>
 
-            {/* Current Time & Total Duration */}
-            <div className="mt-1 flex items-center justify-between font-mono text-[11px] tabular-nums text-[#72685C]">
-              <span>{formatTime(currentTime)}</span>
-              <span>{displayDuration > 0 ? formatTime(displayDuration) : '—:—'}</span>
-            </div>
-
-            {/* Shadow Intensity Indicator */}
-            <div className="mt-3.5 border-t border-[#E8DFCE] pt-3">
-              <div className="flex items-center justify-between gap-3 text-[11px] text-[#72675A]">
-                <span className="font-medium">Shadow Intensity</span>
-                <span className="font-cinzel font-bold tabular-nums text-[#524334]">
-                  {shadowIntensity}% remaining
+            {/* Shadow Intensity Meter */}
+            <div className="mt-3.5">
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="font-medium text-[#5A5045]">Shadow Intensity</span>
+                <span className="font-cinzel text-[11px] font-bold uppercase tracking-wider tabular-nums text-[#2F261C]">
+                  {shadowIntensity}% {stageInfo.label}
                 </span>
               </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#EAE2D6]">
+              <div className="mt-1.5 h-[6px] overflow-hidden rounded-full bg-[#EAE2D6]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#2D2246] via-[#6B4DB8] to-[#A48AE8] transition-[width] duration-150"
+                  className="h-full rounded-full bg-gradient-to-r from-[#4E359B] via-[#7A5CE0] to-[#A68AF5] transition-[width] duration-150"
                   style={{ width: `${shadowIntensity}%` }}
                 />
               </div>
             </div>
-          </div>
 
-          {/* Primary Play / Pause / Replay Controls */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-            {isComplete ? (
-              <button
-                type="button"
-                onClick={handleReplay}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B89145] to-[#9A7431] px-7 font-cinzel text-xs font-bold uppercase tracking-[0.12em] text-white shadow-[0_6px_18px_rgba(151,112,42,0.24)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] sm:w-auto"
-              >
-                <RotateCcw aria-hidden="true" className="h-4 w-4" />
-                Replay Session
-              </button>
-            ) : (
-              <>
+            {/* Play / Pause / Replay Pill Controls */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              {isComplete ? (
                 <button
                   type="button"
-                  onClick={handleTogglePlayPause}
-                  aria-label={
-                    isPlaying
-                      ? 'Pause recording'
-                      : currentTime > 0
-                        ? 'Resume recording'
-                        : 'Play recording'
-                  }
-                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B89145] to-[#9A7431] px-8 font-cinzel text-xs font-bold uppercase tracking-[0.12em] text-white shadow-[0_6px_18px_rgba(151,112,42,0.24)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] sm:w-auto"
+                  onClick={handleReplay}
+                  className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#A57E38] to-[#8D692A] px-7 font-cinzel text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_14px_rgba(141,105,42,0.24)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] sm:w-auto"
                 >
-                  {isPlaying ? (
-                    <Pause aria-hidden="true" className="h-4 w-4" />
-                  ) : (
-                    <Play aria-hidden="true" className="h-4 w-4" />
-                  )}
-                  {isPlaying ? 'Pause' : currentTime > 0 ? 'Resume' : 'Play Session'}
+                  <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
+                  Replay Session
                 </button>
-
-                {currentTime > 0 && (
+              ) : (
+                <>
                   <button
                     type="button"
-                    onClick={handleReplay}
-                    aria-label="Replay recording from start"
-                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[#C6AB77] bg-[#FBF7EF] px-5 font-cinzel text-xs font-bold uppercase tracking-[0.1em] text-[#725729] transition hover:bg-[#F3EADB] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] sm:w-auto"
+                    onClick={handleTogglePlayPause}
+                    aria-label={
+                      isPlaying
+                        ? 'Pause recording'
+                        : currentTime > 0
+                          ? 'Resume recording'
+                          : 'Play recording'
+                    }
+                    className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#A57E38] to-[#8D692A] px-7 font-cinzel text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_14px_rgba(141,105,42,0.24)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] sm:flex-initial"
                   >
-                    <RotateCcw aria-hidden="true" className="h-4 w-4" />
-                    Replay
+                    {isPlaying ? (
+                      <Pause aria-hidden="true" className="h-3.5 w-3.5" />
+                    ) : (
+                      <Play aria-hidden="true" className="h-3.5 w-3.5" />
+                    )}
+                    {isPlaying ? 'Pause' : currentTime > 0 ? 'Resume' : 'Play Session'}
                   </button>
-                )}
-              </>
+
+                  {(currentTime > 0 || isPlaying) && (
+                    <button
+                      type="button"
+                      onClick={handleReplay}
+                      aria-label="Replay recording from start"
+                      className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-[#BFA472] bg-[#FFFDF9] px-6 font-cinzel text-[11px] font-bold uppercase tracking-[0.1em] text-[#5C4523] transition hover:bg-[#F5ECE0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] sm:flex-initial"
+                    >
+                      <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
+                      Replay
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+
+            {isComplete && (
+              <div className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-[#725729]" role="status">
+                <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0" />
+                <span>
+                  Your shadow is released. {isToday ? "Today's Resonance completed." : 'Session completed.'}
+                </span>
+              </div>
+            )}
+
+            {playbackError && (
+              <p className="mt-3 text-center text-xs text-[#9B342C]" role="alert">
+                {playbackError}
+              </p>
             )}
           </div>
 
-          {isComplete && (
-            <div className="mt-5 flex flex-col items-center gap-1 text-center" role="status">
-              <p className="inline-flex items-center gap-2 font-cormorant text-xl font-semibold text-[#725729]">
-                <CheckCircle2 aria-hidden="true" className="h-5 w-5" />
-                Your shadow is released.
-              </p>
-              <p className="font-cinzel text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6D3B]">
-                {isToday ? "Today's Resonance Completed." : 'Session completed.'}
-              </p>
-            </div>
-          )}
+          {/* Center Hairline Divider (Desktop) */}
+          <div aria-hidden="true" className="hidden self-stretch bg-[#E8DFCE] md:order-2 md:block md:w-px" />
 
-          {playbackError && (
-            <p className="mt-4 text-center text-sm text-[#9B342C]" role="alert">
-              {playbackError}
-            </p>
-          )}
+          {/* Right Column (Desktop) / Top (Mobile): Cosmic Shadow Form Visual Box */}
+          <div className="order-1 md:order-3 md:pl-6">
+            <div className="relative flex h-[225px] w-full items-center justify-center overflow-hidden rounded-[16px] bg-[#0B0911] shadow-[0_8px_24px_rgba(15,10,28,0.18)] sm:h-[255px] md:h-[246px] lg:h-[264px]">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+                style={{
+                  background:
+                    progress >= 0.72
+                      ? 'radial-gradient(ellipse at 50% 50%, rgba(232,184,86,0.22), rgba(92,58,150,0.10) 48%, transparent 74%)'
+                      : 'radial-gradient(ellipse at 50% 50%, rgba(132,96,216,0.25), transparent 68%)',
+                }}
+              />
+              <div className="relative z-10 h-full w-full p-2">
+                <ResonanceShadowVisual
+                  progress={progress}
+                  isPlaying={isPlaying}
+                  isComplete={isComplete}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -1047,7 +968,7 @@ export const DailyResonancePage: React.FC = () => {
             Shadow Discharge
           </h1>
           <p className="mt-2 font-cormorant text-lg italic text-[#716553] sm:text-xl">
-            Your voice. Your shadow. Your release.
+            Your voice. Your shadows. Your release.
           </p>
         </header>
 
@@ -1094,12 +1015,12 @@ export const DailyResonancePage: React.FC = () => {
                 resumePoint={listeningSessions.find((session) => session.id === featuredRecording.id)?.resume}
               />
             ) : (
-              <section className="rounded-[26px] border border-[#E6DCCB] bg-[#FFFDF9] px-5 py-10 text-center shadow-[0_12px_42px_rgba(54,39,22,0.06)] sm:py-14">
-                <CalendarDays aria-hidden="true" className="mx-auto h-8 w-8 text-[#9A783D]" />
-                <h2 className="mt-4 font-cormorant text-2xl font-bold text-[#332820]">
+              <section className="rounded-[22px] border border-[#DFCEAF] bg-[#FFFDF9] px-5 py-8 text-center shadow-[0_10px_34px_rgba(54,39,22,0.06)] sm:py-9">
+                <CalendarDays aria-hidden="true" className="mx-auto h-7 w-7 text-[#9A783D]" />
+                <h2 className="mt-3 font-cormorant text-2xl font-bold text-[#332820]">
                   No recording published for today yet
                 </h2>
-                <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-[#746B60]">
+                <p className="mx-auto mt-1.5 max-w-lg text-sm leading-relaxed text-[#746B60]">
                   Today&apos;s Resonance will appear here when a session is published.
                 </p>
               </section>
@@ -1135,8 +1056,8 @@ export const DailyResonancePage: React.FC = () => {
                     return (
                       <div key={recording.id} className="space-y-3">
                         <article
-                          className={`flex flex-col gap-3 rounded-2xl border px-4 py-4 shadow-[0_4px_18px_rgba(70,50,20,0.04)] transition sm:flex-row sm:items-center sm:justify-between sm:px-5 ${
-                            isSelected ? 'border-[#B99A5E] bg-[#FFFDF9]' : 'border-[#E6DCCB] bg-[#FFFDF9]/75'
+                          className={`flex flex-col gap-3 rounded-2xl border px-4 py-3.5 shadow-[0_4px_18px_rgba(70,50,20,0.05)] transition sm:flex-row sm:items-center sm:justify-between sm:px-5 ${
+                            isSelected ? 'border-[#C6AB77] bg-[#FFFDF9]' : 'border-[#E6DCCB] bg-[#FFFDF9]/85'
                           }`}
                         >
                           <div className="min-w-0">
@@ -1144,15 +1065,9 @@ export const DailyResonancePage: React.FC = () => {
                               <CalendarDays aria-hidden="true" className="h-3.5 w-3.5 text-[#9A783D]" />
                               {formatRecordingDate(recording.recordingDate)}
                             </p>
-                            <h3 className="mt-1 break-words font-cormorant text-xl font-semibold text-[#332820]">
+                            <h3 className="mt-0.5 break-words font-cormorant text-xl font-bold text-[#2A1D14]">
                               {recording.title}
                             </h3>
-                            {recording.durationSeconds !== undefined && (
-                              <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[#81776B]">
-                                <Clock3 aria-hidden="true" className="h-3 w-3" />
-                                {formatTime(recording.durationSeconds)}
-                              </p>
-                            )}
                           </div>
 
                           <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
@@ -1161,10 +1076,10 @@ export const DailyResonancePage: React.FC = () => {
                               onClick={() => handleSelectPreviousSession(recording.id)}
                               aria-label={isThisPlaying ? `Pause ${recording.title}` : `Play ${recording.title}`}
                               aria-expanded={isSelected}
-                              className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full px-5 font-cinzel text-[10.5px] font-bold uppercase tracking-wider transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] ${
+                              className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-full px-5 font-cinzel text-[10.5px] font-bold uppercase tracking-wider transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] ${
                                 isThisPlaying
-                                  ? 'bg-[#8C6D3B] text-white shadow-sm hover:bg-[#755A2F]'
-                                  : 'border border-[#BDA777] bg-[#FFFDF9] text-[#725729] hover:bg-[#F6EFE3]'
+                                  ? 'bg-gradient-to-r from-[#A57E38] to-[#8D692A] text-white shadow-sm hover:brightness-105'
+                                  : 'border border-[#BFA472] bg-[#FFFDF9] text-[#6B4F22] hover:bg-[#F5ECE0]'
                               }`}
                             >
                               {isThisPlaying ? (
@@ -1183,7 +1098,7 @@ export const DailyResonancePage: React.FC = () => {
                                   setSelectedPreviousId(null);
                                 }}
                                 aria-label={`Close ${recording.title}`}
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E6DCCB] bg-[#FAF4EA] text-[#726656] transition hover:bg-[#EFE4D3] hover:text-[#332820] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B]"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#DFCEAF] bg-[#FAF4EA] text-[#726656] transition hover:bg-[#EFE4D3] hover:text-[#332820] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B]"
                               >
                                 <X aria-hidden="true" className="h-4 w-4" />
                               </button>
@@ -1197,6 +1112,7 @@ export const DailyResonancePage: React.FC = () => {
                             ref={previousPlayerRef}
                             recording={recording}
                             isToday={false}
+                            showCloseButton={false}
                             onAudioPlay={handleAudioPlay}
                             onListeningProgress={isAuthenticated ? handleListeningProgress : undefined}
                             resumePoint={listeningSessions.find((session) => session.id === recording.id)?.resume}

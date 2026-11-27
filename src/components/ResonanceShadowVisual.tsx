@@ -178,7 +178,7 @@ export const ResonanceShadowVisual: React.FC<ResonanceShadowVisualProps> = React
 
     return (
       <svg
-        viewBox="0 0 460 340"
+        viewBox="0 0 460 322"
         className="h-full w-full select-none"
         role="img"
         aria-label={
