@@ -124,6 +124,10 @@ export const SacredCompassDial: React.FC<SacredCompassDialProps> = ({
                 strokeOpacity="0.45"
               />
             )}
+
+            {isLiveCompassActive && (
+              <polygon points="180,15 173,4 187,4" fill="#8C6D3B" />
+            )}
           </svg>
 
           {/* Layer 2: GPU-Composited Rotating Compass Rose Dial */}
@@ -255,19 +259,18 @@ export const SacredCompassDial: React.FC<SacredCompassDialProps> = ({
 
             {hasBearing && (
               <path
-                d="M 180 56 L 195 178 L 180 184 L 165 178 Z"
+                d="M 180 68 L 194 180 L 180 186 L 166 180 Z"
                 fill="#C99436"
                 fillOpacity={isAligned ? '0.26' : '0.12'}
               />
             )}
 
-            {/* Single Golden Directional Arrow pointing strictly to the selected Jyotirlinga */}
-            <polygon points="180,58 193,104 184,99 184,180 180,180" fill="url(#needleGold)" />
-            <polygon points="180,58 167,104 176,99 176,180 180,180" fill="#8E6725" />
+            {/* Single sleek golden directional needle (no reverse tail arrow) */}
+            <polygon points="180,64 191,180 180,173" fill="url(#needleGold)" />
+            <polygon points="180,64 169,180 180,173" fill="#9A722C" />
 
-            {/* Sacred Jewel Pivot */}
             <circle cx="180" cy="180" r="14" fill="#FFFDF9" stroke="#8C6D3B" strokeWidth="2.5" />
-            <circle cx="180" cy="180" r="6.5" fill="#B58634" />
+            <circle cx="180" cy="180" r="6" fill="#B58634" />
             <circle cx="180" cy="180" r="2.2" fill="#FFFDF9" />
           </svg>
         </div>
