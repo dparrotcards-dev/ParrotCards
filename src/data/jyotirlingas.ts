@@ -1,0 +1,133 @@
+export interface JyotirlingaShrine {
+  id: string;
+  order: number;
+  name: string;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  sacredNote: string;
+}
+
+export const JYOTIRLINGA_SHRINES: readonly JyotirlingaShrine[] = [
+  {
+    id: 'somnath',
+    order: 1,
+    name: 'Somnath',
+    city: 'Prabhas Patan, Veraval',
+    state: 'Gujarat',
+    latitude: 20.888028,
+    longitude: 70.401389,
+    sacredNote: 'First among the twelve sacred Jyotirlingas, beside the Arabian Sea.',
+  },
+  {
+    id: 'mallikarjuna',
+    order: 2,
+    name: 'Mallikarjuna',
+    city: 'Srisailam',
+    state: 'Andhra Pradesh',
+    latitude: 16.07417,
+    longitude: 78.86806,
+    sacredNote: 'Enshrined on Shri Shaila hill overlooking the Krishna River.',
+  },
+  {
+    id: 'mahakaleshwar',
+    order: 3,
+    name: 'Mahakaleshwar',
+    city: 'Ujjain',
+    state: 'Madhya Pradesh',
+    latitude: 23.182697,
+    longitude: 75.768133,
+    sacredNote: 'The south-facing Jyotirlinga beside the sacred Shipra River.',
+  },
+  {
+    id: 'omkareshwar',
+    order: 4,
+    name: 'Omkareshwar',
+    city: 'Mandhata Island, Khandwa',
+    state: 'Madhya Pradesh',
+    latitude: 22.245552,
+    longitude: 76.150997,
+    sacredNote: 'Nestled on the Om-shaped island in the Narmada River.',
+  },
+  {
+    id: 'kedarnath',
+    order: 5,
+    name: 'Kedarnath',
+    city: 'Rudraprayag',
+    state: 'Uttarakhand',
+    latitude: 30.73524,
+    longitude: 79.06687,
+    sacredNote: 'High in the Garhwal Himalayas near the headwaters of the Mandakini.',
+  },
+  {
+    id: 'bhimashankar',
+    order: 6,
+    name: 'Bhimashankar',
+    city: 'Khed, Pune',
+    state: 'Maharashtra',
+    latitude: 19.072,
+    longitude: 73.5358,
+    sacredNote: 'Set amidst the Sahyadri hills at the source of the Bhima River.',
+  },
+  {
+    id: 'kashi-vishwanath',
+    order: 7,
+    name: 'Kashi Vishwanath',
+    city: 'Varanasi',
+    state: 'Uttar Pradesh',
+    latitude: 25.3108,
+    longitude: 83.0106,
+    sacredNote: 'At the timeless heart of Kashi along the western bank of the Ganga.',
+  },
+  {
+    id: 'trimbakeshwar',
+    order: 8,
+    name: 'Trimbakeshwar',
+    city: 'Trimbak, Nashik',
+    state: 'Maharashtra',
+    latitude: 19.9322,
+    longitude: 73.5308,
+    sacredNote: 'At the foothills of Brahmagiri near the origin of the Godavari.',
+  },
+  {
+    id: 'vaidyanath',
+    order: 9,
+    name: 'Vaidyanath',
+    city: 'Deoghar',
+    state: 'Jharkhand',
+    latitude: 24.49273,
+    longitude: 86.7,
+    sacredNote: 'Baidyanath Dham, revered shrine of healing and refuge.',
+  },
+  {
+    id: 'nageshwar',
+    order: 10,
+    name: 'Nageshwar',
+    city: 'Darukavana, Dwarka',
+    state: 'Gujarat',
+    latitude: 22.3359,
+    longitude: 69.0869,
+    sacredNote: 'Standing along the sacred coast between Gomti Dwarka and Bet Dwarka.',
+  },
+  {
+    id: 'ramanathaswamy',
+    order: 11,
+    name: 'Ramanathaswamy',
+    city: 'Rameswaram',
+    state: 'Tamil Nadu',
+    latitude: 9.28811,
+    longitude: 79.31728,
+    sacredNote: 'Southern sanctuary on Pamban Island consecrated on the shore of Rama Setu.',
+  },
+  {
+    id: 'grishneshwar',
+    order: 12,
+    name: 'Grishneshwar',
+    city: 'Verul, Ellora',
+    state: 'Maharashtra',
+    latitude: 20.02497,
+    longitude: 75.16992,
+    sacredNote: 'Twelfth Jyotirlinga nestled beside the ancient caves of Ellora.',
+  },
+];

@@ -101,8 +101,24 @@ export interface ResonancePlayerProps {
       listenedSeconds: number;
       completed?: boolean;
     },
+    options?: { keepalive?: boolean },
   ) => Promise<void>;
 }
+
+const isTransientTrackingError = (message: string): boolean => {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('cannot advance beyond audio actually played') ||
+    normalized.includes('does not show a completed playback') ||
+    normalized === 'network error' ||
+    normalized.includes('failed to fetch') ||
+    normalized.includes('load failed') ||
+    normalized.includes('networkerror') ||
+    normalized.includes('too many') ||
+    normalized.includes('timeout') ||
+    normalized.includes('aborted')
+  );
+};
 
 export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, ResonancePlayerProps>(
   (
@@ -124,7 +140,9 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
     const resumePointRef = useRef(resumePoint);
     const resumeAppliedRef = useRef(!resumePoint);
     const playRequestIdRef = useRef(0);
-    const userStartedPlaybackRef = useRef(false);
+    const pendingSeekOnSrcSwapRef = useRef<number | null>(null);
+    const pendingPlayOnSrcSwapRef = useRef(false);
+    const suppressPauseDuringSwapRef = useRef(false);
     const listenedSecondsRef = useRef(resumePoint?.listenedSeconds || 0);
     const lastSavedListenedSecondsRef = useRef(resumePoint?.listenedSeconds || 0);
     const lastAudioTimeRef = useRef<number | null>(null);
@@ -143,20 +161,65 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
     const [trackingError, setTrackingError] = useState<string | null>(null);
 
     useEffect(() => {
+      let cancelled = false;
       const cached = getCachedAudioSrc(streamUrl);
+      pendingSeekOnSrcSwapRef.current = null;
+      pendingPlayOnSrcSwapRef.current = false;
       setAudioSrc(cached);
-      userStartedPlaybackRef.current = false;
 
       if (cached === streamUrl) {
         void prefetchRecordingAudio(streamUrl).then((blobUrl) => {
-          if (!blobUrl) return;
+          if (cancelled || !blobUrl) return;
           const audio = audioRef.current;
-          if (audio && !userStartedPlaybackRef.current && audio.paused && audio.currentTime === 0) {
+          if (!audio) return;
+
+          if (audio.paused) {
+            if (audio.currentTime > 0) {
+              pendingSeekOnSrcSwapRef.current = audio.currentTime;
+            }
+            setAudioSrc(blobUrl);
+            return;
+          }
+
+          // Replace an unbuffered/stalled network stream immediately once in-memory blob is ready
+          if (audio.readyState < 2 && audio.currentTime === 0) {
+            suppressPauseDuringSwapRef.current = true;
+            pendingPlayOnSrcSwapRef.current = true;
             setAudioSrc(blobUrl);
           }
         });
       }
+
+      return () => {
+        cancelled = true;
+      };
     }, [streamUrl]);
+
+    useEffect(() => {
+      if (!pendingPlayOnSrcSwapRef.current) return;
+      pendingPlayOnSrcSwapRef.current = false;
+      const audio = audioRef.current;
+      if (!audio) {
+        suppressPauseDuringSwapRef.current = false;
+        return;
+      }
+
+      audio.load();
+      suppressPauseDuringSwapRef.current = false;
+      const requestId = ++playRequestIdRef.current;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.catch((error: unknown) => {
+          if (requestId !== playRequestIdRef.current) return;
+          if (error instanceof Error && error.name === 'AbortError') return;
+          setIsPlaying(false);
+          if (!(error instanceof DOMException && error.name === 'NotAllowedError')) {
+            const message = error instanceof Error ? error.message : 'Playback could not start.';
+            setPlaybackError(`Audio playback failed: ${message}`);
+          }
+        });
+      }
+    }, [audioSrc]);
 
     const progress = isComplete
       ? 1
@@ -170,7 +233,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
     const stageInfo = getResonanceStageInfo(progress, isPlaying, isComplete);
 
     const persistListeningProgress = useCallback(
-      (audio: HTMLAudioElement, force = false, completed = false) => {
+      (audio: HTMLAudioElement, force = false, completed = false, keepalive = false) => {
         if (!onListeningProgress || !Number.isFinite(audio.duration) || audio.duration <= 0) {
           return Promise.resolve();
         }
@@ -195,6 +258,12 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
           listenedSeconds,
           completed,
         };
+        if (keepalive) {
+          return onListeningProgress(recording.id, update, { keepalive: true }).catch(() => {
+            // Keepalive flush runs during tab backgrounding or navigation unload
+          });
+        }
+
         const request = saveQueueRef.current.then(() =>
           onListeningProgress(recording.id, update),
         );
@@ -211,11 +280,8 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
           (error: unknown) => {
             const message =
               error instanceof Error ? error.message : 'Listening progress could not be saved.';
-            // Anti-skip validation rejections shouldn't disrupt a calming session with red banners
-            if (
-              message.includes('cannot advance beyond audio actually played') ||
-              message.includes('does not show a completed playback')
-            ) {
+            // Transient network/offline blips & anti-skip checks recover on the next sync without banner noise
+            if (isTransientTrackingError(message)) {
               return;
             }
             setTrackingError(message);
@@ -273,17 +339,22 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       if (!onListeningProgress) return;
 
       const flushProgress = () => {
-        if (document.visibilityState !== 'hidden') return;
         const audio = audioRef.current;
         if (!audio) return;
         syncAudioTime(audio);
-        void persistListeningProgress(audio, true);
+        void persistListeningProgress(audio, true, false, true);
       };
 
-      document.addEventListener('visibilitychange', flushProgress);
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden') {
+          flushProgress();
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
       window.addEventListener('pagehide', flushProgress);
       return () => {
-        document.removeEventListener('visibilitychange', flushProgress);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('pagehide', flushProgress);
       };
     }, [onListeningProgress, persistListeningProgress, syncAudioTime]);
@@ -340,11 +411,13 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       if (!audio) return;
 
       setPlaybackError(null);
-      userStartedPlaybackRef.current = true;
 
-      if (audio.error || audio.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
-        const readySrc = getCachedAudioSrc(streamUrl);
-        if (audio.src !== readySrc) {
+      const readySrc = getCachedAudioSrc(streamUrl);
+      const shouldUseCachedBlob = !fromAutoMount && audio.currentTime === 0 && readySrc !== audioSrc && readySrc.startsWith('blob:');
+      if (shouldUseCachedBlob || audio.error || audio.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+        if (!fromAutoMount && readySrc !== audioSrc) {
+          flushSync(() => setAudioSrc(readySrc));
+        } else if (audio.src !== readySrc) {
           audio.src = readySrc;
           setAudioSrc(readySrc);
         }
@@ -375,6 +448,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
         playPromise.catch((error: unknown) => {
           if (requestId !== playRequestIdRef.current) return;
           if (error instanceof Error && error.name === 'AbortError') return;
+          setIsPlaying(false);
           const isAutoplayBlocked =
             fromAutoMount && error instanceof DOMException && error.name === 'NotAllowedError';
           if (!isAutoplayBlocked) {
@@ -383,10 +457,11 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
           }
         });
       }
-    }, [applyResumePoint, duration, isComplete, streamUrl]);
+    }, [applyResumePoint, audioSrc, duration, isComplete, streamUrl]);
 
     const pauseAudio = useCallback(() => {
       playRequestIdRef.current += 1;
+      pendingPlayOnSrcSwapRef.current = false;
       audioRef.current?.pause();
     }, []);
 
@@ -405,7 +480,8 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
       if (!audio) return;
 
       setPlaybackError(null);
-      userStartedPlaybackRef.current = true;
+      pendingSeekOnSrcSwapRef.current = null;
+      pendingPlayOnSrcSwapRef.current = false;
       resumeAppliedRef.current = true;
       setCurrentTime(0);
       setIsComplete(false);
@@ -416,8 +492,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
 
       const readySrc = getCachedAudioSrc(streamUrl);
       if (audio.error || (readySrc !== audioSrc && readySrc.startsWith('blob:'))) {
-        audio.src = readySrc;
-        setAudioSrc(readySrc);
+        flushSync(() => setAudioSrc(readySrc));
         audio.load();
       } else if (audio.readyState >= 1) {
         try {
@@ -435,6 +510,7 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
         playPromise.catch((error: unknown) => {
           if (requestId !== playRequestIdRef.current) return;
           if (error instanceof Error && error.name === 'AbortError') return;
+          setIsPlaying(false);
           const message = error instanceof Error ? error.message : 'Playback could not start.';
           setPlaybackError(`Audio playback failed: ${message}`);
         });
@@ -546,8 +622,23 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
                 const actualDuration = event.currentTarget.duration;
                 if (Number.isFinite(actualDuration) && actualDuration > 0) {
                   setDuration(actualDuration);
-                  applyResumePoint(event.currentTarget);
+                  if (pendingSeekOnSrcSwapRef.current !== null) {
+                    const seekTo = Math.min(pendingSeekOnSrcSwapRef.current, actualDuration);
+                    pendingSeekOnSrcSwapRef.current = null;
+                    try {
+                      event.currentTarget.currentTime = seekTo;
+                      lastAudioTimeRef.current = seekTo;
+                      setCurrentTime(seekTo);
+                    } catch {
+                      // Safe fallback
+                    }
+                  } else {
+                    applyResumePoint(event.currentTarget);
+                  }
                 }
+              }}
+              onCanPlay={(event) => {
+                applyResumePoint(event.currentTarget);
               }}
               onDurationChange={(event) => {
                 const actualDuration = event.currentTarget.duration;
@@ -574,6 +665,10 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
                 setIsComplete(false);
               }}
               onPause={(event) => {
+                if (suppressPauseDuringSwapRef.current) {
+                  suppressPauseDuringSwapRef.current = false;
+                  return;
+                }
                 playRequestIdRef.current += 1;
                 setIsPlaying(false);
                 syncAudioTime(event.currentTarget, true);
@@ -592,6 +687,12 @@ export const ResonancePlayer = React.forwardRef<ResonancePlayerHandle, Resonance
                 void persistListeningProgress(event.currentTarget, true, true);
               }}
               onError={() => {
+                const cached = getCachedAudioSrc(streamUrl);
+                if (cached !== audioSrc && cached.startsWith('blob:')) {
+                  pendingPlayOnSrcSwapRef.current = isPlaying;
+                  setAudioSrc(cached);
+                  return;
+                }
                 playRequestIdRef.current += 1;
                 setIsPlaying(false);
                 setPlaybackError('This recording could not be loaded. Please try again later.');
@@ -791,9 +892,10 @@ export const DailyResonancePage: React.FC = () => {
         listenedSeconds: number;
         completed?: boolean;
       },
+      options?: { keepalive?: boolean },
     ) => {
       if (isAuthenticated) {
-        await dailyResonanceService.saveListeningProgress(recordingId, progress);
+        await dailyResonanceService.saveListeningProgress(recordingId, progress, options);
       }
     },
     [isAuthenticated],

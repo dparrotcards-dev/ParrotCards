@@ -37,6 +37,12 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       'Listen to the daily Resonance session and follow a calming Shadow Discharge visual synchronized to the recording.',
     indexable: false,
   },
+  '/jyotirlinga-compass': {
+    title: '12 Jyotirlinga Compass | Parrot Cards',
+    description:
+      'Find true-north geographical direction and straight-line distance from your location to all twelve sacred Jyotirlinga shrines.',
+    indexable: true,
+  },
   '/admin/daily-recordings': {
     title: 'Daily Recordings Admin | Parrot Cards',
     description: 'Upload and publish the daily Resonance recordings.',
@@ -174,6 +180,7 @@ export const BREADCRUMB_LABELS: Record<string, string> = {
   '/about': 'About',
   '/daily-resonance': 'Daily Resonance',
   '/daily-rituals': 'Daily Resonance',
+  '/jyotirlinga-compass': '12 Jyotirlinga Compass',
   '/cosmic-store': 'Cosmic Store',
   '/pricing': 'Pricing',
   '/support': 'Contact',

@@ -130,7 +130,8 @@ export const DailyResonanceAccount: React.FC = () => {
         listenedSeconds: number;
         completed?: boolean;
       },
-    ) => dailyResonanceService.saveListeningProgress(recordingId, progress),
+      options?: { keepalive?: boolean },
+    ) => dailyResonanceService.saveListeningProgress(recordingId, progress, options),
     [],
   );
 
@@ -372,7 +373,7 @@ export const DailyResonanceAccount: React.FC = () => {
                           audioUrl: session.audioUrl,
                           status: 'published',
                           publishedAt: session.recordingDate,
-                          durationSeconds: session.resume?.durationSeconds,
+                          durationSeconds: session.durationSeconds ?? session.resume?.durationSeconds,
                         }
                       : null;
                   return (

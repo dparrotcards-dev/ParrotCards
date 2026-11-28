@@ -31,6 +31,10 @@ export const Footer: React.FC<FooterProps> = ({ isHome = false }) => {
             About
           </Link>
           <span className="text-[#8C6D3B]/40">|</span>
+          <Link to="/jyotirlinga-compass" className="hover:text-[#8C6D3B] transition-colors">
+            Jyotirlinga Compass
+          </Link>
+          <span className="text-[#8C6D3B]/40">|</span>
           <Link to="/pricing" className="hover:text-[#8C6D3B] transition-colors">
             Pricing
           </Link>

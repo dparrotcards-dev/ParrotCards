@@ -23,6 +23,7 @@ export interface DailyResonanceListeningSession {
   recordingDate: string;
   isPublished: boolean;
   audioUrl: string | null;
+  durationSeconds?: number;
   totalPlays: number;
   completedListens: number;
   lastListenedAt: string | null;
@@ -71,6 +72,11 @@ export const getVersionedAudioUrl = (audioUrl: string, versionKey?: string): str
   return `${audioUrl}${separator}v=${encodeURIComponent(versionKey)}`;
 };
 
+export const getFullAudioDownloadUrl = (audioUrl: string): string => {
+  const separator = audioUrl.includes('?') ? '&' : '?';
+  return audioUrl.includes('full=1') ? audioUrl : `${audioUrl}${separator}full=1`;
+};
+
 export const getCachedAudioSrc = (audioUrl: string): string =>
   audioBlobCache.get(audioUrl) || audioUrl;
 
@@ -81,7 +87,11 @@ export const prefetchRecordingAudio = (audioUrl: string): Promise<string | null>
   const pending = inFlightAudioFetches.get(audioUrl);
   if (pending) return pending;
 
-  const task = fetch(audioUrl, { credentials: 'include' })
+  // Omit credentials and mark full=1 so CDN edge serves cached audio to both signed-in and guest users
+  const task = fetch(getFullAudioDownloadUrl(audioUrl), {
+    credentials: 'omit',
+    cache: 'force-cache',
+  })
     .then(async (response) => {
       // Never cache partial 206 responses (e.g. a 2-byte Safari probe) as complete audio
       if (!response.ok || response.status === 206) return null;
@@ -191,17 +201,96 @@ const parseListeningSession = (value: unknown): DailyResonanceListeningSession =
     };
   }
 
+  const durationSeconds =
+    typeof value.durationSeconds === 'number' &&
+    Number.isFinite(value.durationSeconds) &&
+    value.durationSeconds >= 0
+      ? value.durationSeconds
+      : undefined;
+
   return {
     id: value.id,
     title: value.title,
     recordingDate: value.recordingDate,
     isPublished: value.isPublished,
     audioUrl: value.audioUrl === null ? null : api.getUri({ url: value.audioUrl }),
+    durationSeconds,
     totalPlays: value.totalPlays,
     completedListens: value.completedListens,
     lastListenedAt: value.lastListenedAt,
     resume,
   };
+};
+
+const isTransientNetworkError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) return false;
+  const msg = error.message.toLowerCase();
+  return (
+    msg === 'network error' ||
+    msg.includes('failed to fetch') ||
+    msg.includes('load failed') ||
+    msg.includes('networkerror') ||
+    msg.includes('timeout') ||
+    msg.includes('aborted')
+  );
+};
+
+const readAuthHeaderForKeepalive = (): string | null => {
+  try {
+    const raw = localStorage.getItem('pc_token');
+    return raw && raw !== 'undefined' && raw !== 'null' ? `Bearer ${raw}` : null;
+  } catch {
+    return null;
+  }
+};
+
+const readGuestSessionId = (): string | null => {
+  try {
+    return localStorage.getItem('pc_guest_session_id');
+  } catch {
+    return null;
+  }
+};
+
+const sendKeepaliveListeningProgress = async (
+  recordingId: string,
+  progress: {
+    playbackId: string;
+    positionSeconds: number;
+    durationSeconds: number;
+    listenedSeconds: number;
+    completed?: boolean;
+  },
+): Promise<void> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const authHeader = readAuthHeaderForKeepalive();
+  if (authHeader) headers.Authorization = authHeader;
+  const guestId = readGuestSessionId();
+  if (guestId) headers['X-Guest-Session-Id'] = guestId;
+
+  const body = JSON.stringify(progress);
+  const paths = [
+    `/daily-resonance/recordings/${recordingId}/listening`,
+    `/daily-rituals/recordings/${recordingId}/listening`,
+  ];
+
+  for (const path of paths) {
+    const url = api.getUri({ url: path });
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body,
+        credentials: 'include',
+        keepalive: true,
+      });
+      if (response.status !== 404) return;
+    } catch {
+      return;
+    }
+  }
 };
 
 export const dailyResonanceService = {
@@ -271,22 +360,40 @@ export const dailyResonanceService = {
       listenedSeconds: number;
       completed?: boolean;
     },
+    options?: { keepalive?: boolean },
   ): Promise<void> {
-    const requestOptions = { validateStatus: acceptNotFoundForLegacyFallback };
-    let response = await api.put(
-      `/daily-resonance/recordings/${recordingId}/listening`,
-      progress,
-      requestOptions,
-    );
-    if (response.status === 404) {
-      response = await api.put(
-        `/daily-rituals/recordings/${recordingId}/listening`,
+    if (options?.keepalive) {
+      await sendKeepaliveListeningProgress(recordingId, progress);
+      return;
+    }
+
+    const sendOnce = async () => {
+      const requestOptions = { validateStatus: acceptNotFoundForLegacyFallback };
+      let response = await api.put(
+        `/daily-resonance/recordings/${recordingId}/listening`,
         progress,
         requestOptions,
       );
-    }
-    if (response.status === 404) {
-      throw new Error('The Daily Resonance recording was not found.');
+      if (response.status === 404) {
+        response = await api.put(
+          `/daily-rituals/recordings/${recordingId}/listening`,
+          progress,
+          requestOptions,
+        );
+      }
+      if (response.status === 404) {
+        throw new Error('The Daily Resonance recording was not found.');
+      }
+    };
+
+    try {
+      await sendOnce();
+    } catch (error) {
+      if (!isTransientNetworkError(error)) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      await sendOnce();
     }
   },
 };

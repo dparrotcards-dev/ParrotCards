@@ -30,6 +30,9 @@ const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default:
 const DailyResonancePage = lazy(() =>
   import('./pages/DailyResonancePage').then((m) => ({ default: m.DailyResonancePage })),
 );
+const JyotirlingaCompassPage = lazy(() =>
+  import('./pages/JyotirlingaCompassPage').then((m) => ({ default: m.JyotirlingaCompassPage })),
+);
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })));
 const SupportPage = lazy(() => import('./pages/SupportPage').then((m) => ({ default: m.SupportPage })));
@@ -276,6 +279,7 @@ export const App: React.FC = () => {
               <Route path="about" element={<AboutPage />} />
               <Route path="daily-resonance" element={<DailyResonancePage />} />
               <Route path="daily-rituals" element={<LegacyDailyResonanceRedirect to="/daily-resonance" />} />
+              <Route path="jyotirlinga-compass" element={<JyotirlingaCompassPage />} />
               <Route path="privacy" element={<PrivacyPolicyPage />} />
               <Route path="terms" element={<TermsPage />} />
               <Route path="support" element={<SupportPage />} />

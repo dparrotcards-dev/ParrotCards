@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
+  Compass,
   Heart,
   Info,
   Shield,
@@ -91,6 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
   const isCurrent = (to: string) => {
     if (to === '/deck') return location.pathname === '/deck';
     if (to === '/about') return location.pathname === '/about';
+    if (to === '/jyotirlinga-compass') return location.pathname === '/jyotirlinga-compass';
     if (to === '/cosmic-store') return location.pathname === '/cosmic-store';
     if (to === '/cart') return location.pathname === '/cart';
     if (to === '/support') return location.pathname === '/support';
@@ -173,6 +175,21 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
             )}
           </Link>
 
+          {/* 12 JYOTIRLINGA COMPASS */}
+          <Link
+            to="/jyotirlinga-compass"
+            aria-label="12 Jyotirlinga Compass"
+            className={`relative flex items-center gap-1.5 font-cinzel text-[11px] xl:text-[11.5px] font-bold uppercase tracking-[0.06em] select-none cursor-pointer outline-none caret-transparent transition-colors pb-1 px-1 ${
+              isCurrent('/jyotirlinga-compass') ? 'text-[#8C6D3B]' : 'text-[#1A1817] hover:text-[#8C6D3B]'
+            }`}
+          >
+            <Compass aria-hidden="true" className="h-4 w-4 stroke-[1.8] text-[#9A7130] pointer-events-none" />
+            <span className="pointer-events-none select-none">Compass</span>
+            {isCurrent('/jyotirlinga-compass') && (
+              <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#8C6D3B] rounded-full pointer-events-none" />
+            )}
+          </Link>
+
           {/* WISHLIST & CART ACTION ICONS */}
           <div className="flex items-center gap-3 pl-1 sm:pl-2 select-none">
             {/* WISHLIST (HEART WITH RED BADGE) */}
@@ -226,14 +243,26 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
             )}
           </Link>
 
-          {/* Mobile Wishlist & Cart icons (visible on < lg) */}
-          <div className="flex items-center gap-1 sm:gap-1.5 lg:hidden">
+          {/* Mobile Compass, Wishlist & Cart icons (visible on < lg) */}
+          <div className="flex items-center gap-0.5 sm:gap-1.5 lg:hidden">
+            <Link
+              to="/jyotirlinga-compass"
+              title="12 Jyotirlinga Compass"
+              aria-label="12 Jyotirlinga Compass"
+              className={`relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full transition-colors cursor-pointer ${
+                isCurrent('/jyotirlinga-compass')
+                  ? 'bg-[#8C6D3B]/15 text-[#8C6D3B]'
+                  : 'text-[#9A7130] hover:bg-[#8C6D3B]/10'
+              }`}
+            >
+              <Compass aria-hidden="true" className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px] stroke-[1.8]" />
+            </Link>
             <button
               type="button"
               onClick={() => setWishlistDrawerOpen(true)}
               title={`Wishlist (${wishlistCount})`}
               aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ''}`}
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#9A7130] transition-colors hover:bg-[#8C6D3B]/10 cursor-pointer"
+              className="relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-[#9A7130] transition-colors hover:bg-[#8C6D3B]/10 cursor-pointer"
             >
               <Heart aria-hidden="true" className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px] stroke-[1.8]" />
               {wishlistCount > 0 && (
@@ -247,7 +276,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
               state={!isAuthenticated ? { from: '/cart' } : undefined}
               title="Cart"
               aria-label="Cart"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full text-[#9A7130] transition-colors hover:bg-[#8C6D3B]/10 cursor-pointer"
+              className="relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-[#9A7130] transition-colors hover:bg-[#8C6D3B]/10 cursor-pointer"
             >
               <ShoppingCart aria-hidden="true" className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px] stroke-[1.8]" />
               {isAuthenticated && cartCount > 0 && (
