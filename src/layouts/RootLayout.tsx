@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { StarrySky } from '../components/StarrySky';
 import { Navbar } from '../components/Navbar';
 import { MobileBottomNav } from '../components/MobileBottomNav';
-import { BreadcrumbTrail } from '../components/SeoManager';
 
 export const RootLayout: React.FC = () => {
   const location = useLocation();
@@ -40,8 +39,6 @@ export const RootLayout: React.FC = () => {
 
       {/* Main Top Navigation */}
       {!isAdminLogin && <Navbar isHome={isHome || isSupport} isDeck={isDeck} />}
-
-      <BreadcrumbTrail />
 
       {/* Dynamic Route Content */}
       <main className={`relative flex-1 flex flex-col min-h-0 justify-center ${isAdminLogin ? '' : 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0'}`}>

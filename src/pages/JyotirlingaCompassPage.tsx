@@ -240,7 +240,7 @@ export const JyotirlingaCompassPage: React.FC = () => {
     };
   }, [vibrateBlockedByGesture]);
 
-  // High-frequency alignment tracking (~60Hz) so rapid turns never skip past +/- 6 degrees
+  // High-frequency alignment tracking (~60Hz) across mobile, tablet, and sensor-equipped laptops
   useEffect(() => {
     evaluateHeadingAlignment(liveHeadingRef.current ?? deviceHeading);
     return subscribeHeading((heading) => {
@@ -287,16 +287,9 @@ export const JyotirlingaCompassPage: React.FC = () => {
       <div className="mx-auto w-full max-w-5xl space-y-7 sm:space-y-9">
         {/* Header */}
         <header className="text-center">
-          <div className="flex items-center justify-center gap-2.5 font-cinzel text-[10px] font-bold uppercase tracking-[0.28em] text-[#8C6D3B] sm:text-xs">
-            <Compass aria-hidden="true" className="h-4 w-4" />
-            <span>Sacred Pilgrimage / Directional Compass</span>
-          </div>
-          <h1 className="mt-2.5 font-cormorant text-4xl font-bold text-[#2A1D14] sm:text-5xl">
-            13 Jyotirlinga Compass
+          <h1 className="font-cormorant text-4xl font-bold text-[#2A1D14] sm:text-5xl">
+            Find Your Sacred Direction
           </h1>
-          <p className="mx-auto mt-2 max-w-2xl font-cormorant text-lg italic text-[#6D5F4E] sm:text-xl">
-            Geographical true-north bearing and straight-line distance from where you stand to the thirteen sacred shrines.
-          </p>
         </header>
 
         {/* Primary Interactive Compass Card */}
@@ -525,74 +518,6 @@ export const JyotirlingaCompassPage: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* All 12 Jyotirlingas Selector Grid */}
-        <section aria-labelledby="twelve-jyotirlingas-heading">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <p className="font-cinzel text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A783D]">
-                13 Sacred Shrines
-              </p>
-              <h2
-                id="twelve-jyotirlingas-heading"
-                className="mt-0.5 font-cormorant text-3xl font-bold text-[#2A1D14]"
-              >
-                Choose a Sacred Shrine
-              </h2>
-            </div>
-            <span className="text-xs text-[#7B6E5E]">13 verified coordinates</span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {JYOTIRLINGA_SHRINES.map((shrine) => {
-              const isSelected = shrine.id === selectedShrine.id;
-              const shrineMetrics = metricsByShrineId.get(shrine.id);
-              const roman = ROMAN_NUMERALS[shrine.order - 1] || String(shrine.order);
-
-              return (
-                <button
-                  key={shrine.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => setSelectedId(shrine.id)}
-                  className={`flex flex-col justify-between rounded-2xl border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B] ${
-                    isSelected
-                      ? 'border-[#B68B3C] bg-gradient-to-br from-[#FFFDF9] to-[#F7ECDA] shadow-[0_8px_24px_rgba(140,109,59,0.16)]'
-                      : 'border-[#E6DCCB] bg-[#FFFDF9]/90 shadow-[0_3px_14px_rgba(54,39,22,0.04)] hover:border-[#C9B084] hover:bg-[#FFFDF9]'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-cinzel text-[10px] font-bold uppercase tracking-[0.16em] text-[#9A783D]">
-                        Shrine {roman}
-                      </span>
-                      {shrineMetrics && (
-                        <span className="rounded-full border border-[#E5D7BF] bg-[#FAF4E8] px-2.5 py-0.5 text-[11px] font-semibold tabular-nums text-[#6B4F22]">
-                          {Math.round(shrineMetrics.bearingDegrees)}° {shrineMetrics.cardinal.short}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="mt-1.5 font-cormorant text-2xl font-bold text-[#2A1D14]">
-                      {shrine.name}
-                    </h3>
-                    <p className="mt-0.5 text-xs text-[#6B5D4D]">
-                      {shrine.city}, {shrine.state}
-                    </p>
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between border-t border-[#EEE4D4] pt-2.5 text-xs">
-                    <span className="tabular-nums text-[#7C6F5E]">
-                      {shrine.latitude.toFixed(2)}°N, {shrine.longitude.toFixed(2)}°E
-                    </span>
-                    <span className="font-semibold tabular-nums text-[#5A4523]">
-                      {shrineMetrics ? formatDistanceLabel(shrineMetrics.distanceKm) : 'Tap to select'}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
           </div>
         </section>
 

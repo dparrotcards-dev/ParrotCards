@@ -38,7 +38,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     indexable: false,
   },
   '/jyotirlinga-compass': {
-    title: '13 Jyotirlinga Compass | Parrot Cards',
+    title: 'Find Your Sacred Direction | Parrot Cards',
     description:
       'Find true-north geographical direction and straight-line distance from your location to the thirteen sacred Jyotirlinga and Surajkund shrines.',
     indexable: true,
@@ -180,7 +180,7 @@ export const BREADCRUMB_LABELS: Record<string, string> = {
   '/about': 'About',
   '/daily-resonance': 'Daily Resonance',
   '/daily-rituals': 'Daily Resonance',
-  '/jyotirlinga-compass': '13 Jyotirlinga Compass',
+  '/jyotirlinga-compass': 'Find Your Sacred Direction',
   '/cosmic-store': 'Cosmic Store',
   '/pricing': 'Pricing',
   '/support': 'Contact',

@@ -291,7 +291,7 @@ export const SacredCompassDial: React.FC<SacredCompassDialProps> = ({
             ? 'Live compass active — allow location to aim target needle'
             : isAligned
               ? `Exact direction matched — ${shrineName} is straight ahead`
-              : 'Live compass active — rotate phone in real time'
+              : 'Live compass active — rotate device in real time'
           : !hasBearing
             ? 'Waiting for geographical location'
             : 'True-North reference (Top of dial = North)'}

@@ -52,12 +52,6 @@ type AbsoluteOrientationSensorConstructor = new (options?: {
   referenceFrame?: 'device' | 'screen';
 }) => AbsoluteOrientationSensorLike;
 
-const hasTouchInput = (): boolean => {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-  return coarsePointer || (navigator.maxTouchPoints ?? 0) > 0;
-};
-
 const isLikelyDesktopBrowser = (): boolean => {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return true;
   const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
@@ -110,6 +104,7 @@ export interface UseJyotirlingaCompassResult {
 }
 
 const SENSOR_PROBE_TIMEOUT_MS = 2200;
+const DESKTOP_SENSOR_PROBE_TIMEOUT_MS = 650;
 const UI_HEADING_SYNC_INTERVAL_MS = 90;
 
 export const useJyotirlingaCompass = (): UseJyotirlingaCompassResult => {
@@ -382,7 +377,9 @@ export const useJyotirlingaCompass = (): UseJyotirlingaCompassResult => {
       };
       document.addEventListener('visibilitychange', handleVisibilityChange);
 
-      const probeDelay = requirePermissionAfterMs ?? SENSOR_PROBE_TIMEOUT_MS;
+      const probeDelay =
+        requirePermissionAfterMs ??
+        (isLikelyDesktopBrowser() ? DESKTOP_SENSOR_PROBE_TIMEOUT_MS : SENSOR_PROBE_TIMEOUT_MS);
       const timeoutId = window.setTimeout(() => {
         if (settled) return;
         if (requirePermissionAfterMs !== undefined) {
@@ -399,7 +396,7 @@ export const useJyotirlingaCompass = (): UseJyotirlingaCompassResult => {
         setSensorSource(null);
         setSensorMessage(
           desktop
-            ? 'Desktop browsers do not have a magnetometer compass. Showing exact true-north geographical direction from your coordinates.'
+            ? 'No compass magnetometer sensor detected on this PC/laptop. Devices with a compass sensor rotate automatically when turned; showing true-north reference here.'
             : 'True-north magnetometer readings are unavailable in this browser. Showing verified static true-north direction.',
         );
       }, probeDelay);
@@ -477,21 +474,14 @@ export const useJyotirlingaCompass = (): UseJyotirlingaCompassResult => {
         setSensorMessage(
           'Compass sensors require HTTPS. Showing static true-north directional information.',
         );
-      } else if (!hasTouchInput()) {
-        setSensorStatusSynced('desktop');
-        setSensorMessage(
-          'Live physical compass sensor is unavailable on desktop. The dial stays anchored to True North at the top.',
-        );
       } else if (permissionRequester && isAppleTouchDevice()) {
         // iOS Safari strictly requires a user gesture tap before calling DeviceOrientationEvent.requestPermission(true)
         setSensorStatusSynced('permission-required');
         setSensorMessage(
           'Tap "Enable Live Compass" below to allow Safari compass access so the needle rotates as you turn.',
         );
-      } else if (permissionRequester) {
-        // Modern Chromium mobile: probe ambient absolute stream first while showing button if permission click needed
-        startCompassListening(450);
       } else {
+        // Probe hardware sensors immediately on Android, Windows 2-in-1s, laptops, and desktops
         startCompassListening();
       }
     }
