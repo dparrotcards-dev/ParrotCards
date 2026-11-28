@@ -104,6 +104,7 @@ export interface UseJyotirlingaCompassResult {
   sensorMessage: string | null;
   deviceHeading: number | null;
   liveHeadingRef: MutableRefObject<number | null>;
+  subscribeHeading: (listener: (heading: number) => void) => () => void;
   isUncalibrated: boolean;
   requestCompassPermission: () => Promise<void>;
 }
@@ -130,6 +131,14 @@ export const useJyotirlingaCompass = (): UseJyotirlingaCompassResult => {
   const receivedAbsoluteStreamRef = useRef(false);
   const activeQuaternionSensorRef = useRef(false);
   const stopCompassListenersRef = useRef<(() => void) | null>(null);
+  const headingListenersRef = useRef<Set<(heading: number) => void>>(new Set());
+
+  const subscribeHeading = useCallback((listener: (heading: number) => void) => {
+    headingListenersRef.current.add(listener);
+    return () => {
+      headingListenersRef.current.delete(listener);
+    };
+  }, []);
 
   const setSensorStatusSynced = useCallback((next: CompassSensorStatus) => {
     sensorStatusRef.current = next;
@@ -249,6 +258,7 @@ export const useJyotirlingaCompass = (): UseJyotirlingaCompassResult => {
 
         const smoothed = smoothCompassHeading(liveHeadingRef.current, rawHeading, 0.35);
         liveHeadingRef.current = smoothed;
+        headingListenersRef.current.forEach((listener) => listener(smoothed));
 
         if (sensorStatusRef.current !== 'active') {
           setSensorStatusSynced('active');
@@ -502,6 +512,7 @@ export const useJyotirlingaCompass = (): UseJyotirlingaCompassResult => {
     sensorMessage,
     deviceHeading,
     liveHeadingRef,
+    subscribeHeading,
     isUncalibrated,
     requestCompassPermission,
   };

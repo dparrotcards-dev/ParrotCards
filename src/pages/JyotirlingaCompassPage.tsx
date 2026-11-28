@@ -41,11 +41,74 @@ const ALIGNMENT_ENTER_DEGREES = 6;
 const ALIGNMENT_EXIT_DEGREES = 13;
 const VIBRATION_COOLDOWN_MS = 1400;
 
+const hasWebVibrationSupport = (): boolean =>
+  typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
+
+const getAudioContextClass = (): (new () => AudioContext) | null => {
+  if (typeof window === 'undefined') return null;
+  const win = window as Window & { webkitAudioContext?: new () => AudioContext };
+  return window.AudioContext || win.webkitAudioContext || null;
+};
+
+const unlockSacredAudioContext = (audioCtxRef: React.MutableRefObject<AudioContext | null>): void => {
+  const Ctor = getAudioContextClass();
+  if (!Ctor) return;
+  try {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new Ctor();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      void audioCtxRef.current.resume().catch(() => {});
+    }
+  } catch {
+    // Ignore audio restrictions safely
+  }
+};
+
+const playAlignmentChime = (audioCtxRef: React.MutableRefObject<AudioContext | null>): void => {
+  const Ctor = getAudioContextClass();
+  if (!Ctor) return;
+  try {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new Ctor();
+    }
+    const ctx = audioCtxRef.current;
+    if (ctx.state === 'suspended') {
+      void ctx.resume().catch(() => {});
+    }
+    if (ctx.state !== 'running') return;
+
+    const now = ctx.currentTime;
+    const tones = [
+      { freq: 587.33, peak: 0.08, duration: 0.34 },
+      { freq: 880, peak: 0.045, duration: 0.28 },
+    ];
+    for (const tone of tones) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(tone.freq, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(tone.peak, now + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + tone.duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + tone.duration + 0.02);
+    }
+  } catch {
+    // Safe no-op when audio playback is blocked
+  }
+};
+
 export const JyotirlingaCompassPage: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string>(JYOTIRLINGA_SHRINES[0].id);
   const [isExactAligned, setIsExactAligned] = useState(false);
+  const [vibrateBlockedByGesture, setVibrateBlockedByGesture] = useState(false);
   const hasAlignedThisPassRef = useRef(false);
   const lastVibratedAtRef = useRef(0);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const supportsVibration = hasWebVibrationSupport();
   const {
     locationStatus,
     locationError,
@@ -55,6 +118,7 @@ export const JyotirlingaCompassPage: React.FC = () => {
     sensorMessage,
     deviceHeading,
     liveHeadingRef,
+    subscribeHeading,
     isUncalibrated,
     requestCompassPermission,
   } = useJyotirlingaCompass();
@@ -100,48 +164,102 @@ export const JyotirlingaCompassPage: React.FC = () => {
   const activeMetrics = metricsByShrineId.get(selectedShrine.id) || null;
   const isLiveCompassActive = sensorStatus === 'active' && deviceHeading !== null;
 
+  const triggerAlignmentCue = React.useCallback(() => {
+    const now = Date.now();
+    if (now - lastVibratedAtRef.current < VIBRATION_COOLDOWN_MS) return;
+
+    if (hasWebVibrationSupport()) {
+      try {
+        const pulsed = navigator.vibrate([100, 50, 140]);
+        if (pulsed === false) {
+          setVibrateBlockedByGesture(true);
+          return;
+        }
+        setVibrateBlockedByGesture(false);
+        lastVibratedAtRef.current = now;
+      } catch {
+        // Safe no-op on browsers restricting Vibration API
+      }
+      return;
+    }
+
+    lastVibratedAtRef.current = now;
+    playAlignmentChime(audioCtxRef);
+  }, []);
+
+  const evaluateHeadingAlignment = React.useCallback(
+    (heading: number | null) => {
+      if (sensorStatus !== 'active' || !activeMetrics || heading === null) {
+        if (hasAlignedThisPassRef.current) {
+          hasAlignedThisPassRef.current = false;
+          setIsExactAligned(false);
+        }
+        return;
+      }
+
+      const absDelta = Math.abs(shortestAngleDelta(heading, activeMetrics.bearingDegrees));
+      if (!hasAlignedThisPassRef.current && absDelta <= ALIGNMENT_ENTER_DEGREES) {
+        hasAlignedThisPassRef.current = true;
+        setIsExactAligned(true);
+        triggerAlignmentCue();
+      } else if (hasAlignedThisPassRef.current && absDelta >= ALIGNMENT_EXIT_DEGREES) {
+        hasAlignedThisPassRef.current = false;
+        setIsExactAligned(false);
+      }
+    },
+    [activeMetrics, sensorStatus, triggerAlignmentCue],
+  );
+
   useEffect(() => {
     hasAlignedThisPassRef.current = false;
     setIsExactAligned(false);
   }, [selectedShrine.id]);
 
+  // Prime AudioContext / Chromium Vibration UserActivation cleanly on any screen tap
   useEffect(() => {
-    if (!isLiveCompassActive || !activeMetrics || deviceHeading === null) {
-      hasAlignedThisPassRef.current = false;
-      setIsExactAligned(false);
-      return;
-    }
-
-    const absDelta = Math.abs(shortestAngleDelta(deviceHeading, activeMetrics.bearingDegrees));
-    if (!hasAlignedThisPassRef.current && absDelta <= ALIGNMENT_ENTER_DEGREES) {
-      hasAlignedThisPassRef.current = true;
-      setIsExactAligned(true);
-
-      const now = Date.now();
-      if (now - lastVibratedAtRef.current >= VIBRATION_COOLDOWN_MS) {
-        lastVibratedAtRef.current = now;
+    const onUserInteraction = () => {
+      unlockSacredAudioContext(audioCtxRef);
+      if (vibrateBlockedByGesture && hasWebVibrationSupport()) {
         try {
-          if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-            navigator.vibrate([60, 45, 95]);
+          const ok = navigator.vibrate(hasAlignedThisPassRef.current ? [100, 50, 140] : 1);
+          if (ok !== false) {
+            setVibrateBlockedByGesture(false);
+            if (hasAlignedThisPassRef.current) {
+              lastVibratedAtRef.current = Date.now();
+            }
           }
         } catch {
-          // Safe no-op on browsers restricting Vibration API
+          // ignore
         }
       }
-    } else if (hasAlignedThisPassRef.current && absDelta >= ALIGNMENT_EXIT_DEGREES) {
-      hasAlignedThisPassRef.current = false;
-      setIsExactAligned(false);
-    }
-  }, [activeMetrics, deviceHeading, isLiveCompassActive]);
+    };
+
+    window.addEventListener('pointerdown', onUserInteraction, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', onUserInteraction, { capture: true });
+    };
+  }, [vibrateBlockedByGesture]);
+
+  // High-frequency alignment tracking (~60Hz) so rapid turns never skip past +/- 6 degrees
+  useEffect(() => {
+    evaluateHeadingAlignment(liveHeadingRef.current ?? deviceHeading);
+    return subscribeHeading((heading) => {
+      evaluateHeadingAlignment(heading);
+    });
+  }, [deviceHeading, evaluateHeadingAlignment, liveHeadingRef, subscribeHeading]);
 
   useEffect(() => {
     return () => {
       try {
-        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        if (hasWebVibrationSupport()) {
           navigator.vibrate(0);
         }
       } catch {
         // ignore
+      }
+      if (audioCtxRef.current) {
+        void audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
       }
     };
   }, []);
@@ -206,12 +324,27 @@ export const JyotirlingaCompassPage: React.FC = () => {
               {sensorStatus === 'permission-required' && (
                 <button
                   type="button"
-                  onClick={() => void requestCompassPermission()}
+                  onClick={() => {
+                    unlockSacredAudioContext(audioCtxRef);
+                    void requestCompassPermission();
+                  }}
                   className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#A57E38] to-[#8D692A] px-5 font-cinzel text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_14px_rgba(141,105,42,0.24)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8C6D3B]"
                 >
                   <Smartphone aria-hidden="true" className="h-4 w-4" />
                   Enable Live Compass
                 </button>
+              )}
+
+              {isLiveCompassActive && vibrateBlockedByGesture && (
+                <p className="mt-2.5 max-w-xs text-center text-[11px] leading-snug text-[#7D6542]">
+                  Tap once anywhere on screen to enable alignment vibration.
+                </p>
+              )}
+
+              {isLiveCompassActive && !supportsVibration && (
+                <p className="mt-2.5 max-w-xs text-center text-[11px] leading-snug text-[#7D6542]">
+                  iPhone Safari does not allow websites to vibrate — golden lock + subtle chime will cue you on alignment.
+                </p>
               )}
 
               {isUncalibrated && isLiveCompassActive && (

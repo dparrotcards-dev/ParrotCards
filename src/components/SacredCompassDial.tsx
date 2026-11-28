@@ -124,6 +124,10 @@ export const SacredCompassDial: React.FC<SacredCompassDialProps> = ({
                 strokeOpacity="0.45"
               />
             )}
+
+            {isLiveCompassActive && (
+              <polygon points="180,15 173,4 187,4" fill="#8C6D3B" />
+            )}
           </svg>
 
           {/* Layer 2: GPU-Composited Rotating Compass Rose Dial */}
