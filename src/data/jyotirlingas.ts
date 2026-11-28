@@ -130,4 +130,14 @@ export const JYOTIRLINGA_SHRINES: readonly JyotirlingaShrine[] = [
     longitude: 75.16992,
     sacredNote: 'Twelfth Jyotirlinga nestled beside the ancient caves of Ellora.',
   },
+  {
+    id: 'surajkund',
+    order: 13,
+    name: 'Suraj Kund Kumbhalgarh',
+    city: 'Kumbhalgarh, Rajsamand',
+    state: 'Rajasthan',
+    latitude: 25.191601,
+    longitude: 73.633156,
+    sacredNote: 'Sacred mountain kund and spiritual dhuni nestled in the Aravalli hills of Kumbhalgarh.',
+  },
 ];

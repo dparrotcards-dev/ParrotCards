@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  CheckCircle2,
   Compass,
   LocateFixed,
   MapPin,
@@ -33,10 +34,18 @@ const ROMAN_NUMERALS = [
   'X',
   'XI',
   'XII',
+  'XIII',
 ] as const;
+
+const ALIGNMENT_ENTER_DEGREES = 6;
+const ALIGNMENT_EXIT_DEGREES = 13;
+const VIBRATION_COOLDOWN_MS = 1400;
 
 export const JyotirlingaCompassPage: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string>(JYOTIRLINGA_SHRINES[0].id);
+  const [isExactAligned, setIsExactAligned] = useState(false);
+  const hasAlignedThisPassRef = useRef(false);
+  const lastVibratedAtRef = useRef(0);
   const {
     locationStatus,
     locationError,
@@ -91,13 +100,59 @@ export const JyotirlingaCompassPage: React.FC = () => {
   const activeMetrics = metricsByShrineId.get(selectedShrine.id) || null;
   const isLiveCompassActive = sensorStatus === 'active' && deviceHeading !== null;
 
+  useEffect(() => {
+    hasAlignedThisPassRef.current = false;
+    setIsExactAligned(false);
+  }, [selectedShrine.id]);
+
+  useEffect(() => {
+    if (!isLiveCompassActive || !activeMetrics || deviceHeading === null) {
+      hasAlignedThisPassRef.current = false;
+      setIsExactAligned(false);
+      return;
+    }
+
+    const absDelta = Math.abs(shortestAngleDelta(deviceHeading, activeMetrics.bearingDegrees));
+    if (!hasAlignedThisPassRef.current && absDelta <= ALIGNMENT_ENTER_DEGREES) {
+      hasAlignedThisPassRef.current = true;
+      setIsExactAligned(true);
+
+      const now = Date.now();
+      if (now - lastVibratedAtRef.current >= VIBRATION_COOLDOWN_MS) {
+        lastVibratedAtRef.current = now;
+        try {
+          if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+            navigator.vibrate([60, 45, 95]);
+          }
+        } catch {
+          // Safe no-op on browsers restricting Vibration API
+        }
+      }
+    } else if (hasAlignedThisPassRef.current && absDelta >= ALIGNMENT_EXIT_DEGREES) {
+      hasAlignedThisPassRef.current = false;
+      setIsExactAligned(false);
+    }
+  }, [activeMetrics, deviceHeading, isLiveCompassActive]);
+
+  useEffect(() => {
+    return () => {
+      try {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(0);
+        }
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
+
   const turnGuidance = useMemo(() => {
     if (!isLiveCompassActive || !activeMetrics || deviceHeading === null) {
       return { aligned: false, label: null as string | null };
     }
     const delta = shortestAngleDelta(deviceHeading, activeMetrics.bearingDegrees);
     const absDelta = Math.abs(delta);
-    if (absDelta <= 8) {
+    if (isExactAligned || absDelta <= ALIGNMENT_ENTER_DEGREES) {
       return { aligned: true, label: 'Directly ahead' };
     }
     const degreesRounded = Math.round(absDelta);
@@ -105,7 +160,7 @@ export const JyotirlingaCompassPage: React.FC = () => {
       aligned: false,
       label: delta > 0 ? `Turn ${degreesRounded}° right` : `Turn ${degreesRounded}° left`,
     };
-  }, [activeMetrics, deviceHeading, isLiveCompassActive]);
+  }, [activeMetrics, deviceHeading, isExactAligned, isLiveCompassActive]);
 
   const selectedRoman = ROMAN_NUMERALS[selectedShrine.order - 1] || String(selectedShrine.order);
 
@@ -119,10 +174,10 @@ export const JyotirlingaCompassPage: React.FC = () => {
             <span>Sacred Pilgrimage / Directional Compass</span>
           </div>
           <h1 className="mt-2.5 font-cormorant text-4xl font-bold text-[#2A1D14] sm:text-5xl">
-            12 Jyotirlinga Compass
+            13 Jyotirlinga Compass
           </h1>
           <p className="mx-auto mt-2 max-w-2xl font-cormorant text-lg italic text-[#6D5F4E] sm:text-xl">
-            Geographical true-north bearing and straight-line distance from where you stand to India’s twelve sacred shrines.
+            Geographical true-north bearing and straight-line distance from where you stand to the thirteen sacred shrines.
           </p>
         </header>
 
@@ -172,7 +227,7 @@ export const JyotirlingaCompassPage: React.FC = () => {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E5D5B8] bg-[#FAF2E4] px-3 py-1 font-cinzel text-[10px] font-bold uppercase tracking-[0.16em] text-[#8C6D3B]">
-                    Jyotirlinga {selectedRoman} of XII
+                    Shrine {selectedRoman} of XIII
                   </span>
                   <h2 className="mt-2 font-cormorant text-3xl font-bold text-[#2A1D14] sm:text-4xl">
                     {selectedShrine.name}
@@ -211,11 +266,25 @@ export const JyotirlingaCompassPage: React.FC = () => {
 
               {/* Telemetry Metrics (Direction & Distance) */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#E8DEC9] bg-[#FAF5EB] p-4">
-                  <p className="flex items-center gap-1.5 font-cinzel text-[10px] font-bold uppercase tracking-[0.15em] text-[#8C6D3B]">
-                    <Navigation aria-hidden="true" className="h-3.5 w-3.5" />
-                    True-North Direction
-                  </p>
+                <div
+                  className={`rounded-2xl border p-4 transition-colors duration-300 ${
+                    turnGuidance.aligned && isLiveCompassActive && activeMetrics
+                      ? 'border-[#C99436] bg-gradient-to-br from-[#FFFDF7] to-[#FAF0DA] shadow-[0_6px_20px_rgba(184,137,55,0.16)]'
+                      : 'border-[#E8DEC9] bg-[#FAF5EB]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="flex items-center gap-1.5 font-cinzel text-[10px] font-bold uppercase tracking-[0.15em] text-[#8C6D3B]">
+                      <Navigation aria-hidden="true" className="h-3.5 w-3.5" />
+                      True-North Direction
+                    </p>
+                    {turnGuidance.aligned && isLiveCompassActive && activeMetrics && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#8C6D3B] px-2 py-0.5 font-cinzel text-[9px] font-bold uppercase tracking-wider text-white">
+                        <CheckCircle2 aria-hidden="true" className="h-3 w-3" />
+                        Locked
+                      </span>
+                    )}
+                  </div>
                   {activeMetrics ? (
                     <>
                       <p className="mt-1.5 font-cormorant text-3xl font-bold tabular-nums text-[#2A1D14]">
@@ -260,6 +329,19 @@ export const JyotirlingaCompassPage: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              {turnGuidance.aligned && isLiveCompassActive && activeMetrics && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="flex items-center gap-2.5 rounded-2xl border border-[#C99436]/55 bg-[#FBF1DA] px-4 py-2.5 text-xs font-medium text-[#5F4112]"
+                >
+                  <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-[#9A7026]" />
+                  <span>
+                    Exact direction matched — {selectedShrine.name} is straight ahead ({Math.round(activeMetrics.bearingDegrees)}° {activeMetrics.cardinal.short}).
+                  </span>
+                </div>
+              )}
 
               {/* Location Coordinates & Refresh Controls */}
               <div className="rounded-2xl border border-[#EAE0CF] bg-[#FFFDF9] p-4">
@@ -318,7 +400,7 @@ export const JyotirlingaCompassPage: React.FC = () => {
           <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
             <div>
               <p className="font-cinzel text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A783D]">
-                Dwadasha Jyotirlinga
+                13 Sacred Shrines
               </p>
               <h2
                 id="twelve-jyotirlingas-heading"
@@ -327,7 +409,7 @@ export const JyotirlingaCompassPage: React.FC = () => {
                 Choose a Sacred Shrine
               </h2>
             </div>
-            <span className="text-xs text-[#7B6E5E]">12 verified coordinates</span>
+            <span className="text-xs text-[#7B6E5E]">13 verified coordinates</span>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

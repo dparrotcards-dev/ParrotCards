@@ -175,10 +175,10 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
             )}
           </Link>
 
-          {/* 12 JYOTIRLINGA COMPASS */}
+          {/* 13 JYOTIRLINGA COMPASS */}
           <Link
             to="/jyotirlinga-compass"
-            aria-label="12 Jyotirlinga Compass"
+            aria-label="13 Jyotirlinga Compass"
             className={`relative flex items-center gap-1.5 font-cinzel text-[11px] xl:text-[11.5px] font-bold uppercase tracking-[0.06em] select-none cursor-pointer outline-none caret-transparent transition-colors pb-1 px-1 ${
               isCurrent('/jyotirlinga-compass') ? 'text-[#8C6D3B]' : 'text-[#1A1817] hover:text-[#8C6D3B]'
             }`}
@@ -247,8 +247,8 @@ export const Navbar: React.FC<NavbarProps> = ({ isHome = false, isDeck = false }
           <div className="flex items-center gap-0.5 sm:gap-1.5 lg:hidden">
             <Link
               to="/jyotirlinga-compass"
-              title="12 Jyotirlinga Compass"
-              aria-label="12 Jyotirlinga Compass"
+              title="13 Jyotirlinga Compass"
+              aria-label="13 Jyotirlinga Compass"
               className={`relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full transition-colors cursor-pointer ${
                 isCurrent('/jyotirlinga-compass')
                   ? 'bg-[#8C6D3B]/15 text-[#8C6D3B]'
